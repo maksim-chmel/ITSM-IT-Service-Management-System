@@ -1,4 +1,4 @@
-namespace ITSM.Models;
+﻿namespace ITSM.Models;
 
 public class ErrorViewModel
 {

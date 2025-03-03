@@ -1,6 +1,7 @@
-using System.Diagnostics;
-using Microsoft.AspNetCore.Mvc;
+﻿using System.Diagnostics;
 using ITSM.Models;
+using Microsoft.AspNetCore.Mvc;
+
 
 namespace ITSM.Controllers;
 
@@ -15,6 +16,7 @@ public class HomeController : Controller
 
     public IActionResult Index()
     {
+        ViewData["UserName"] = User.Identity.IsAuthenticated ? User.Identity.Name : "Guest";
         return View();
     }
 
