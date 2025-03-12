@@ -1,5 +1,4 @@
 ﻿using ITSM.Models;
-using ITSM.Repositories;
 
 
 namespace ITSM.Repositories;
