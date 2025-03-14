@@ -1,19 +1,13 @@
-﻿using System.Diagnostics;
-using ITSM.Models;
+﻿using ITSM.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 
 namespace ITSM.Controllers;
 
+[Authorize]
 public class HomeController : Controller
 {
-    private readonly ILogger<HomeController> _logger;
-
-    public HomeController(ILogger<HomeController> logger)
-    {
-        _logger = logger;
-    }
-
     public IActionResult Index()
     {
         ViewData["UserName"] = User.Identity.IsAuthenticated ? User.Identity.Name : "Guest";
@@ -30,7 +24,4 @@ public class HomeController : Controller
         var model = new ErrorViewModel { ErrorMessage = message };
         return View(model);
     }
-   
-
-
 }

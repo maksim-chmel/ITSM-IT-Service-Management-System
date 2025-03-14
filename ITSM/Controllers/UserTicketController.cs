@@ -1,25 +1,26 @@
-﻿using ITSM.Models;
-using ITSM.Repositories;
+﻿using ITSM.Repositories;
 using ITSM.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ITSM.Controllers;
 
-public class TicketController(IUserRepository userRepository, ITicketRepository ticketRepository) : Controller
+[Authorize]
+public class UserTicketController(IUserManagementRepository userRepository, ITicketRepository ticketRepository)
+    : Controller
 {
     [HttpGet]
     public IActionResult CreateTicket()
     {
-        return View(new TicketViewModel());
+        return View(new TicketCreateViewModel());
     }
 
     [HttpPost]
-    public async Task<IActionResult> CreateTicket(TicketViewModel newTicket)
+    public async Task<IActionResult> CreateTicket(TicketCreateViewModel newTicketCreate)
     {
         var currentUser = await userRepository.GetCurrentUserAsync(User);
 
-        await ticketRepository.CreateNewTicket(newTicket, currentUser);
+        await ticketRepository.CreateNewTicket(newTicketCreate, currentUser);
 
         return RedirectToAction("CreateTicket");
     }
@@ -30,14 +31,6 @@ public class TicketController(IUserRepository userRepository, ITicketRepository 
         var currentUser = await userRepository.GetCurrentUserAsync(User);
         if (currentUser == null) throw new Exception("User not found");
         var list = await ticketRepository.GetUserTickets(currentUser.Id);
-        return View(list);
-    }
-
-    [HttpGet]
-    [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> AllTicketsList()
-    {
-        var list = await ticketRepository.GetAllTickets();
         return View(list);
     }
 }

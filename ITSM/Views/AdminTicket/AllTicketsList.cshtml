@@ -1,4 +1,5 @@
-﻿@model IEnumerable<ITSM.Models.Ticket>
+﻿@using Microsoft.AspNetCore.Mvc.TagHelpers
+@model IEnumerable<ITSM.Models.Ticket>
 
 @{
     ViewData["Title"] = "All Tickets";
@@ -11,12 +12,13 @@
     <tr>
         <th>Номер</th>
         <th>Title</th>
-        <th>Description</th>
-        <th>Created At</th>
-        <th>Author Id</th>
+        <th>Status</th>
         <th>Author Name</th>
         <th>Assigned To</th>
-        <th>Status</th>
+        <th>Created At</th>
+        <th>Closed At To</th>
+        
+        
     </tr>
     </thead>
     <tbody>
@@ -25,13 +27,17 @@
         <tr>
             <td>@ticket.Id</td>
             <td>@ticket.Title</td>
-            <td>@ticket.Description</td>
-            <td>@ticket.CreatedAt</td>
-            <td>@ticket.AuthorId</td>
+            <td>@ticket.Status</td>
             <td>@ticket.AuthorName</td>
             <td>@ticket.AssignedTo</td>
-            <td>@ticket.Status</td>
+            <td>@ticket.CreatedAt</td>
+            <td>@ticket.ClosedAt</td>
+            
+            <td>
+                <a asp-controller="AdminTicket" asp-action="Details" asp-route-id="@ticket.Id" class="btn btn-primary">Подробнее</a>
+            </td>
         </tr>
+        
     }
     </tbody>
 </table>

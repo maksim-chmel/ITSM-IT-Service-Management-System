@@ -1,5 +1,5 @@
 ﻿@using Microsoft.AspNetCore.Mvc.TagHelpers
-@model ITSM.ViewModels.TicketViewModel
+@model ITSM.ViewModels.TicketCreateViewModel
 
 @{
     ViewData["Title"] = "Створити заявку";
@@ -10,7 +10,7 @@
 <form asp-action="CreateTicket" method="post">
     <div class="mb-3">
         <label asp-for="Title" class="form-label"></label>
-        <input asp-for="Title" class="form-control" />
+        <input asp-for="Title" class="form-control"/>
         <span asp-validation-for="Title" class="text-danger"></span>
     </div>
 

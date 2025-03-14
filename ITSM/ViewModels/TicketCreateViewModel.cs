@@ -1,7 +1,7 @@
 ﻿using ITSM.Enums;
 using System.ComponentModel.DataAnnotations;
 namespace ITSM.ViewModels;
-public class TicketViewModel
+public class TicketCreateViewModel
 {
     public int Id { get; set; }
 
@@ -17,4 +17,5 @@ public class TicketViewModel
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     
     public TicketStatus Status { get; set; } = TicketStatus.New;
+    
 }

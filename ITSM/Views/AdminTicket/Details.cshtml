@@ -1,0 +1,104 @@
+﻿@using Microsoft.AspNetCore.Mvc.TagHelpers
+@model ITSM.ViewModels.TicketDetailsViewModel
+
+<h1>@Model.Ticket.Title</h1>
+
+<table class="table">
+    <tr>
+        <th>Номер:</th>
+        <td>@Model.Ticket.Id</td>
+    </tr>
+    <tr>
+        <th>Название:</th>
+        <td>@Model.Ticket.Title</td>
+    </tr>
+    <tr>
+        <th>Описание:</th>
+        <td>@Model.Ticket.Description</td>
+    </tr>
+    <tr>
+        <th>Дата создания:</th>
+        <td>@Model.Ticket.CreatedAt</td>
+    </tr>
+    <tr>
+        <th>Автор:</th>
+        <td>@Model.Ticket.AuthorName</td>
+    </tr>
+    <tr>
+        <th>Назначено:</th>
+        <td>@Model.Ticket.AssignedTo</td>
+    </tr>
+    <tr>
+        <th>FixDescription:</th>
+        <td>@Model.Ticket.FixDescription</td>
+    </tr>
+    <tr>
+        <th>Статус:</th>
+        <td>@Model.Ticket.Status</td>
+    </tr>
+</table>
+
+<h3>Заметки</h3>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Дата</th>
+            <th>Заметка</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var note in Model.TicketHistory)
+        {
+            <tr>
+                <td>@note.CreatedAt.ToString("dd.MM.yyyy HH:mm")</td>
+                <td>@note.AdminComment</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+
+<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addNoteModal">
+    Добавить заметку
+</button>
+
+<form method="post" asp-controller="AdminTicket" asp-action="CloseTicket">
+    <input type="hidden" name="id" value="@Model.Ticket.Id"/>
+    <button type="submit" class="btn btn-danger">Закрыть заявку</button>
+</form>
+
+
+
+<div class="modal fade" id="addNoteModal" tabindex="-1" aria-labelledby="addNoteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addNoteModalLabel">Добавить заметку</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post" asp-controller="AdminTicket" asp-action="AddTicketStep">
+                    <input type="hidden" name="ticketId" value="@Model.Ticket.Id"/>
+                    <div class="mb-3">
+                        <label for="noteDescription" class="form-label">Заметка:</label>
+                        <textarea class="form-control" id="noteDescription" name="adminComment" rows="3" placeholder="Добавьте заметку"></textarea>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                        <button type="submit" class="btn btn-primary">Сохранить заметку</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@if (TempData["TicketClosed"] != null)
+{
+    <div class="alert alert-success" role="alert">
+        Заявка успешно закрыта.
+    </div>
+}
+
+<a asp-controller="AdminTicket" asp-action="AllTicketsList" class="btn btn-secondary">Назад</a>

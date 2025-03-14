@@ -1,12 +1,14 @@
 ﻿using System.Security.Claims;
 using ITSM.DB;
 using ITSM.Models;
+using ITSM.ViewModels;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace ITSM.Repositories;
 
-public class UserRepository(DBaseContext dBaseContext,UserManager<User> userManager) : IUserRepository
+public class UserManagementRepository(DBaseContext dBaseContext, UserManager<User> userManager)
+    : IUserManagementRepository
 {
     public async Task<User?> GetUserById(string id)
     {
@@ -31,5 +33,19 @@ public class UserRepository(DBaseContext dBaseContext,UserManager<User> userMana
     public async Task<User?> GetCurrentUserAsync(ClaimsPrincipal principal)
     {
         return await userManager.GetUserAsync(principal);
+    }
+
+    public async Task EditUser(string id, EditUserViewModel editmodel)
+    {
+        var user = await GetUserById(id);
+        if (user != null)
+        {
+            user.UserName = editmodel.UserName;
+            user.Email = editmodel.Email;
+            user.PhoneNumber = editmodel.PhoneNumber;
+            user.Role = editmodel.Role;
+        }
+        await dBaseContext.SaveChangesAsync();
+        
     }
 }

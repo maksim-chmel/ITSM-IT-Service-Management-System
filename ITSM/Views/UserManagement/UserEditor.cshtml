@@ -1,0 +1,29 @@
+﻿@using Microsoft.AspNetCore.Mvc.TagHelpers
+@model ITSM.ViewModels.EditUserViewModel
+
+@{
+    ViewData["Title"] = "Редактировать пользователя";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<form asp-action="UserEditor" method="post">
+    <div class="form-group">
+        <label for="UserName">Имя пользователя</label>
+        <input type="text" class="form-control" id="UserName" name="UserName" value="@Model.UserName" required/>
+    </div>
+
+    <div class="form-group">
+        <label for="Email">Электронная почта</label>
+        <input type="email" class="form-control" id="Email" name="Email" value="@Model.Email" required/>
+    </div>
+
+    <div class="form-group">
+        <label for="PhoneNumber">Номер телефона</label>
+        <input type="text" class="form-control" id="PhoneNumber" name="PhoneNumber" value="@Model.PhoneNumber"
+               required/>
+    </div>
+    
+    <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+    <a asp-controller="UserManagement" asp-action="UsersList" class="btn btn-secondary">Назад</a>
+</form>

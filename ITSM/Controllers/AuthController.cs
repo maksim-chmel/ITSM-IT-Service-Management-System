@@ -1,10 +1,12 @@
 ﻿using ITSM.Models;
 using ITSM.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ITSM.Controllers;
 
+[AllowAnonymous]
 public class AuthController : Controller
 {
     private readonly UserManager<User> _userManager;
@@ -16,14 +18,14 @@ public class AuthController : Controller
         _signInManager = signInManager;
     }
 
-   
+
     [HttpGet]
     public IActionResult Register()
     {
         return View();
     }
 
-  
+
     [HttpPost]
     public async Task<IActionResult> Register(RegisterViewModel model)
     {
@@ -43,17 +45,18 @@ public class AuthController : Controller
                 ModelState.AddModelError(string.Empty, error.Description);
             }
         }
+
         return View(model);
     }
 
-  
+
     [HttpGet]
     public IActionResult Login()
     {
         return View();
     }
 
- 
+
     [HttpPost]
     public async Task<IActionResult> Login(LoginViewModel model)
     {
@@ -66,7 +69,7 @@ public class AuthController : Controller
                 var result = await _signInManager.PasswordSignInAsync(user, model.Password, model.RememberMe, false);
                 if (result.Succeeded)
                 {
-                    return RedirectToAction("Index", "Home"); 
+                    return RedirectToAction("Index", "Home");
                 }
                 else
                 {
@@ -78,10 +81,11 @@ public class AuthController : Controller
                 ModelState.AddModelError(string.Empty, "Пользователь не найден.");
             }
         }
+
         return View(model);
     }
 
- 
+    [Authorize]
     public async Task<IActionResult> Logout()
     {
         await _signInManager.SignOutAsync();
