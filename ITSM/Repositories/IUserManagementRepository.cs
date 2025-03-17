@@ -7,7 +7,7 @@ namespace ITSM.Repositories;
 public interface IUserManagementRepository
 {
     Task<User?> GetUserById(string id);
-    Task DeleteUserById(string id);
+    Task<bool> DeleteUserById(string userId);
     Task<List<User>> GetAllUsersToList();
     Task<User?> GetCurrentUserAsync(ClaimsPrincipal principal);
     Task EditUser(string id, EditUserViewModel editmodel);

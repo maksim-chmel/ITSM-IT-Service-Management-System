@@ -1,5 +1,7 @@
 ﻿using ITSM.Enums;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Mvc.Rendering;
+
 namespace ITSM.ViewModels;
 public class TicketCreateViewModel
 {
@@ -17,5 +19,11 @@ public class TicketCreateViewModel
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     
     public TicketStatus Status { get; set; } = TicketStatus.New;
-    
+
+    // Добавленное свойство для выбора категории
+    [Required(ErrorMessage = "Категорія обов'язкова")]
+    public int CategoryId { get; set; } = 1;
+    public IEnumerable<SelectListItem> Categories { get; set; }
+    public string? AuthorName { get; set; }
 }
+

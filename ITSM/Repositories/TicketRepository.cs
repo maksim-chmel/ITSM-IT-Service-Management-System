@@ -2,27 +2,29 @@
 using ITSM.Enums;
 using ITSM.Models;
 using ITSM.ViewModels;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 
 namespace ITSM.Repositories;
 
 public class TicketRepository(DBaseContext dBaseContext) : ITicketRepository
 {
-    public async Task CreateNewTicket(TicketCreateViewModel newTicketCreate, User user)
+    public async Task CreateNewTicket(TicketCreateViewModel model, User author)
     {
         var ticket = new Ticket
         {
-            Title = newTicketCreate.Title,
-            Description = newTicketCreate.Description,
-            CreatedAt = newTicketCreate.CreatedAt,
-            Status = newTicketCreate.Status,
-            ContactNumber = user.PhoneNumber,
-            AuthorId = user.Id,
-            AuthorName = user.UserName
+            Title = model.Title,
+            Description = model.Description,
+            CreatedAt = model.CreatedAt,
+            Status = model.Status,
+            CategoryId = model.CategoryId,
+            Author = author,
         };
-        await dBaseContext.Tickets.AddAsync(ticket);
+
+        dBaseContext.Tickets.Add(ticket);
         await dBaseContext.SaveChangesAsync();
     }
+
 
     public async Task MassDeleteTickets()
     {
@@ -57,8 +59,11 @@ public class TicketRepository(DBaseContext dBaseContext) : ITicketRepository
 
     public async Task<IEnumerable<Ticket>> GetAllTickets()
     {
-        return await dBaseContext.Tickets.ToListAsync();
+        return await dBaseContext.Tickets
+            .Include(t => t.Author)
+            .ToListAsync();
     }
+
 
     public async Task<IEnumerable<TicketCreateViewModel>> GetUserTickets(string userId)
     {
@@ -128,5 +133,16 @@ public class TicketRepository(DBaseContext dBaseContext) : ITicketRepository
 
         await dBaseContext.TicketHistory.AddAsync(ticketHistory);
         await dBaseContext.SaveChangesAsync();
+    }
+
+    public async Task<IEnumerable<SelectListItem>> GetCategoriesAsync()
+    {
+        return await dBaseContext.TicketCategories
+            .Select(c => new SelectListItem
+            {
+                Value = c.Id.ToString(),
+                Text = c.Name
+            })
+            .ToListAsync();
     }
 }

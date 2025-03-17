@@ -29,6 +29,7 @@ using (var scope = app.Services.CreateScope())
     await SeedRoles.Initialize(services);
 }
 
+
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();

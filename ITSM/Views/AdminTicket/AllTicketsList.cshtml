@@ -28,8 +28,13 @@
             <td>@ticket.Id</td>
             <td>@ticket.Title</td>
             <td>@ticket.Status</td>
-            <td>@ticket.AuthorName</td>
-            <td>@ticket.AssignedTo</td>
+            <td>
+                @if (ticket.Author != null)
+                {
+                    @ticket.Author.UserName
+                }
+            </td>
+            <td>@ticket.AssignedUser</td>
             <td>@ticket.CreatedAt</td>
             <td>@ticket.ClosedAt</td>
             

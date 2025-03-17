@@ -1,12 +1,13 @@
 ﻿using ITSM.Models;
 using ITSM.ViewModels;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 
 namespace ITSM.Repositories;
 
 public interface ITicketRepository
 {
-    Task CreateNewTicket(TicketCreateViewModel ticketCreate, User user);
+    Task CreateNewTicket(TicketCreateViewModel model, User author);
     Task MassDeleteTickets();
     Task<TicketDetailsViewModel> CloseTicket(int id);
     Task<IEnumerable<Ticket>> GetAllTickets();
@@ -18,4 +19,5 @@ public interface ITicketRepository
     Task AddTicketHistoryAsync(TicketHistory ticketHistory);
     Task<TicketDetailsViewModel> CreateTicketDetailsViewModel(int ticketId);
     Task AddTicketStepAsync(int ticketId, string adminComment);
+    Task<IEnumerable<SelectListItem>> GetCategoriesAsync();
 }

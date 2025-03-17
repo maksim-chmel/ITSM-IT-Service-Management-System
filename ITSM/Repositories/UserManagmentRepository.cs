@@ -15,15 +15,36 @@ public class UserManagementRepository(DBaseContext dBaseContext, UserManager<Use
         return await dBaseContext.Users.FindAsync(id);
     }
 
-    public async Task DeleteUserById(string id)
+    public async Task<bool> DeleteUserById(string userId)
     {
-        var user = await GetUserById(id);
-        if (user != null)
+        var user = await dBaseContext.Users
+            .Include(u => u.CreatedTickets)
+            .Include(u => u.AssignedTickets)
+            .FirstOrDefaultAsync(u => u.Id == userId);
+
+        if (user == null)
+            return false;
+
+
+        foreach (var ticket in user.CreatedTickets)
         {
-            dBaseContext.Users.Remove(user);
-            await dBaseContext.SaveChangesAsync();
+            ticket.AuthorId = null;
         }
+
+        foreach (var ticket in user.AssignedTickets)
+        {
+            ticket.AssignedUserId = null;
+        }
+
+        await dBaseContext.SaveChangesAsync();
+
+
+        dBaseContext.Users.Remove(user);
+        await dBaseContext.SaveChangesAsync();
+
+        return true;
     }
+
 
     public async Task<List<User>> GetAllUsersToList()
     {
@@ -45,7 +66,7 @@ public class UserManagementRepository(DBaseContext dBaseContext, UserManager<Use
             user.PhoneNumber = editmodel.PhoneNumber;
             user.Role = editmodel.Role;
         }
+
         await dBaseContext.SaveChangesAsync();
-        
     }
 }

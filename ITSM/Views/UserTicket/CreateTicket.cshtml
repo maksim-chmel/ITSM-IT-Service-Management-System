@@ -19,6 +19,13 @@
         <textarea asp-for="Description" class="form-control" rows="4"></textarea>
         <span asp-validation-for="Description" class="text-danger"></span>
     </div>
+    <div class="mb-3">
+        <label asp-for="CategoryId" class="form-label">Категорія</label>
+        <select asp-for="CategoryId" class="form-control" asp-items="Model.Categories">
+            <option value="">Виберіть категорію</option>
+        </select>
+        <span asp-validation-for="CategoryId" class="text-danger"></span>
+    </div>
 
     <button type="submit" class="btn btn-primary">Створити</button>
 </form>
