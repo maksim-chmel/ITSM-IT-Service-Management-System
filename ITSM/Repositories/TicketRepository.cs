@@ -9,7 +9,7 @@ namespace ITSM.Repositories;
 
 public class TicketRepository(DBaseContext dBaseContext) : ITicketRepository
 {
-    public async Task CreateNewTicket(TicketCreateViewModel model, User author)
+    public async Task CreateNewTicket(TicketCreateViewModel model, string currentUserId)
     {
         var ticket = new Ticket
         {
@@ -18,7 +18,7 @@ public class TicketRepository(DBaseContext dBaseContext) : ITicketRepository
             CreatedAt = model.CreatedAt,
             Status = model.Status,
             CategoryId = model.CategoryId,
-            Author = author,
+            AuthorId = currentUserId,
         };
 
         dBaseContext.Tickets.Add(ticket);
@@ -135,14 +135,20 @@ public class TicketRepository(DBaseContext dBaseContext) : ITicketRepository
         await dBaseContext.SaveChangesAsync();
     }
 
-    public async Task<IEnumerable<SelectListItem>> GetCategoriesAsync()
+    public async Task<TicketCreateViewModel> GetCreateTicketViewModel()
     {
-        return await dBaseContext.TicketCategories
+        var categories = await dBaseContext.TicketCategories
             .Select(c => new SelectListItem
             {
                 Value = c.Id.ToString(),
                 Text = c.Name
             })
             .ToListAsync();
+
+
+        return new TicketCreateViewModel
+        {
+            Categories = categories
+        };
     }
 }

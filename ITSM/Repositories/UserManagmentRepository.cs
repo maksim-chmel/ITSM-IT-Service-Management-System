@@ -69,4 +69,16 @@ public class UserManagementRepository(DBaseContext dBaseContext, UserManager<Use
 
         await dBaseContext.SaveChangesAsync();
     }
+    public async Task<EditUserViewModel> CreateEditUserViewModel(string userId)
+    {
+        var user = await GetUserById(userId);
+
+        return new EditUserViewModel
+        {
+            UserName = user.UserName,
+            Email = user.Email,
+            PhoneNumber = user.PhoneNumber,
+            Role = user.Role
+        };
+    }
 }

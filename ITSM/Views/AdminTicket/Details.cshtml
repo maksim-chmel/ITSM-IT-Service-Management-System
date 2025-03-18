@@ -1,6 +1,12 @@
 ﻿@using Microsoft.AspNetCore.Mvc.TagHelpers
 @model ITSM.ViewModels.TicketDetailsViewModel
 
+@if (TempData["TicketClosed"] != null)
+{
+    <div class="alert alert-success" role="alert">
+        Заявка успешно закрыта.
+    </div>
+}
 <h1>@Model.Ticket.Title</h1>
 
 <table class="table">
@@ -94,11 +100,5 @@
 </div>
 
 
-@if (TempData["TicketClosed"] != null)
-{
-    <div class="alert alert-success" role="alert">
-        Заявка успешно закрыта.
-    </div>
-}
 
 <a asp-controller="AdminTicket" asp-action="AllTicketsList" class="btn btn-secondary">Назад</a>

@@ -21,7 +21,7 @@ public class AdminTicketController(ITicketRepository ticketRepository) : Control
     {
         var ticket = await ticketRepository.CloseTicket(id);
 
-        TempData["SuccessMessage"] = "Заявка успешно закрыта.";
+        TempData["TicketClosed"] = "Заявка успешно закрыта.";
 
         return RedirectToAction("Details", new { id = ticket.Id });
     }

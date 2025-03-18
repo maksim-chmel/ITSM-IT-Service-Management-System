@@ -12,12 +12,7 @@ public class UserTicketController(IUserManagementRepository userRepository, ITic
     [HttpGet]
     public async Task<IActionResult> CreateTicket()
     {
-        var categories = await ticketRepository.GetCategoriesAsync();
-
-        var viewModel = new TicketCreateViewModel
-        {
-            Categories = categories
-        };
+        var viewModel = await ticketRepository.GetCreateTicketViewModel();
 
         return View(viewModel);
     }
@@ -27,7 +22,7 @@ public class UserTicketController(IUserManagementRepository userRepository, ITic
     {
         var currentUser = await userRepository.GetCurrentUserAsync(User);
 
-        if (currentUser != null) await ticketRepository.CreateNewTicket(newTicketCreate, currentUser);
+        if (currentUser != null) await ticketRepository.CreateNewTicket(newTicketCreate, currentUser.Id);
 
         return RedirectToAction("CreateTicket");
     }

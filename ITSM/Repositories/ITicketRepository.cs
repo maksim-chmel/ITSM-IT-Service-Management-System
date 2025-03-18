@@ -7,7 +7,8 @@ namespace ITSM.Repositories;
 
 public interface ITicketRepository
 {
-    Task CreateNewTicket(TicketCreateViewModel model, User author);
+    Task CreateNewTicket(TicketCreateViewModel model, string currentUserId);
+    Task<TicketCreateViewModel> GetCreateTicketViewModel();
     Task MassDeleteTickets();
     Task<TicketDetailsViewModel> CloseTicket(int id);
     Task<IEnumerable<Ticket>> GetAllTickets();
@@ -19,5 +20,4 @@ public interface ITicketRepository
     Task AddTicketHistoryAsync(TicketHistory ticketHistory);
     Task<TicketDetailsViewModel> CreateTicketDetailsViewModel(int ticketId);
     Task AddTicketStepAsync(int ticketId, string adminComment);
-    Task<IEnumerable<SelectListItem>> GetCategoriesAsync();
 }

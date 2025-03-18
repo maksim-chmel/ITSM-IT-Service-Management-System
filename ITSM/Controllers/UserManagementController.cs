@@ -25,18 +25,8 @@ public class UserManagementController(IUserManagementRepository userRepository) 
     [HttpGet]
     public async Task<IActionResult> UserEditor(string id)
     {
-        var user = await userRepository.GetUserById(id);
-
-        if (user == null) return NotFound();
-        var editModel = new EditUserViewModel
-        {
-            UserName = user.UserName,
-            Email = user.Email,
-            PhoneNumber = user.PhoneNumber,
-            Role = user.Role
-        };
-
-        return View(editModel);
+        var user = await userRepository.CreateEditUserViewModel(id);
+        return View(user);
     }
 
     [HttpPost]
