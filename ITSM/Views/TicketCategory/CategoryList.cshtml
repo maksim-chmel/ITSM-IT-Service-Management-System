@@ -1,0 +1,40 @@
+﻿@using Microsoft.AspNetCore.Mvc.TagHelpers
+@model IEnumerable<ITSM.Models.TicketCategory>
+
+@{
+    ViewData["Title"] = "All Tickets";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<table class="table">
+    <thead>
+    <tr>
+        <th>Название</th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (var category in Model)
+    {
+        <tr>
+            <td>@category.Name</td>
+            <td>
+                <li>
+                    <a asp-controller="TicketCategory" asp-action="EditCategory"  class="btn btn-primary">Edit</a>
+                </li>
+                <form asp-controller="TicketCategory" asp-action="DeleteCategory" asp-route-id="@category.Id"
+                      method="post"
+                      onsubmit="return confirm('Вы уверены, что хотите удалить категорию?' +
+                       'Заявки из этой категории потеряют ее');">
+                    <button type="submit" class="dropdown-item text-danger">Удалить</button>
+                </form>
+            </td>
+        </tr>
+    }
+    <li>
+        <a asp-controller="TicketCategory" asp-action="CreateCategory"  class="btn btn-primary">Create</a>
+    </li>
+
+   
+    </tbody>
+</table>

@@ -1,0 +1,12 @@
+﻿@using Microsoft.AspNetCore.Mvc.TagHelpers
+@model ITSM.Models.TicketCategory
+
+<h1>Добавить категорию</h1>
+
+<form method="post" asp-action="CreateCategory">
+    <div class="form-group">
+        <label for="name">Название категории</label>
+        <input type="text" class="form-control" id="name" name="name" value="@(Model?.Name ?? "")" required />
+    </div>
+    <button type="submit" class="btn btn-primary">Добавить категорию</button>
+</form>

@@ -10,13 +10,14 @@ namespace ITSM.Repositories;
 public class UserManagementRepository(DBaseContext dBaseContext, UserManager<User> userManager)
     : IUserManagementRepository
 {
-    public async Task<User?> GetUserById(string id)
+    private async Task<User?> GetUserById(string id)
     {
         return await dBaseContext.Users.FindAsync(id);
     }
 
     public async Task<bool> DeleteUserById(string userId)
     {
+        await using var transaction = await dBaseContext.Database.BeginTransactionAsync();
         var user = await dBaseContext.Users
             .Include(u => u.CreatedTickets)
             .Include(u => u.AssignedTickets)
@@ -36,11 +37,9 @@ public class UserManagementRepository(DBaseContext dBaseContext, UserManager<Use
             ticket.AssignedUserId = null;
         }
 
-        await dBaseContext.SaveChangesAsync();
-
-
         dBaseContext.Users.Remove(user);
         await dBaseContext.SaveChangesAsync();
+        await transaction.CommitAsync();
 
         return true;
     }
@@ -58,20 +57,20 @@ public class UserManagementRepository(DBaseContext dBaseContext, UserManager<Use
 
     public async Task EditUser(string id, EditUserViewModel editmodel)
     {
-        var user = await GetUserById(id);
-        if (user != null)
-        {
-            user.UserName = editmodel.UserName;
-            user.Email = editmodel.Email;
-            user.PhoneNumber = editmodel.PhoneNumber;
-            user.Role = editmodel.Role;
-        }
+        var user = await GetUserById(id) ?? throw new ArgumentException("Пользователь не найден");
+
+        user.UserName = editmodel.UserName;
+        user.Email = editmodel.Email;
+        user.PhoneNumber = editmodel.PhoneNumber;
+        user.Role = editmodel.Role;
+
 
         await dBaseContext.SaveChangesAsync();
     }
+
     public async Task<EditUserViewModel> CreateEditUserViewModel(string userId)
     {
-        var user = await GetUserById(userId);
+        var user = await GetUserById(userId) ?? throw new ArgumentException("Пользователь не найден");
 
         return new EditUserViewModel
         {

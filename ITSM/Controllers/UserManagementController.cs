@@ -12,6 +12,7 @@ public class UserManagementController(IUserManagementRepository userRepository) 
     public async Task<IActionResult> UsersList()
     {
         var list = await userRepository.GetAllUsersToList();
+        
         return View(list);
     }
 
@@ -19,6 +20,7 @@ public class UserManagementController(IUserManagementRepository userRepository) 
     public async Task<IActionResult> DeleteUser(string id)
     {
         await userRepository.DeleteUserById(id);
+        
         return RedirectToAction("UsersList");
     }
 
@@ -26,6 +28,7 @@ public class UserManagementController(IUserManagementRepository userRepository) 
     public async Task<IActionResult> UserEditor(string id)
     {
         var user = await userRepository.CreateEditUserViewModel(id);
+        
         return View(user);
     }
 
@@ -33,7 +36,9 @@ public class UserManagementController(IUserManagementRepository userRepository) 
     public async Task<IActionResult> UserEditor(string id, EditUserViewModel editModel)
     {
         if (!ModelState.IsValid) return View(editModel);
+        
         await userRepository.EditUser(id, editModel);
+        
         return RedirectToAction("UsersList");
     }
 }

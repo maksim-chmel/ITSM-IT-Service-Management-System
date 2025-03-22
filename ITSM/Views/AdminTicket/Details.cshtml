@@ -83,7 +83,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form method="post" asp-controller="AdminTicket" asp-action="AddTicketStep">
+                <form method="post" asp-controller="AdminTicket" asp-action="AddTicketComment">
                     <input type="hidden" name="ticketId" value="@Model.Ticket.Id"/>
                     <div class="mb-3">
                         <label for="noteDescription" class="form-label">Заметка:</label>

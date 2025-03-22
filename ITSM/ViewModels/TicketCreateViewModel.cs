@@ -3,6 +3,7 @@ using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace ITSM.ViewModels;
+
 public class TicketCreateViewModel
 {
     public int Id { get; set; }
@@ -15,15 +16,14 @@ public class TicketCreateViewModel
     [StringLength(1000, ErrorMessage = "Опис не може бути довше 1000 символів")]
     public string? Description { get; set; }
 
-    [DataType(DataType.DateTime)]
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    
+    [DataType(DataType.DateTime)] public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
     public TicketStatus Status { get; set; } = TicketStatus.New;
 
-    // Добавленное свойство для выбора категории
     [Required(ErrorMessage = "Категорія обов'язкова")]
-    public int CategoryId { get; set; } = 1;
+    public int CategoryId { get; set; }
+
     public IEnumerable<SelectListItem> Categories { get; set; }
     public string? AuthorName { get; set; }
+    public string? CategoryName { get; set; }
 }
-

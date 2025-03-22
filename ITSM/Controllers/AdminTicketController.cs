@@ -19,11 +19,11 @@ public class AdminTicketController(ITicketRepository ticketRepository) : Control
     [HttpPost]
     public async Task<IActionResult> CloseTicket(int id)
     {
-        var ticket = await ticketRepository.CloseTicket(id);
+        await ticketRepository.CloseTicket(id);
 
         TempData["TicketClosed"] = "Заявка успешно закрыта.";
 
-        return RedirectToAction("Details", new { id = ticket.Id });
+        return RedirectToAction("Details", new { id });
     }
 
 
@@ -31,14 +31,14 @@ public class AdminTicketController(ITicketRepository ticketRepository) : Control
     public async Task<IActionResult> Details(int id)
     {
         var viewModel = await ticketRepository.CreateTicketDetailsViewModel(id);
+        
         return View(viewModel);
     }
 
     [HttpPost]
-    public async Task<IActionResult> AddTicketStep(int ticketId, string adminComment)
+    public async Task<IActionResult> AddTicketComment(int ticketId, string adminComment)
     {
         await ticketRepository.AddTicketStepAsync(ticketId, adminComment);
         return RedirectToAction("Details", new { id = ticketId });
     }
-
 }

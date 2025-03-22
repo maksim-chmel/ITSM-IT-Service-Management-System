@@ -13,12 +13,13 @@
         <th>Номер</th>
         <th>Title</th>
         <th>Status</th>
+        <th>Category</th>
         <th>Author Name</th>
         <th>Assigned To</th>
         <th>Created At</th>
         <th>Closed At To</th>
-        
-        
+
+
     </tr>
     </thead>
     <tbody>
@@ -27,7 +28,9 @@
         <tr>
             <td>@ticket.Id</td>
             <td>@ticket.Title</td>
+
             <td>@ticket.Status</td>
+            <td>@ticket.CategoryName</td>
             <td>
                 @if (ticket.Author != null)
                 {
@@ -37,12 +40,11 @@
             <td>@ticket.AssignedUser</td>
             <td>@ticket.CreatedAt</td>
             <td>@ticket.ClosedAt</td>
-            
+
             <td>
                 <a asp-controller="AdminTicket" asp-action="Details" asp-route-id="@ticket.Id" class="btn btn-primary">Подробнее</a>
             </td>
         </tr>
-        
     }
     </tbody>
 </table>
