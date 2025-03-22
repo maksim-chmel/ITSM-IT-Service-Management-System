@@ -22,7 +22,7 @@ public class TicketCreateViewModel
 
     [Required(ErrorMessage = "Категорія обов'язкова")]
     public int CategoryId { get; set; }
-
+    public string? AuthorId { get; set; }
     public IEnumerable<SelectListItem> Categories { get; set; }
     public string? AuthorName { get; set; }
     public string? CategoryName { get; set; }

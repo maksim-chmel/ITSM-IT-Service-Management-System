@@ -18,7 +18,6 @@ public class Ticket
     public User? AssignedUser { get; set; }
 
     public List<TicketHistory> TicketHistory { get; set; } = new();
-     public string? CategoryName { get; set; }
      public int? CategoryId { get; set; }
     public TicketCategory? Category { get; set; }
 }

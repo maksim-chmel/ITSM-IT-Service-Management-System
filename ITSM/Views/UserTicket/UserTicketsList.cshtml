@@ -1,4 +1,4 @@
-﻿@model IEnumerable<ITSM.ViewModels.TicketCreateViewModel>
+﻿@model IEnumerable<ITSM.Models.Ticket>
 
 @{
     ViewData["Title"] = "All Tickets";
@@ -10,11 +10,11 @@
     <thead>
     <tr>
         <th>Номер</th>
-        <th>Title</th>
-        <th>Description</th>
-        <th>Created At</th>
-        <th>Status</th>
+        <th>Title</th> 
         <th>Category</th>
+        <th>Description</th>
+        <th>Status</th>
+        <th>Created At</th>
     </tr>
     </thead>
     <tbody>
@@ -23,10 +23,10 @@
         <tr>
             <td>@ticket.Id</td>
             <td>@ticket.Title</td>
+            <td>@ticket.Category?.Name</td>
             <td>@ticket.Description</td>
-            <td>@ticket.CreatedAt</td>
             <td>@ticket.Status</td>
-            <td>@ticket.CategoryName</td>
+            <td>@ticket.CreatedAt</td>
         </tr>
     }
     </tbody>

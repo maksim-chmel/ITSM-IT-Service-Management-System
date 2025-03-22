@@ -12,7 +12,7 @@ public class UserTicketController(IUserManagementRepository userRepository, ITic
     [HttpGet]
     public async Task<IActionResult> CreateTicket()
     {
-        var viewModel = await ticketRepository.PrepareCreateTicketViewModel();
+        var viewModel = await ticketRepository.AddCategoriesToViewModel();
 
         return View(viewModel);
     }

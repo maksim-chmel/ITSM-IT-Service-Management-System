@@ -11,14 +11,6 @@ public class TicketRepository(DBaseContext dBaseContext) : ITicketRepository
 {
     public async Task CreateNewTicket(TicketCreateViewModel model, string currentUserId)
     {
-       
-        var category = await dBaseContext.TicketCategories
-            .Where(c => c.Id == model.CategoryId)
-            .FirstOrDefaultAsync();
-
-      
-        string categoryName = category?.Name;
-
         var ticket = new Ticket
         {
             Title = model.Title,
@@ -26,8 +18,7 @@ public class TicketRepository(DBaseContext dBaseContext) : ITicketRepository
             CreatedAt = model.CreatedAt,
             Status = model.Status,
             CategoryId = model.CategoryId,
-            CategoryName = categoryName,  
-            AuthorId = currentUserId,
+            AuthorId = currentUserId
         };
 
         dBaseContext.Tickets.Add(ticket);
@@ -61,33 +52,23 @@ public class TicketRepository(DBaseContext dBaseContext) : ITicketRepository
     public async Task<IEnumerable<Ticket>> GetAllTickets()
     {
         return await dBaseContext.Tickets
-            .Include(t => t.Author) 
-            .Include(t => t.Category) 
+            .Include(t => t.Author)
+            .Include(t => t.Category)
             .ToListAsync();
     }
-    
-    public async Task<IEnumerable<TicketCreateViewModel>> GetUserTickets(string userId)
+
+    public async Task<IEnumerable<Ticket>> GetUserTickets(string userId)
     {
         return await dBaseContext.Tickets
             .Where(t => t.AuthorId == userId)
-            .Select(t => new TicketCreateViewModel
-            {
-                Id = t.Id,
-                Title = t.Title,
-                Status = t.Status,
-                Description = t.Description,
-                CreatedAt = t.CreatedAt,
-                CategoryName = t.CategoryName
-                
-            })
+            .Include(t => t.Category)
             .ToListAsync();
     }
 
 
-    private async Task<Ticket> GetTicketById(int id)
+    private async Task<Ticket?> GetTicketById(int id)
     {
-        return await dBaseContext.Tickets
-            .FirstOrDefaultAsync(t => t.Id == id);
+        return await dBaseContext.Tickets.FindAsync(id);
     }
 
 
@@ -102,15 +83,19 @@ public class TicketRepository(DBaseContext dBaseContext) : ITicketRepository
 
     public async Task<TicketDetailsViewModel> CreateTicketDetailsViewModel(int ticketId)
     {
-        var ticket = await GetTicketById(ticketId);
+        var ticket = await dBaseContext.Tickets
+            .Include(t => t.Author)
+            .FirstOrDefaultAsync(t => t.Id == ticketId);
         var ticketHistory = await GetTicketHistoryByTicketId(ticketId);
 
         return new TicketDetailsViewModel
         {
             Ticket = ticket,
-            TicketHistory = ticketHistory
+            TicketHistory = ticketHistory,
+            AuthorName = ticket?.Author?.UserName
         };
     }
+
 
     public async Task AddTicketStepAsync(int ticketId, string adminComment)
     {
@@ -125,12 +110,11 @@ public class TicketRepository(DBaseContext dBaseContext) : ITicketRepository
         await dBaseContext.SaveChangesAsync();
     }
 
-    public async Task<TicketCreateViewModel> PrepareCreateTicketViewModel()
+    public async Task<TicketCreateViewModel> AddCategoriesToViewModel()
     {
         var categories = await GetCategorySelectList();
         return new TicketCreateViewModel
         {
-            
             Categories = categories
         };
     }

@@ -25,7 +25,7 @@ public class TicketCategoryController(ITicketCategoryRepository categoryReposito
     public async Task<IActionResult> CreateCategory(string name)
     {
         await categoryRepository.CreateCategory(name);
-        return RedirectToAction("CreateCategory");
+        return RedirectToAction("CategoryList");
     }
     [HttpPost]
     public async Task<IActionResult> DeleteCategory(int id)
