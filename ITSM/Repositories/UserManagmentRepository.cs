@@ -10,7 +10,7 @@ namespace ITSM.Repositories;
 public class UserManagementRepository(DBaseContext dBaseContext, UserManager<User> userManager)
     : IUserManagementRepository
 {
-    private async Task<User?> GetUserById(string id)
+    public async Task<User?> GetUserById(string id)
     {
         return await dBaseContext.Users.FindAsync(id);
     }
@@ -43,12 +43,25 @@ public class UserManagementRepository(DBaseContext dBaseContext, UserManager<Use
 
         return true;
     }
-
-
-    public async Task<List<User>> GetAllUsersToList()
+    
+    public async Task<UserWithRolesViewModel[]> GetAllUsersToList()
     {
-        return await dBaseContext.Users.ToListAsync();
+        var users = await dBaseContext.Users.ToListAsync();
+
+        var userWithRolesTasks = users.Select(async user => new UserWithRolesViewModel
+        {
+            Id = user.Id,
+            UserName = user.UserName,
+            Email = user.Email,
+            PhoneNumber = user.PhoneNumber,
+            Roles = string.Join(", ", await userManager.GetRolesAsync(user)) // Получаем роли асинхронно
+        }).ToList();
+
+        return await Task.WhenAll(userWithRolesTasks);
     }
+
+
+    
 
     public async Task<User?> GetCurrentUserAsync(ClaimsPrincipal principal)
     {
@@ -62,9 +75,6 @@ public class UserManagementRepository(DBaseContext dBaseContext, UserManager<Use
         user.UserName = editmodel.UserName;
         user.Email = editmodel.Email;
         user.PhoneNumber = editmodel.PhoneNumber;
-        user.Role = editmodel.Role;
-
-
         await dBaseContext.SaveChangesAsync();
     }
 
@@ -77,7 +87,7 @@ public class UserManagementRepository(DBaseContext dBaseContext, UserManager<Use
             UserName = user.UserName,
             Email = user.Email,
             PhoneNumber = user.PhoneNumber,
-            Role = user.Role
         };
     }
+    
 }

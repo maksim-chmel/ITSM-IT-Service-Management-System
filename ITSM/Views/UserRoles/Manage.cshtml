@@ -1,0 +1,31 @@
+﻿@using Microsoft.AspNetCore.Mvc.TagHelpers
+@model ITSM.ViewModels.ManageUserRolesViewModel
+
+<h2>Управление ролями: @Model.UserName</h2>
+
+<form asp-controller="UserRoles" asp-action="Manage" method="post">
+    <input type="hidden" asp-for="UserId" />
+
+    <table class="table">
+        <thead>
+        <tr>
+            <th>Роль</th>
+            <th>Выбрана</th>
+        </tr>
+        </thead>
+        <tbody>
+        @for (var i = 0; i < Model.Roles.Count; i++)
+        {
+            <tr>
+                <td>@Model.Roles[i].RoleName</td>
+                <td>
+                    <input type="checkbox" asp-for="Roles[i].IsSelected" />
+                    <input type="hidden" asp-for="Roles[i].RoleName" />
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+
+    <button type="submit" class="btn btn-primary">Сохранить</button>
+</form>

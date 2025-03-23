@@ -1,5 +1,4 @@
-﻿using ITSM.Models;
-using ITSM.Repositories;
+﻿using ITSM.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
