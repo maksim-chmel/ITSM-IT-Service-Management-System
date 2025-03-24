@@ -1,10 +1,11 @@
-﻿using ITSM.Repositories;
+﻿using ITSM.Enums;
+using ITSM.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ITSM.Controllers;
 
-[Authorize(Roles = "Admin")]
+[Authorize(Roles = nameof(UserRoles.Admin))]
 public class TicketCategoryController(ITicketCategoryRepository categoryRepository) : Controller
 {
     [HttpGet]

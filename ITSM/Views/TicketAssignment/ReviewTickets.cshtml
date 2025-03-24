@@ -38,7 +38,7 @@
             <td>@ticket.ClosedAt</td>
 
             <td>
-                <a asp-controller="AdminTicket" asp-action="Details" asp-route-id="@ticket.Id" class="btn btn-primary">Подробнее</a>
+                <a asp-controller="TicketAssignment" asp-action="AssignTicket" asp-route-id="@ticket.Id" class="btn btn-primary">Назначить</a>
             </td>
         </tr>
     }

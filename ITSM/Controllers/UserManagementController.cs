@@ -1,11 +1,12 @@
-﻿using ITSM.Repositories;
+﻿using ITSM.Enums;
+using ITSM.Repositories;
 using ITSM.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ITSM.Controllers;
 
-[Authorize(Roles = "Admin")]
+[Authorize(Roles = nameof(UserRoles.Admin))]
 public class UserManagementController(IUserManagementRepository userRepository) : Controller
 {
     [HttpGet]

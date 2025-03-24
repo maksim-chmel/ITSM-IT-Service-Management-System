@@ -21,6 +21,8 @@ builder.Services.AddScoped<ITicketCategoryRepository, TicketCategoryRepository>(
 builder.Services.AddScoped<ITicketRepository, TicketRepository>();
 builder.Services.AddScoped<IUserManagementRepository, UserManagementRepository>();
 builder.Services.AddScoped<IUserRolesRepository, UserRolesRepository>();
+builder.Services.AddScoped<ITicketAssignmentRepository, TicketAssignmentRepository>();
+
 
 
 var app = builder.Build();

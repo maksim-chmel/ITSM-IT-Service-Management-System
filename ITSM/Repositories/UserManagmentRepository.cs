@@ -43,25 +43,34 @@ public class UserManagementRepository(DBaseContext dBaseContext, UserManager<Use
 
         return true;
     }
-    
+
     public async Task<UserWithRolesViewModel[]> GetAllUsersToList()
     {
-        var users = await dBaseContext.Users.ToListAsync();
+        var users = await dBaseContext.Users.AsNoTracking().ToListAsync();
+        var userWithRolesList = new List<UserWithRolesViewModel>();
 
-        var userWithRolesTasks = users.Select(async user => new UserWithRolesViewModel
+        foreach (var user in users)
+        {
+            var userWithRoles = await GetUserWithRoles(user);
+            userWithRolesList.Add(userWithRoles);
+        }
+
+        return userWithRolesList.ToArray();
+    }
+
+    private async Task<UserWithRolesViewModel> GetUserWithRoles(User user)
+    {
+        var roles = await userManager.GetRolesAsync(user);
+        return new UserWithRolesViewModel
         {
             Id = user.Id,
             UserName = user.UserName,
             Email = user.Email,
             PhoneNumber = user.PhoneNumber,
-            Roles = string.Join(", ", await userManager.GetRolesAsync(user)) // Получаем роли асинхронно
-        }).ToList();
-
-        return await Task.WhenAll(userWithRolesTasks);
+            Roles = string.Join(", ", roles)
+        };
     }
 
-
-    
 
     public async Task<User?> GetCurrentUserAsync(ClaimsPrincipal principal)
     {
@@ -89,5 +98,4 @@ public class UserManagementRepository(DBaseContext dBaseContext, UserManager<Use
             PhoneNumber = user.PhoneNumber,
         };
     }
-    
 }

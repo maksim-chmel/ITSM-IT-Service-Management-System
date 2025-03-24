@@ -8,7 +8,7 @@ public static class SeedRoles
     {
         var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 
-        string[] roleNames = { "Admin", "User" };
+        string[] roleNames = { "Admin", "User","Coordinator","Technician" };
 
         foreach (var roleName in roleNames)
         {

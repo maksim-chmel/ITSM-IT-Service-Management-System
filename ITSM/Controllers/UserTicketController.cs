@@ -1,11 +1,12 @@
-﻿using ITSM.Repositories;
+﻿using ITSM.Enums;
+using ITSM.Repositories;
 using ITSM.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ITSM.Controllers;
 
-[Authorize]
+[Authorize(Roles = nameof(UserRoles.User))]
 public class UserTicketController(IUserManagementRepository userRepository, ITicketRepository ticketRepository)
     : Controller
 {

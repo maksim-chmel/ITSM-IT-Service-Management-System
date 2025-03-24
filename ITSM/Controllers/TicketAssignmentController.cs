@@ -1,12 +1,37 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using ITSM.Enums;
+using ITSM.Repositories;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace ITSM.Controllers;
 
-public class TicketAssignmentController : Controller
+[Authorize(Roles = nameof(UserRoles.Coordinator))]
+public class TicketAssignmentController(
+    ITicketRepository ticketRepository,
+    ITicketAssignmentRepository ticketAssignmentRepository)
+    : Controller
 {
-    
-    public IActionResult Index()
+    [HttpGet]
+    public async Task<IActionResult> ReviewTickets()
     {
-        return View();
+        var list = await ticketRepository.GetAllTickets();
+        return View(list);
+    }
+
+
+    [HttpGet]
+    public async Task<IActionResult> AssignTicket(int id)
+    {
+        var model = await ticketAssignmentRepository.CreateAssignTicketViewModel(id);
+
+        return View(model);
+    }
+
+
+    [HttpPost]
+    public async Task<IActionResult> AssignTicket(int ticketId, string userId)
+    {
+        await ticketAssignmentRepository.AssignTicketToUser(ticketId, userId);
+        return RedirectToAction("ReviewTickets");
     }
 }

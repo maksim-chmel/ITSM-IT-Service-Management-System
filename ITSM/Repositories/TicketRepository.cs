@@ -7,7 +7,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ITSM.Repositories;
 
-public class TicketRepository(DBaseContext dBaseContext) : ITicketRepository
+public class TicketRepository(DBaseContext dBaseContext, ITicketCategoryRepository ticketCategoryRepository)
+    : ITicketRepository
 {
     public async Task CreateNewTicket(TicketCreateViewModel model, string currentUserId)
     {
@@ -36,14 +37,14 @@ public class TicketRepository(DBaseContext dBaseContext) : ITicketRepository
         await dBaseContext.SaveChangesAsync();
     }
 
-    public async Task CloseTicket(int id)
+    public async Task CloseTicket(int id, string solution)
     {
         var ticket = await GetTicketById(id);
         if (ticket.Status == TicketStatus.New)
         {
             ticket.Status = TicketStatus.Closed;
             ticket.ClosedAt = DateTime.Now;
-
+            ticket.FixDescription = solution;
             dBaseContext.Tickets.Update(ticket);
             await dBaseContext.SaveChangesAsync();
         }
@@ -54,6 +55,7 @@ public class TicketRepository(DBaseContext dBaseContext) : ITicketRepository
         return await dBaseContext.Tickets
             .Include(t => t.Author)
             .Include(t => t.Category)
+            .Include(t=>t.AssignedUser)
             .ToListAsync();
     }
 
@@ -66,7 +68,7 @@ public class TicketRepository(DBaseContext dBaseContext) : ITicketRepository
     }
 
 
-    private async Task<Ticket?> GetTicketById(int id)
+    public async Task<Ticket?> GetTicketById(int id)
     {
         return await dBaseContext.Tickets.FindAsync(id);
     }
@@ -112,21 +114,10 @@ public class TicketRepository(DBaseContext dBaseContext) : ITicketRepository
 
     public async Task<TicketCreateViewModel> AddCategoriesToViewModel()
     {
-        var categories = await GetCategorySelectList();
+        var categories = await ticketCategoryRepository.GetCategorySelectList();
         return new TicketCreateViewModel
         {
             Categories = categories
         };
-    }
-
-    private async Task<List<SelectListItem>> GetCategorySelectList()
-    {
-        return await dBaseContext.TicketCategories
-            .Select(c => new SelectListItem
-            {
-                Value = c.Id.ToString(),
-                Text = c.Name
-            })
-            .ToListAsync();
     }
 }

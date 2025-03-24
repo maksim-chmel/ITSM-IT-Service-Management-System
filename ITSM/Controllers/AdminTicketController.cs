@@ -1,10 +1,11 @@
-﻿using ITSM.Repositories;
+﻿using ITSM.Enums;
+using ITSM.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ITSM.Controllers;
 
-[Authorize(Roles = "Admin")]
+[Authorize(Roles = nameof(UserRoles.Admin))]
 public class AdminTicketController(ITicketRepository ticketRepository) : Controller
 {
     [HttpGet]
@@ -15,9 +16,9 @@ public class AdminTicketController(ITicketRepository ticketRepository) : Control
     }
 
     [HttpPost]
-    public async Task<IActionResult> CloseTicket(int id)
+    public async Task<IActionResult> CloseTicket(int id, string solution)
     {
-        await ticketRepository.CloseTicket(id);
+        await ticketRepository.CloseTicket(id, solution);
 
         TempData["TicketClosed"] = "Заявка успешно закрыта.";
 
@@ -29,7 +30,7 @@ public class AdminTicketController(ITicketRepository ticketRepository) : Control
     public async Task<IActionResult> Details(int id)
     {
         var viewModel = await ticketRepository.CreateTicketDetailsViewModel(id);
-        
+
         return View(viewModel);
     }
 

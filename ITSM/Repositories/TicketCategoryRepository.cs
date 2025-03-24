@@ -1,5 +1,6 @@
 ﻿using ITSM.DB;
 using ITSM.Models;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 
 namespace ITSM.Repositories;
@@ -25,13 +26,7 @@ public class TicketCategoryRepository(DBaseContext context) : ITicketCategoryRep
         return await context.TicketCategories.ToListAsync();
     }
 
-   
 
-    private async Task<TicketCategory?> GetCategoryById(int id)
-    {
-        return await context.TicketCategories.FindAsync(id);
-    }
-    
     public async Task<bool> DeleteCategory(int id)
     {
         await using var transaction = await context.Database.BeginTransactionAsync();
@@ -47,11 +42,22 @@ public class TicketCategoryRepository(DBaseContext context) : ITicketCategoryRep
         {
             ticket.CategoryId = null;
         }
-        
+
         context.TicketCategories.Remove(category);
         await context.SaveChangesAsync();
         await transaction.CommitAsync();
 
         return true;
     }
+    public async Task<List<SelectListItem>> GetCategorySelectList()
+    {
+        return await context.TicketCategories
+            .Select(c => new SelectListItem
+            {
+                Value = c.Id.ToString(),
+                Text = c.Name
+            })
+            .ToListAsync();
+    }
+    
 }

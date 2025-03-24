@@ -1,4 +1,5 @@
-﻿using ITSM.Models;
+﻿using ITSM.Enums;
+using ITSM.Models;
 using ITSM.Repositories;
 using ITSM.ViewModels;
 using Microsoft.AspNetCore.Authorization;
@@ -7,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ITSM.Controllers;
 
-[Authorize(Roles = "Admin")]
+[Authorize(Roles = nameof(UserRoles.Admin))]
 public class UserRolesController(IUserRolesRepository userRolesRepository) : Controller
 {
     [HttpGet]
@@ -27,7 +28,7 @@ public class UserRolesController(IUserRolesRepository userRolesRepository) : Con
         if (!result)
             return NotFound("User not found");
 
-        return RedirectToAction("Manage", "UserRoles", new { userId = model.UserId });
+        return RedirectToAction("UsersList", "UserManagement");
     }
 }
 

@@ -1,4 +1,5 @@
-﻿@using Microsoft.AspNetCore.Mvc.TagHelpers
+﻿@using ITSM.Enums
+@using Microsoft.AspNetCore.Mvc.TagHelpers
 @model ITSM.ViewModels.TicketDetailsViewModel
 
 @if (TempData["TicketClosed"] != null)
@@ -47,58 +48,79 @@
 <h3>Заметки</h3>
 <table class="table">
     <thead>
-        <tr>
-            <th>Дата</th>
-            <th>Заметка</th>
-        </tr>
+    <tr>
+        <th>Дата</th>
+        <th>Заметка</th>
+    </tr>
     </thead>
     <tbody>
-        @foreach (var note in Model.TicketHistory)
-        {
-            <tr>
-                <td>@note.CreatedAt.ToString("dd.MM.yyyy HH:mm")</td>
-                <td>@note.AdminComment</td>
-            </tr>
-        }
+    @foreach (var note in Model.TicketHistory)
+    {
+        <tr>
+            <td>@note.CreatedAt.ToString("dd.MM.yyyy HH:mm")</td>
+            <td>@note.AdminComment</td>
+        </tr>
+    }
     </tbody>
 </table>
+@if (@Model.Ticket.Status != TicketStatus.Closed)
+{
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addNoteModal">
+        Добавить заметку
+    </button>
+
+    <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#closeTicketModal">
+        Закрыть заявку
+    </button>
 
 
-<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addNoteModal">
-    Добавить заметку
-</button>
-
-<form method="post" asp-controller="AdminTicket" asp-action="CloseTicket">
-    <input type="hidden" name="id" value="@Model.Ticket.Id"/>
-    <button type="submit" class="btn btn-danger">Закрыть заявку</button>
-</form>
-
-
-
-<div class="modal fade" id="addNoteModal" tabindex="-1" aria-labelledby="addNoteModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="addNoteModalLabel">Добавить заметку</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form method="post" asp-controller="AdminTicket" asp-action="AddTicketComment">
-                    <input type="hidden" name="ticketId" value="@Model.Ticket.Id"/>
-                    <div class="mb-3">
-                        <label for="noteDescription" class="form-label">Заметка:</label>
-                        <textarea class="form-control" id="noteDescription" name="adminComment" rows="3" placeholder="Добавьте заметку"></textarea>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
-                        <button type="submit" class="btn btn-primary">Сохранить заметку</button>
-                    </div>
-                </form>
+    <div class="modal fade" id="addNoteModal" tabindex="-1" aria-labelledby="addNoteModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addNoteModalLabel">Добавить заметку</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form method="post" asp-controller="AdminTicket" asp-action="AddTicketComment">
+                        <input type="hidden" name="ticketId" value="@Model.Ticket.Id"/>
+                        <div class="mb-3">
+                            <label for="noteDescription" class="form-label">Заметка:</label>
+                            <textarea class="form-control" id="noteDescription" name="adminComment" rows="3"
+                                      placeholder="Добавьте заметку"></textarea>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                            <button type="submit" class="btn btn-primary">Сохранить заметку</button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
+    <div class="modal fade" id="closeTicketModal" tabindex="-1" aria-labelledby="closeTicketLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="closeTicketLabel">Закрытие заявки</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form method="post" asp-controller="AdminTicket" asp-action="CloseTicket">
+                        <input type="hidden" name="id" value="@Model.Ticket.Id"/>
 
+                        <div class="mb-3">
+                            <label for="solution" class="form-label">Решение</label>
+                            <textarea class="form-control" id="solution" name="solution" required></textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Подтвердить</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+}
 
 <a asp-controller="AdminTicket" asp-action="AllTicketsList" class="btn btn-secondary">Назад</a>

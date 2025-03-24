@@ -1,0 +1,25 @@
+﻿@using Microsoft.AspNetCore.Mvc.TagHelpers
+@model ITSM.ViewModels.AssignTicketViewModel
+
+@{
+    ViewData["Title"] = "Назначить пользователя";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<form method="post" asp-controller="TicketAssignment" asp-action="AssignTicket" class="form">
+    <input type="hidden" name="ticketId" value="@Model.Ticket.Id" />
+
+    <div class="form-group">
+        <label for="userId">Выберите пользователя для назначения:</label>
+        <select id="userId" name="userId" class="form-control">
+            <option value="">--Выберите пользователя--</option>
+            @foreach (var user in Model.Users)
+            {
+                <option value="@user.Value">@user.Text</option>
+            }
+        </select>
+    </div>
+
+    <button type="submit" class="btn btn-success">Назначить</button>
+</form>
