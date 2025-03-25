@@ -41,7 +41,7 @@ public class UserRolesRepository(
 
         await userManager.RemoveFromRolesAsync(user, currentRoles);
         await userManager.AddToRolesAsync(user, rolesToAdd);
-        await authRepository.RefreshSignInAsync(user);
+            //  await authRepository.RefreshSignInAsync(user);
 
         return true;
     }

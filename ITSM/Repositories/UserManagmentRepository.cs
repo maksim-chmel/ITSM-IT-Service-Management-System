@@ -83,6 +83,8 @@ public class UserManagementRepository(DBaseContext dBaseContext, UserManager<Use
 
         user.UserName = editmodel.UserName;
         user.Email = editmodel.Email;
+        user.NormalizedEmail = editmodel.Email?.Normalize();
+        //user.PasswordHash = editmodel.Email.GetHashCode().ToString(); сделать возможность менять пароль
         user.PhoneNumber = editmodel.PhoneNumber;
         await dBaseContext.SaveChangesAsync();
     }
