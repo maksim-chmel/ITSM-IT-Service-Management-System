@@ -18,7 +18,7 @@ public class TicketCreateViewModel
 
     [DataType(DataType.DateTime)] public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-    public TicketStatus Status { get; set; } = TicketStatus.New;
+    public TicketStatus Status { get; set; }
 
     [Required(ErrorMessage = "Категорія обов'язкова")]
     public int CategoryId { get; set; }

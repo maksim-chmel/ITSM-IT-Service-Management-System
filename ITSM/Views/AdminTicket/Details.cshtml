@@ -5,7 +5,7 @@
 @if (TempData["TicketClosed"] != null)
 {
     <div class="alert alert-success" role="alert">
-        Заявка успешно закрыта.
+        Заявка успешно решена.
     </div>
 }
 <h1>@Model.Ticket.Title</h1>
@@ -63,14 +63,14 @@
     }
     </tbody>
 </table>
-@if (@Model.Ticket.Status != TicketStatus.Closed)
+@if (@Model.Ticket.Status == TicketStatus.Progress)
 {
     <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addNoteModal">
         Добавить заметку
     </button>
 
-    <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#closeTicketModal">
-        Закрыть заявку
+    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#closeTicketModal">
+        Решено
     </button>
 
 
@@ -103,11 +103,11 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="closeTicketLabel">Закрытие заявки</h5>
+                    <h5 class="modal-title" id="closeTicketLabel">Описание</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <form method="post" asp-controller="AdminTicket" asp-action="CloseTicket">
+                    <form method="post" asp-controller="AdminTicket" asp-action="ResolveTicket">
                         <input type="hidden" name="id" value="@Model.Ticket.Id"/>
 
                         <div class="mb-3">

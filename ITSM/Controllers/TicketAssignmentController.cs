@@ -18,7 +18,6 @@ public class TicketAssignmentController(
         return View(list);
     }
 
-
     [HttpGet]
     public async Task<IActionResult> AssignTicket(int id)
     {
@@ -27,11 +26,38 @@ public class TicketAssignmentController(
         return View(model);
     }
 
+    [HttpGet]
+    public async Task<IActionResult> InfoAboutTicket(int id)
+    {
+        var viewModel = await ticketRepository.CreateTicketDetailsViewModel(id);
+
+        return View(viewModel);
+    }
 
     [HttpPost]
-    public async Task<IActionResult> AssignTicket(int ticketId, string userId)
+    public async Task<IActionResult> CloseTicket(int id)
     {
-        await ticketAssignmentRepository.AssignTicketToUser(ticketId, userId);
+        await ticketRepository.ChangeTicketStatus(id, TicketStatus.Closed);
+        return RedirectToAction("InfoAboutTicket", new { id });
+    }
+    
+    [HttpPost]
+    public async Task<IActionResult> ReOpenTicket(int id)
+    {
+        await ticketRepository.ChangeTicketStatus(id, TicketStatus.Reopened);
+        return RedirectToAction("InfoAboutTicket", new { id });
+    }
+    [HttpPost]
+    public async Task<IActionResult> CancelTicket(int id,string reason)
+    {
+        await ticketRepository.AddCancelReason(id,reason);
+        return RedirectToAction("ReviewTickets");
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> AssignTicket(int ticketId, string userId, TicketPriority priority)
+    {
+        await ticketAssignmentRepository.AssignTicketToUser(ticketId, userId, priority);
         return RedirectToAction("ReviewTickets");
     }
 }

@@ -17,6 +17,13 @@ public class TicketAssignmentRepository(
         var technicians = users
             .Where(u => u.Roles.Contains(nameof(UserRoles.Technician)))
             .ToList();
+        var priorities = Enum.GetValues(typeof(TicketPriority))
+            .Cast<TicketPriority>()
+            .Select(p => new SelectListItem
+            {
+                Value = p.ToString(),
+                Text = p.ToString() 
+            }).ToList();
 
         var model = new AssignTicketViewModel
         {
@@ -25,19 +32,23 @@ public class TicketAssignmentRepository(
             {
                 Value = u.Id.ToString(),
                 Text = u.UserName
-            }).ToList()
+            }).ToList(),
+            Priorities = priorities
+            
         };
 
         return model;
     }
     
-    public async Task AssignTicketToUser(int ticketId, string userId)
+    public async Task AssignTicketToUser(int ticketId, string userId,TicketPriority priority)
     {
         var ticket = await ticketRepository.GetTicketById(ticketId);
 
         if (ticket != null)
         {
+            ticket.Status = TicketStatus.Open;
             ticket.AssignedUserId = userId;
+            ticket.Priority = priority;
         }
 
         await context.SaveChangesAsync();

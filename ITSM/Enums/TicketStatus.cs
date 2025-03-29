@@ -3,7 +3,11 @@
 public enum TicketStatus
 {
     New,
-    InProgress,
+    Open,
+    Progress,
+    Hold,
     Resolved,
-    Closed
+    Closed,
+    Canceled,
+    Reopened,
 }

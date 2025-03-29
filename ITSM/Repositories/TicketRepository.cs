@@ -17,7 +17,7 @@ public class TicketRepository(DBaseContext dBaseContext, ITicketCategoryReposito
             Title = model.Title,
             Description = model.Description,
             CreatedAt = model.CreatedAt,
-            Status = model.Status,
+            Status = TicketStatus.New,
             CategoryId = model.CategoryId,
             AuthorId = currentUserId
         };
@@ -37,14 +37,28 @@ public class TicketRepository(DBaseContext dBaseContext, ITicketCategoryReposito
         await dBaseContext.SaveChangesAsync();
     }
 
-    public async Task CloseTicket(int id, string solution)
+    public async Task ResolveTicket(int id, string solution)
     {
         var ticket = await GetTicketById(id);
-        if (ticket.Status == TicketStatus.New)
+        if (ticket.Status == TicketStatus.Progress)
         {
-            ticket.Status = TicketStatus.Closed;
+            ticket.Status = TicketStatus.Resolved;
             ticket.ClosedAt = DateTime.Now;
             ticket.FixDescription = solution;
+            dBaseContext.Tickets.Update(ticket);
+            await dBaseContext.SaveChangesAsync();
+        }
+    }
+
+    public async Task AddCancelReason(int id, string reason)
+    {
+        var ticket = await GetTicketById(id);
+
+        if (ticket != null)
+        {
+            ticket.Status = TicketStatus.Canceled;
+            ticket.ClosedAt = DateTime.Now;
+            ticket.CancelReason = reason;
             dBaseContext.Tickets.Update(ticket);
             await dBaseContext.SaveChangesAsync();
         }
@@ -55,7 +69,17 @@ public class TicketRepository(DBaseContext dBaseContext, ITicketCategoryReposito
         return await dBaseContext.Tickets
             .Include(t => t.Author)
             .Include(t => t.Category)
-            .Include(t=>t.AssignedUser)
+            .Include(t => t.AssignedUser)
+            .ToListAsync();
+    }
+
+
+    public async Task<IEnumerable<Ticket>> GetTicketsAssignedToAdminAsync(string adminId)
+    {
+        return await dBaseContext.Tickets
+            .Where(t => t.AssignedUserId == adminId)
+            .Include(t => t.Category)
+            .Include(t =>t.Author)
             .ToListAsync();
     }
 
@@ -73,6 +97,14 @@ public class TicketRepository(DBaseContext dBaseContext, ITicketCategoryReposito
         return await dBaseContext.Tickets.FindAsync(id);
     }
 
+    public async Task ChangeTicketStatus(int id, TicketStatus status)
+    {
+        var ticket = await dBaseContext.Tickets.FindAsync(id);
+        ticket.Status = status;
+        dBaseContext.Tickets.Update(ticket);
+        await dBaseContext.SaveChangesAsync();
+    }
+
 
     private async Task<List<TicketHistory>> GetTicketHistoryByTicketId(int ticketId)
     {
@@ -87,6 +119,7 @@ public class TicketRepository(DBaseContext dBaseContext, ITicketCategoryReposito
     {
         var ticket = await dBaseContext.Tickets
             .Include(t => t.Author)
+            .Include(t=>t.AssignedUser)
             .FirstOrDefaultAsync(t => t.Id == ticketId);
         var ticketHistory = await GetTicketHistoryByTicketId(ticketId);
 

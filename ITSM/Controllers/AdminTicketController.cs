@@ -6,26 +6,38 @@ using Microsoft.AspNetCore.Mvc;
 namespace ITSM.Controllers;
 
 [Authorize(Roles = nameof(UserRoles.Admin))]
-public class AdminTicketController(ITicketRepository ticketRepository) : Controller
+public class AdminTicketController(ITicketRepository ticketRepository,IUserManagementRepository userRepository) : Controller
 {
     [HttpGet]
     public async Task<IActionResult> AllTicketsList()
     {
-        var list = await ticketRepository.GetAllTickets();
+        var currentUser = await userRepository.GetCurrentUserAsync(User);
+        var list = await ticketRepository.GetTicketsAssignedToAdminAsync(currentUser.Id);
         return View(list);
     }
 
     [HttpPost]
-    public async Task<IActionResult> CloseTicket(int id, string solution)
+    public async Task<IActionResult> ResolveTicket(int id, string solution)
     {
-        await ticketRepository.CloseTicket(id, solution);
+        await ticketRepository.ResolveTicket(id, solution);
 
-        TempData["TicketClosed"] = "Заявка успешно закрыта.";
+        TempData["TicketClosed"] = "Заявка успешно решена.";
 
         return RedirectToAction("Details", new { id });
     }
-
-
+    
+    [HttpPost]
+    public async Task<IActionResult> AcceptTicketProcessing (int id)
+    {
+        await ticketRepository.ChangeTicketStatus(id, TicketStatus.Progress);
+        return RedirectToAction("Details", new { id });
+    }
+    [HttpPost]
+    public async Task<IActionResult> CancelTicketProcessing (int id)
+    {
+        await ticketRepository.ChangeTicketStatus(id, TicketStatus.Canceled);
+        return RedirectToAction("AllTicketsList");
+    }
     [HttpGet]
     public async Task<IActionResult> Details(int id)
     {

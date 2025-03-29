@@ -12,6 +12,7 @@ public class Ticket
     public string? FixDescription { get; set; }
     public TicketStatus Status { get; set; } = TicketStatus.New;
     public TicketPriority Priority { get; set; } = TicketPriority.Medium;
+    public string? CancelReason { get; set; }
     public string? AuthorId { get; set; }
     public User? Author { get; set; }
     public string? AssignedUserId { get; set; }

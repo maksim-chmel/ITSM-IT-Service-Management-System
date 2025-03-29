@@ -1,4 +1,5 @@
-﻿@using Microsoft.AspNetCore.Mvc.TagHelpers
+﻿@using ITSM.Enums
+@using Microsoft.AspNetCore.Mvc.TagHelpers
 @model IEnumerable<ITSM.Models.Ticket>
 
 @{
@@ -13,6 +14,7 @@
         <th>Номер</th>
         <th>Title</th>
         <th>Status</th>
+        <th>Priority</th>
         <th>Category</th>
         <th>Author Name</th>
         <th>Assigned To</th>
@@ -29,16 +31,26 @@
         <tr>
             <td>@ticket.Id</td>
             <td>@ticket.Title</td>
-
             <td>@ticket.Status</td>
+            <td>@ticket.Priority</td>
             <td>@ticket.Category?.Name</td>
             <td>@ticket.Author?.UserName</td>
             <td>@ticket.AssignedUser</td>
             <td>@ticket.CreatedAt</td>
             <td>@ticket.ClosedAt</td>
-
             <td>
-                <a asp-controller="AdminTicket" asp-action="Details" asp-route-id="@ticket.Id" class="btn btn-primary">Подробнее</a>
+                @if (ticket.Status == TicketStatus.Progress)
+                {
+                    <a asp-controller="AdminTicket" asp-action="Details" asp-route-id="@ticket.Id"
+                       class="btn btn-primary">Подробнее</a>
+                }
+                else if (ticket.Status == TicketStatus.Open || ticket.Status == TicketStatus.Reopened)
+                {
+                    <form asp-controller="AdminTicket" asp-action="AcceptTicketProcessing" method="post">
+                        <input type="hidden" name="id" value="@ticket.Id"/>
+                        <button type="submit" class="btn btn-success">Принять</button>
+                    </form>
+                }
             </td>
         </tr>
     }
