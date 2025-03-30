@@ -4,11 +4,12 @@ namespace ITSM.ViewModels;
 
 public class LoginViewModel
 {
-    [Required]
+    [Required(ErrorMessage = "Введите Email")]
+    [EmailAddress(ErrorMessage = "Некорректный Email")]
     [Display(Name = "Email")]
     public string? Email { get; set; }
 
-    [Required]
+    [Required(ErrorMessage = "Введите пароль")]
     [DataType(DataType.Password)]
     [Display(Name = "Пароль")]
     public string? Password { get; set; }

@@ -37,7 +37,7 @@ public class TicketAssignmentController(
     [HttpPost]
     public async Task<IActionResult> CloseTicket(int id)
     {
-        await ticketRepository.ChangeTicketStatus(id, TicketStatus.Closed);
+        await ticketRepository.ChangeTicketStatus(id, TicketStatus.Done);
         return RedirectToAction("InfoAboutTicket", new { id });
     }
     

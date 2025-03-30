@@ -1,82 +1,96 @@
 ﻿@using ITSM.Enums
 @using Microsoft.AspNetCore.Mvc.TagHelpers
 @model ITSM.ViewModels.TicketDetailsViewModel
-
 @if (TempData["TicketClosed"] != null)
 {
     <div class="alert alert-success" role="alert">
-        Заявка успешно закрыта.
+        Ticket successfully closed.
     </div>
 }
-<h1>@Model.Ticket.Title</h1>
 
-<table class="table">
-    <tr>
-        <th>Номер:</th>
-        <td>@Model.Ticket.Id</td>
-    </tr>
-    <tr>
-        <th>Название:</th>
-        <td>@Model.Ticket.Title</td>
-    </tr>
-    <tr>
-        <th>Описание:</th>
-        <td>@Model.Ticket.Description</td>
-    </tr>
-    <tr>
-        <th>Дата создания:</th>
-        <td>@Model.Ticket.CreatedAt</td>
-    </tr>
-    <tr>
-        <th>Автор:</th>
-        <td>@Model.Ticket.Author?.UserName</td>
-    </tr>
-    <tr>
-        <th>Назначено:</th>
-        <td>@Model.Ticket.AssignedUser</td>
-    </tr>
-    <tr>
-        <th>FixDescription:</th>
-        <td>@Model.Ticket.FixDescription</td>
-    </tr>
-    <tr>
-        <th>Статус:</th>
-        <td>@Model.Ticket.Status</td>
-    </tr>
-</table>
+<div class="mt-4">
+    <a asp-controller="TicketAssignment" asp-action="ReviewTickets" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i>
+    </a>
+</div>
 
-<h3>Заметки</h3>
-<table class="table">
-    <thead>
-    <tr>
-        <th>Дата</th>
-        <th>Заметка</th>
-    </tr>
-    </thead>
-    <tbody>
-    @foreach (var note in Model.TicketHistory)
-    {
-        <tr>
-            <td>@note.CreatedAt.ToString("dd.MM.yyyy HH:mm")</td>
-            <td>@note.AdminComment</td>
-        </tr>
-    }
-    </tbody>
-</table>
+<h1 class="text-center my-4"></h1>
 
-@switch (Model.Ticket.Status)
+<div class="table-responsive shadow-sm rounded mb-4">
+    <table class="table table-bordered table-hover align-middle">
+        <tbody>
+            <tr>
+                <th>Ticket Number:</th>
+                <td>@Model.Ticket.Id</td>
+            </tr>
+            <tr>
+                <th>Title:</th>
+                <td>@Model.Ticket.Title</td>
+            </tr>
+            <tr>
+                <th>Description:</th>
+                <td>@Model.Ticket.Description</td>
+            </tr>
+            <tr>
+                <th>Created At:</th>
+                <td>@Model.Ticket.CreatedAt</td>
+            </tr>
+            <tr>
+                <th>Author:</th>
+                <td>@Model.Ticket.Author?.UserName</td>
+            </tr>
+            <tr>
+                <th>Assigned To:</th>
+                <td>@Model.Ticket.AssignedUser</td>
+            </tr>
+            <tr>
+                <th>Fix Description:</th>
+                <td>@Model.Ticket.FixDescription</td>
+            </tr>
+            <tr>
+                <th>Status:</th>
+                <td>@Model.Ticket.Status</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<h3 class="mb-3">Notes</h3>
+<div class="table-responsive shadow-sm rounded mb-4">
+    <table class="table table-striped table-hover">
+        <thead class="table-light">
+            <tr>
+                <th>Date</th>
+                <th>Note</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var note in Model.TicketHistory)
+            {
+                <tr>
+                    <td>@note.CreatedAt.ToString("dd.MM.yyyy HH:mm")</td>
+                    <td>@note.AdminComment</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@if (Model.Ticket.Status == TicketStatus.Resolved)
 {
-    case TicketStatus.Resolved:
+    <div class="d-flex gap-3">
         <form asp-controller="TicketAssignment" asp-action="CloseTicket" method="post">
             <input type="hidden" name="id" value="@Model.Ticket.Id"/>
-            <button type="submit" class="btn btn-success">Закрыть</button>
+            <button type="submit" class="btn btn-outline-success">Close</button>
         </form>
-        break;
-    case TicketStatus.Closed:
+    </div>
+}
+else if (Model.Ticket.Status == TicketStatus.Done)
+{
+    <div class="d-flex gap-3">
         <form asp-controller="TicketAssignment" asp-action="ReOpenTicket" method="post">
             <input type="hidden" name="id" value="@Model.Ticket.Id"/>
-            <button type="submit" class="btn btn-success">Открыть снова</button>
+            <button type="submit" class="btn btn-outline-success">Reopen</button>
         </form>
-        break;
+    </div>
 }
-<a asp-controller="TicketAssignment" asp-action="ReviewTickets" class="btn btn-secondary">Назад</a>

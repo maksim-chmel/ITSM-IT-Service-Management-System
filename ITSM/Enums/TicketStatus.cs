@@ -7,7 +7,7 @@ public enum TicketStatus
     Progress,
     Hold,
     Resolved,
-    Closed,
+    Done,
     Canceled,
     Reopened,
 }

@@ -1,0 +1,17 @@
+﻿@using Microsoft.AspNetCore.Mvc.ModelBinding
+
+@{
+    var modelState = ViewData.ModelState;
+}
+
+@if (!modelState.IsValid)
+{
+    <div class="alert alert-danger">
+        <ul>
+            @foreach (var error in modelState.Values.SelectMany(v => v.Errors))
+            {
+                <li>@error.ErrorMessage</li>
+            }
+        </ul>
+    </div>
+}

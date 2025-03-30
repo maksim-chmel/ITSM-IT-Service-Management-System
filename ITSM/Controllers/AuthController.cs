@@ -22,6 +22,13 @@ public class AuthController(UserManager<User> userManager, SignInManager<User> s
     {
         if (ModelState.IsValid)
         {
+            var existingUserByEmail = await userManager.FindByEmailAsync(model.Email);
+            if (existingUserByEmail != null)
+            {
+                ModelState.AddModelError("Email", "Пользователь с таким email уже существует.");
+                return View(model);
+            }
+
             var user = new User { UserName = model.UserName, Email = model.Email };
             var result = await userManager.CreateAsync(user, model.Password);
 

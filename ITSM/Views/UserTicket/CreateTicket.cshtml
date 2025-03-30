@@ -1,35 +1,54 @@
 ﻿@using Microsoft.AspNetCore.Mvc.TagHelpers
 @model ITSM.ViewModels.TicketCreateViewModel
-
 @{
-    ViewData["Title"] = "Створити заявку";
+    ViewData["Title"] = "Create Ticket";
 }
 
-<h2>@ViewData["Title"]</h2>
+<h2 class="text-center mb-4">@ViewData["Title"]</h2>
 
-<form asp-action="CreateTicket" method="post">
-    <div class="mb-3">
-        <label asp-for="Title" class="form-label"></label>
-        <input asp-for="Title" class="form-control"/>
-        <span asp-validation-for="Title" class="text-danger"></span>
+<form asp-action="CreateTicket" method="post" class="p-4 rounded shadow-sm bg-light">
+    <!-- Title Field -->
+    <div class="form-floating mb-3">
+        <input asp-for="Title" class="form-control" id="floatingTitle" placeholder="Ticket Title" required />
+        <label for="floatingTitle">Ticket Title</label>
+        <span asp-validation-for="Title" class="invalid-feedback"></span>
     </div>
 
-    <div class="mb-3">
-        <label asp-for="Description" class="form-label"></label>
-        <textarea asp-for="Description" class="form-control" rows="4"></textarea>
-        <span asp-validation-for="Description" class="text-danger"></span>
+    <!-- Description Field -->
+    <div class="form-floating mb-3">
+        <textarea asp-for="Description" class="form-control" id="floatingDescription" placeholder="Description" style="height: 100px;" required></textarea>
+        <label for="floatingDescription">Description</label>
+        <span asp-validation-for="Description" class="invalid-feedback"></span>
     </div>
-    <div class="mb-3">
-        <label asp-for="CategoryId" class="form-label">Категорія</label>
-        <select asp-for="CategoryId" class="form-control" asp-items="Model.Categories">
-            <option value="">Виберіть категорію</option>
+
+    <!-- Category Field -->
+    <div class="form-floating mb-3">
+        <select asp-for="CategoryId" class="form-control" asp-items="Model.Categories" id="floatingCategory" required>
+            <option value="">Select a category</option>
         </select>
-        <span asp-validation-for="CategoryId" class="text-danger"></span>
+        <label for="floatingCategory">Category</label>
+        <span asp-validation-for="CategoryId" class="invalid-feedback"></span>
     </div>
 
-    <button type="submit" class="btn btn-primary">Створити</button>
+    <button type="submit" class="btn  btn-outline-primary w-100">
+        <i class="bi bi-plus-circle"></i> Create
+    </button>
 </form>
 
 @section Scripts {
-    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+    <partial name="_ValidationScriptsPartial" />
 }
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const inputs = document.querySelectorAll(".form-control");
+
+        // Real-time validation
+        inputs.forEach(input => {
+            input.addEventListener("input", function () {
+                this.classList.toggle("is-invalid", !this.checkValidity());
+                this.classList.toggle("is-valid", this.checkValidity());
+            });
+        });
+    });
+</script>

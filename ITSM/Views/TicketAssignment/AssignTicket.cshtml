@@ -1,35 +1,43 @@
 ﻿@using Microsoft.AspNetCore.Mvc.TagHelpers
 @model ITSM.ViewModels.AssignTicketViewModel
-
+<div class="mt-4">
+    <a asp-controller="TicketAssignment" asp-action="ReviewTickets" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i>
+    </a>
+</div>
 @{
-    ViewData["Title"] = "Назначить исполнителя";
+    ViewData["Title"] = "Assign Ticket";
 }
 
-<h1>@ViewData["Title"]</h1>
+<h1 class="text-center my-4">@ViewData["Title"]</h1>
 
 <form method="post" asp-controller="TicketAssignment" asp-action="AssignTicket" class="form">
     <input type="hidden" name="ticketId" value="@Model.Ticket.Id" />
 
-    <div class="form-group">
-        <label for="userId">Выберите пользователя для назначения:</label>
-        <select id="userId" name="userId" class="form-control">
-            <option value="">Оставить пустым</option>
+    <div class="mb-3">
+        <label for="userId" class="form-label">Select a user for assignment:</label>
+        <select id="userId" name="userId" class="form-select">
+            <option value="">Leave empty</option>
             @foreach (var user in Model.Users)
             {
                 <option value="@user.Value">@user.Text</option>
             }
         </select>
     </div>
-    <div class="form-group">
-        <label for="priority">Выберите приоритет:</label>
-        <select id="priority" name="priority" class="form-control">
-            <option value="">Оставить пустым</option>
+
+    <div class="mb-3">
+        <label for="priority" class="form-label">Select priority:</label>
+        <select id="priority" name="priority" class="form-select">
+            <option value="">Leave empty</option>
             @foreach (var priority in Model.Priorities)
             {
                 <option value="@priority.Value">@priority.Text</option>
             }
         </select>
     </div>
-    <button type="submit" class="btn btn-success">Подтвердить изменения</button>
-    <a asp-controller="TicketAssignment" asp-action="ReviewTickets" class="btn btn-secondary">Назад</a>
+
+    <div class="d-flex gap-3 justify-content-between">
+        <button type="submit" class="btn btn-outline-success">Confirm Changes</button>
+       
+    </div>
 </form>

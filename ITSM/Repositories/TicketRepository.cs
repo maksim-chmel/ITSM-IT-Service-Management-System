@@ -30,7 +30,7 @@ public class TicketRepository(DBaseContext dBaseContext, ITicketCategoryReposito
     public async Task MassDeleteTickets()
     {
         var closedTickets = await dBaseContext.Tickets
-            .Where(a => a.Status == TicketStatus.Closed)
+            .Where(a => a.Status == TicketStatus.Done)
             .ToListAsync();
 
         dBaseContext.Tickets.RemoveRange(closedTickets);
