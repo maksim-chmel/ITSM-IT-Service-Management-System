@@ -8,13 +8,14 @@ namespace ITSM.Controllers;
 [Authorize(Roles = nameof(UserRoles.Coordinator))]
 public class TicketAssignmentController(
     ITicketRepository ticketRepository,
-    ITicketAssignmentRepository ticketAssignmentRepository)
+    ITicketAssignmentRepository ticketAssignmentRepository,ITicketSortRepository ticketSortRepository)
     : Controller
 {
     [HttpGet]
-    public async Task<IActionResult> ReviewTickets()
+    public async Task<IActionResult> ReviewAllTickets()
     {
         var list = await ticketRepository.GetAllTickets();
+        list = ticketSortRepository.SortTicketsByNew(list);
         return View(list);
     }
 
@@ -24,6 +25,13 @@ public class TicketAssignmentController(
         var model = await ticketAssignmentRepository.CreateAssignTicketViewModel(id);
 
         return View(model);
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> AssignTicket(int ticketId, string userId, TicketPriority priority)
+    {
+        await ticketAssignmentRepository.AssignTicketToUser(ticketId, userId, priority);
+        return RedirectToAction("ReviewAllTickets");
     }
 
     [HttpGet]
@@ -40,24 +48,18 @@ public class TicketAssignmentController(
         await ticketRepository.ChangeTicketStatus(id, TicketStatus.Done);
         return RedirectToAction("InfoAboutTicket", new { id });
     }
-    
+
     [HttpPost]
     public async Task<IActionResult> ReOpenTicket(int id)
     {
         await ticketRepository.ChangeTicketStatus(id, TicketStatus.Reopened);
         return RedirectToAction("InfoAboutTicket", new { id });
     }
-    [HttpPost]
-    public async Task<IActionResult> CancelTicket(int id,string reason)
-    {
-        await ticketRepository.AddCancelReason(id,reason);
-        return RedirectToAction("ReviewTickets");
-    }
 
     [HttpPost]
-    public async Task<IActionResult> AssignTicket(int ticketId, string userId, TicketPriority priority)
+    public async Task<IActionResult> CancelTicket(int id, string reason)
     {
-        await ticketAssignmentRepository.AssignTicketToUser(ticketId, userId, priority);
-        return RedirectToAction("ReviewTickets");
+        await ticketRepository.AddCancelReason(id, reason);
+        return RedirectToAction("ReviewAllTickets");
     }
 }

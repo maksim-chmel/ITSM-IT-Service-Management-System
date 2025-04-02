@@ -12,7 +12,7 @@ namespace ITSM.Controllers;
 public class UserRolesController(IUserRolesRepository userRolesRepository) : Controller
 {
     [HttpGet]
-    public async Task<IActionResult> Manage(string userId)
+    public async Task<IActionResult> ManageRoles(string userId)
     {
         var model = await userRolesRepository.GetUserRolesViewModel(userId);
         if (model == null)
@@ -22,7 +22,7 @@ public class UserRolesController(IUserRolesRepository userRolesRepository) : Con
     }
 
     [HttpPost]
-    public async Task<IActionResult> Manage(ManageUserRolesViewModel model)
+    public async Task<IActionResult> ManageRoles(ManageUserRolesViewModel model)
     {
         var result = await userRolesRepository.UpdateUserRolesAsync(model.UserId, model.Roles);
         if (!result)

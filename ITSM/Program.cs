@@ -22,6 +22,7 @@ builder.Services.AddScoped<ITicketRepository, TicketRepository>();
 builder.Services.AddScoped<IUserManagementRepository, UserManagementRepository>();
 builder.Services.AddScoped<IUserRolesRepository, UserRolesRepository>();
 builder.Services.AddScoped<ITicketAssignmentRepository, TicketAssignmentRepository>();
+builder.Services.AddScoped<ITicketSortRepository, TicketSortRepository>();
 
 
 

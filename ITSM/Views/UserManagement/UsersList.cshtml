@@ -4,7 +4,7 @@
 <h1 class="text-center mb-4">@ViewData["Title"]</h1>
 <h1 class="text-center mb-4">@ViewData["Title"]</h1>
 
-<div class="shadow-sm rounded">
+<div class="table-responsive shadow-sm rounded">
     <table class="table table-hover table-bordered align-middle text-center">
         <thead class="table-dark text-white">
             <tr>
@@ -33,13 +33,13 @@
                             </button>
                             <ul class="dropdown-menu" aria-labelledby="userActionsDropdown">
                                 <li>
-                                    <a class="dropdown-item" asp-controller="UserManagement" asp-action="UserEditor"
+                                    <a class="dropdown-item" asp-controller="UserManagement" asp-action="EditUser"
                                        asp-route-id="@user.Id">
                                         Edit
                                     </a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item" asp-controller="UserRoles" asp-action="Manage"
+                                    <a class="dropdown-item" asp-controller="UserRoles" asp-action="ManageRoles"
                                        asp-route-userId="@user.Id">
                                         Manage Roles
                                     </a>

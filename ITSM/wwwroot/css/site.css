@@ -1,3 +1,4 @@
+/* Основные стили для шрифта и адаптивности */
 html {
   font-size: 14px;
 }
@@ -8,15 +9,115 @@ html {
   }
 }
 
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
-}
-
 html {
   position: relative;
   min-height: 100%;
 }
 
+/* Основной фон и анимация загрузки страницы */
 body {
   margin-bottom: 60px;
+  padding-top: 60px;
+  background-color: #f8f9fa;
+  font-family: 'Arial', sans-serif;
+  opacity: 0;
+  transition: opacity 0.5s ease-in-out;
 }
+
+body.loaded {
+  opacity: 1;
+}
+
+/* Стили для навигационной панели и сайдбара */
+.sidebar {
+  width: 60px; /* Начальная ширина */
+  overflow: hidden;
+  white-space: nowrap;
+  transition: width 0.3s ease-in-out;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+  padding-top: 20px;
+  margin-top: 60px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: fixed;
+  z-index: 1050;
+}
+
+.sidebar:hover {
+  width: 250px; /* Расширяется при наведении */
+}
+
+.sidebar .nav-link {
+  font-size: 1rem;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  color: black;
+  transition: background 0.3s, transform 0.3s;
+  border-radius: 8px;
+}
+
+.sidebar .nav-link i {
+  font-size: 1.5rem;
+  min-width: 40px;
+  text-align: center;
+}
+
+.sidebar .nav-link span {
+  display: none; /* Скрытие текста */
+  white-space: nowrap;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.sidebar:hover .nav-link span {
+  display: inline; /* Показываем текст при наведении */
+}
+
+.sidebar .nav-link:hover {
+  color: #0d6efd;
+  background-color: rgba(13, 110, 253, 0.1);
+  transform: translateX(5px);
+}
+
+/* Стили для контента */
+.content-container {
+  margin-left: 60px;
+  transition: margin-left 0.3s ease-in-out;
+}
+
+.sidebar:hover ~ .content-container {
+  margin-left: 250px;
+}
+
+/* Фокус и активные состояния */
+.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
+  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+}
+/* Анимация плавного изменения фона */
+.badge {
+  transition: background-color 0.3s ease-in-out, color 0.3s ease-in-out;
+}
+
+/* Чтобы таблица не прокручивалась, удаляем ограничения по высоте */
+.table-responsive {
+  overflow: visible; /* Убирает прокрутку */
+  height: auto; /* Таблица растягивается по мере необходимости */
+}
+
+.table-hover {
+  table-layout: auto; /* Таблица может расширяться в зависимости от контента */
+}
+
+.table-responsive .dropdown-menu {
+  max-height: none; /* Убирает максимальную высоту для выпадающего меню */
+  overflow: visible; /* Меню не ограничено по высоте */
+}
+

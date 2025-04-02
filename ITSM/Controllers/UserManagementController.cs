@@ -26,7 +26,7 @@ public class UserManagementController(IUserManagementRepository userRepository) 
     }
 
     [HttpGet]
-    public async Task<IActionResult> UserEditor(string id)
+    public async Task<IActionResult> EditUser(string id)
     {
         var user = await userRepository.CreateEditUserViewModel(id);
         
@@ -34,7 +34,7 @@ public class UserManagementController(IUserManagementRepository userRepository) 
     }
 
     [HttpPost]
-    public async Task<IActionResult> UserEditor(string id, EditUserViewModel editModel)
+    public async Task<IActionResult> EditUser(string id, EditUserViewModel editModel)
     {
         if (!ModelState.IsValid) return View(editModel);
         

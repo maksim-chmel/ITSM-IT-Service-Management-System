@@ -5,16 +5,19 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ITSM.Controllers;
 
-[Authorize(Roles = nameof(UserRoles.Admin))]
-public class AdminTicketController(ITicketRepository ticketRepository,IUserManagementRepository userRepository) : Controller
+[Authorize(Roles = nameof(UserRoles.Technician))]
+public class TechnicianTicketController(ITicketRepository ticketRepository,IUserManagementRepository userRepository,ITicketSortRepository ticketSortRepository) : Controller
 {
     [HttpGet]
-    public async Task<IActionResult> AllTicketsList()
+    public async Task<IActionResult> ToDoTicketsList()
     {
         var currentUser = await userRepository.GetCurrentUserAsync(User);
         var list = await ticketRepository.GetTicketsAssignedToAdminAsync(currentUser.Id);
+        list = ticketSortRepository.SortTicketsByPriority(list);
+       
         return View(list);
     }
+   
 
     [HttpPost]
     public async Task<IActionResult> ResolveTicket(int id, string solution)
@@ -23,23 +26,23 @@ public class AdminTicketController(ITicketRepository ticketRepository,IUserManag
 
         TempData["TicketClosed"] = "Заявка успешно решена.";
 
-        return RedirectToAction("Details", new { id });
+        return RedirectToAction("ShowDetailsAboutTicket", new { id });
     }
     
     [HttpPost]
     public async Task<IActionResult> AcceptTicketProcessing (int id)
     {
         await ticketRepository.ChangeTicketStatus(id, TicketStatus.Progress);
-        return RedirectToAction("Details", new { id });
+        return RedirectToAction("ShowDetailsAboutTicket", new { id });
     }
     [HttpPost]
     public async Task<IActionResult> CancelTicketProcessing (int id)
     {
         await ticketRepository.ChangeTicketStatus(id, TicketStatus.Canceled);
-        return RedirectToAction("AllTicketsList");
+        return RedirectToAction("ToDoTicketsList");
     }
     [HttpGet]
-    public async Task<IActionResult> Details(int id)
+    public async Task<IActionResult> ShowDetailsAboutTicket(int id)
     {
         var viewModel = await ticketRepository.CreateTicketDetailsViewModel(id);
 
@@ -47,9 +50,9 @@ public class AdminTicketController(ITicketRepository ticketRepository,IUserManag
     }
 
     [HttpPost]
-    public async Task<IActionResult> AddTicketComment(int ticketId, string adminComment)
+    public async Task<IActionResult> AddNewCommentToTicket(int ticketId, string adminComment)
     {
         await ticketRepository.AddTicketStepAsync(ticketId, adminComment);
-        return RedirectToAction("Details", new { id = ticketId });
+        return RedirectToAction("ShowDetailsAboutTicket", new { id = ticketId });
     }
 }

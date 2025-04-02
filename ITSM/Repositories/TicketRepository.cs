@@ -57,6 +57,7 @@ public class TicketRepository(DBaseContext dBaseContext, ITicketCategoryReposito
         if (ticket != null)
         {
             ticket.Status = TicketStatus.Canceled;
+            ticket.Priority = TicketPriority.None;
             ticket.ClosedAt = DateTime.Now;
             ticket.CancelReason = reason;
             dBaseContext.Tickets.Update(ticket);
