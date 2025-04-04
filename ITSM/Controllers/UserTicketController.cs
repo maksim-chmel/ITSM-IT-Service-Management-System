@@ -7,7 +7,8 @@ using Microsoft.AspNetCore.Mvc;
 namespace ITSM.Controllers;
 
 [Authorize(Roles = nameof(UserRoles.User))]
-public class UserTicketController(IUserManagementRepository userRepository, ITicketRepository ticketRepository)
+public class UserTicketController(IUserManagementRepository userRepository, ITicketRepository ticketRepository
+,ITicketSortRepository ticketSortRepository)
     : Controller
 {
     [HttpGet]
@@ -29,13 +30,16 @@ public class UserTicketController(IUserManagementRepository userRepository, ITic
     }
 
     [HttpGet]
-    public async Task<IActionResult> UserTicketsList()
+    public async Task<IActionResult> UserTicketsList(string categoryId,TicketStatus? status)
     {
         var currentUser = await userRepository.GetCurrentUserAsync(User);
 
         if (currentUser == null) throw new Exception("User not found");
 
         var list = await ticketRepository.GetUserTickets(currentUser.Id);
+        list = ticketSortRepository.GetFilteredTickets(categoryId, null, status);
+        ViewBag.Categories = ticketSortRepository.GetCategorySelectList();
+        
 
         return View(list);
     }

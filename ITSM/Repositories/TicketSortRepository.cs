@@ -1,55 +1,38 @@
-﻿using ITSM.Enums;
+﻿using ITSM.DB;
+using ITSM.Enums;
 using ITSM.Models;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace ITSM.Repositories;
 
-public class TicketSortRepository:ITicketSortRepository
+public class TicketSortRepository(DBaseContext context ):ITicketSortRepository
 {
-    public IEnumerable<Ticket> SortTicketsByPriority(IEnumerable<Ticket> tickets)
+    public IEnumerable<Ticket> GetFilteredTickets(string categoryId, TicketPriority? priority, TicketStatus? status)
     {
-        return tickets.OrderByDescending(t => t.Priority) // Высокий приоритет выше
-            .ToList();
+        var tickets = context.Tickets.AsQueryable();
+
+        if (!string.IsNullOrEmpty(categoryId))
+            tickets = tickets.Where(t => t.CategoryId.ToString() == categoryId);
+
+        if (priority.HasValue)
+            tickets = tickets.Where(t => t.Priority == priority);
+
+        if (status.HasValue)
+            tickets = tickets.Where(t => t.Status == status);
+
+        return tickets.ToList();
     }
 
-    public IEnumerable<Ticket> SortTicketsByNew(IEnumerable<Ticket> tickets)
+    public IEnumerable<SelectListItem> GetCategorySelectList()
     {
-        return tickets.OrderByDescending(t => t.CreatedAt) // Новые заявки сверху
-            .ToList();
+        return context.TicketCategories
+            .Select(c => new SelectListItem
+            {
+                Text = c.Name,
+                Value = c.Id.ToString()
+            }).ToList();
     }
-    public IEnumerable<Ticket> SortTicketsByStatus(IEnumerable<Ticket> tickets)
-    {
-        return tickets.OrderByDescending(t => t.Status == TicketStatus.Open) // Открытые заявки сверху
-            .ToList();
-    }
-    public IEnumerable<Ticket> SortTicketsByClosedAt(IEnumerable<Ticket> tickets)
-    {
-        return tickets.OrderBy(t => t.ClosedAt ?? DateTime.MaxValue) // Сначала те, которые не закрыты (если ClosedAt = null)
-            .ToList();
-    }
-    public IEnumerable<Ticket> SortTicketsByTitle(IEnumerable<Ticket> tickets)
-    {
-        return tickets.OrderBy(t => t.Title) // Сортировка по названию заявки
-            .ToList();
-    }
-    public IEnumerable<Ticket> SortTicketsByPriorityAndStatus(IEnumerable<Ticket> tickets)
-    {
-        return tickets.OrderByDescending(t => t.Priority) // Высокий приоритет выше
-            .ThenByDescending(t => t.Status == TicketStatus.Open) // Открытые заявки выше
-            .ToList();
-    }
-    public IEnumerable<Ticket> SortTicketsByPriorityAndDate(IEnumerable<Ticket> tickets)
-    {
-        return tickets.OrderByDescending(t => t.Priority) // Высокий приоритет выше
-            .ThenByDescending(t => t.CreatedAt) // Сначала новые заявки
-            .ToList();
-    }
-    public IEnumerable<Ticket> SortTicketsByStatusAndDate(IEnumerable<Ticket> tickets)
-    {
-        return tickets.OrderByDescending(t => t.Status == TicketStatus.Open) // Открытые заявки сверху
-            .ThenByDescending(t => t.CreatedAt) // Сначала новые заявки
-            .ToList();
-    }
-
-
-
 }
+
+
+

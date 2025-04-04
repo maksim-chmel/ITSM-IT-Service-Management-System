@@ -1,9 +1,7 @@
 ﻿using ITSM.Enums;
-using ITSM.Models;
 using ITSM.Repositories;
 using ITSM.ViewModels;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ITSM.Controllers;

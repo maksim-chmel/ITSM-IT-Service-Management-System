@@ -1,9 +1,12 @@
-﻿using ITSM.Models;
+﻿using ITSM.Enums;
+using ITSM.Models;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace ITSM.Repositories;
 
 public interface ITicketSortRepository
 {
-    IEnumerable<Ticket> SortTicketsByPriority(IEnumerable<Ticket> tickets);
-    IEnumerable<Ticket> SortTicketsByNew(IEnumerable<Ticket> tickets);
+    IEnumerable<Ticket> GetFilteredTickets(string categoryId, TicketPriority? priority, TicketStatus? status);
+    
+    IEnumerable<SelectListItem> GetCategorySelectList();
 }
