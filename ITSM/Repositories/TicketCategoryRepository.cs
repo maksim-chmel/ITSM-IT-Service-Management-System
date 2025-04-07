@@ -60,4 +60,39 @@ public class TicketCategoryRepository(DBaseContext context) : ITicketCategoryRep
             .ToListAsync();
     }
     
+   
+    public async Task<TicketCategory> GetSubCategoryListAsync(int categoryId)
+    {
+        return await context.TicketCategories
+            .Include(c => c.SubCategories)
+            .FirstOrDefaultAsync(c => c.Id == categoryId);
+    }
+
+
+
+    
+    public async Task DeleteSubCategoryAsync(int subCategoryId)
+    {
+        var subCategory = await context.TicketSubCategories.FindAsync(subCategoryId);
+        if (subCategory != null)
+        {
+            context.TicketSubCategories.Remove(subCategory);
+            await context.SaveChangesAsync();
+        }
+    }
+
+  
+   
+    public async Task AddSubCategoryAsync(int categoryId, string name)
+    {
+        var subCategory = new TicketSubCategory
+        {
+            Name = name,
+            CategoryId = categoryId
+        };
+
+        context.TicketSubCategories.Add(subCategory);
+        await context.SaveChangesAsync();
+    }
+
 }

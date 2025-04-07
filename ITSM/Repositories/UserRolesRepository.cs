@@ -37,11 +37,12 @@ public class UserRolesRepository(
         if (user == null) return false;
 
         var currentRoles = await userManager.GetRolesAsync(user);
-        var rolesToAdd = selectedRoles.Where(r => r.IsSelected).Select(r => r.RoleName).ToList();
+        var rolesToAdd = selectedRoles.Where(r => r.IsSelected)
+            .Select(r => r.RoleName).ToList();
 
         await userManager.RemoveFromRolesAsync(user, currentRoles);
         await userManager.AddToRolesAsync(user, rolesToAdd);
-            //  await authRepository.RefreshSignInAsync(user);
+        //  await authRepository.RefreshSignInAsync(user);
 
         return true;
     }

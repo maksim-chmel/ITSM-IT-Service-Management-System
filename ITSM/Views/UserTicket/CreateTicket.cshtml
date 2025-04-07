@@ -1,49 +1,61 @@
-﻿@using Microsoft.AspNetCore.Mvc.TagHelpers
-@model ITSM.ViewModels.TicketCreateViewModel
-@{
-    ViewData["Title"] = "Create Ticket";
-}
+﻿@model ITSM.ViewModels.TicketCreateViewModel
+@using Microsoft.AspNetCore.Mvc.TagHelpers
 
-<h2 class="text-center mb-4">@ViewData["Title"]</h2>
+<h2 class="text-center mb-4">Create Ticket</h2>
 
-<form asp-action="CreateTicket" method="post" class="p-4 rounded shadow-sm bg-light">
-    <!-- Title Field -->
-    <div class="form-floating mb-3">
-        <input asp-for="Title" class="form-control" id="floatingTitle" placeholder="Ticket Title" required />
-        <label for="floatingTitle">Ticket Title</label>
-        <span asp-validation-for="Title" class="invalid-feedback"></span>
-    </div>
+<div class="bg-light p-4 rounded shadow-sm mx-auto" style="max-width: 600px;">
+   
+    <form method="get" asp-action="CreateTicket" asp-controller="UserTicket" class="mb-3">
+        <div class="form-floating">
+            <select name="categoryId" class="form-select" onchange="this.form.submit()">
+                <option value="">Select Category</option>
+                @foreach (var cat in Model.Categories)
+                {
+                    <option value="@cat.Value" selected="@(cat.Value == Model.CategoryId?.ToString() ? "selected" : null)">
+                        @cat.Text
+                    </option>
+                }
+            </select>
+            <label>Category</label>
+        </div>
+    </form>
 
-    <!-- Description Field -->
-    <div class="form-floating mb-3">
-        <textarea asp-for="Description" class="form-control" id="floatingDescription" placeholder="Description" style="height: 100px;" required></textarea>
-        <label for="floatingDescription">Description</label>
-        <span asp-validation-for="Description" class="invalid-feedback"></span>
-    </div>
+   
+    <form asp-action="CreateTicket" method="post">
+        <input type="hidden" asp-for="CategoryId" />
+        <div class="form-floating mb-3">
+            <input asp-for="Title" class="form-control" placeholder="Title" />
+            <label asp-for="Title">Title</label>
+        </div>
 
-    <!-- Category Field -->
-    <div class="form-floating mb-3">
-        <select asp-for="CategoryId" class="form-control" asp-items="Model.Categories" id="floatingCategory" required>
-            <option value="">Select a category</option>
-        </select>
-        <label for="floatingCategory">Category</label>
-        <span asp-validation-for="CategoryId" class="invalid-feedback"></span>
-    </div>
+      
+        <div class="form-floating mb-3">
+            <textarea asp-for="Description" class="form-control" placeholder="Description" style="height: 100px;"></textarea>
+            <label asp-for="Description">Description</label>
+        </div>
 
-    <button type="submit" class="btn  btn-outline-primary w-100">
-        <i class="bi bi-plus-circle"></i> Create
-    </button>
-</form>
+      
+        <div class="form-floating mb-4">
+            <select asp-for="SubCategoryId" class="form-select">
+                <option value="">Select Subcategory</option>
+                @foreach (var sub in Model.SubCategories)
+                {
+                    <option value="@sub.Value">@sub.Text</option>
+                }
+            </select>
+            <label asp-for="SubCategoryId">Subcategory</label>
+        </div>
 
-@section Scripts {
-    <partial name="_ValidationScriptsPartial" />
-}
+        <button type="submit" class="btn btn-outline-primary w-100">Create</button>
+    </form>
+</div>
+
 
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         const inputs = document.querySelectorAll(".form-control");
 
-        // Real-time validation
+     
         inputs.forEach(input => {
             input.addEventListener("input", function () {
                 this.classList.toggle("is-invalid", !this.checkValidity());

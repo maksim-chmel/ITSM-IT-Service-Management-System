@@ -81,11 +81,40 @@ public class UserManagementRepository(DBaseContext dBaseContext, UserManager<Use
     {
         var user = await GetUserById(id) ?? throw new ArgumentException("Пользователь не найден");
 
+       
         user.UserName = editmodel.UserName;
         user.Email = editmodel.Email;
         user.NormalizedEmail = editmodel.Email?.Normalize();
-        //user.PasswordHash = editmodel.Email.GetHashCode().ToString(); сделать возможность менять пароль
         user.PhoneNumber = editmodel.PhoneNumber;
+
+       
+        if (!string.IsNullOrEmpty(editmodel.NewPassword) && !string.IsNullOrEmpty(editmodel.ConfirmPassword))
+        {
+          
+            if (editmodel.NewPassword != editmodel.ConfirmPassword)
+            {
+                throw new ArgumentException("Новый пароль и подтверждение пароля не совпадают.");
+            }
+
+           
+            var removePasswordResult = await userManager.RemovePasswordAsync(user);
+            if (removePasswordResult.Succeeded)
+            {
+                var addPasswordResult = await userManager.AddPasswordAsync(user, editmodel.NewPassword);
+                if (!addPasswordResult.Succeeded)
+                {
+                   
+                    var errors = string.Join(", ", addPasswordResult.Errors.Select(e => e.Description));
+                    throw new Exception($"Не удалось изменить пароль: {errors}");
+                }
+            }
+            else
+            {
+               
+                var errors = string.Join(", ", removePasswordResult.Errors.Select(e => e.Description));
+                throw new Exception($"Не удалось удалить старый пароль: {errors}");
+            }
+        }
         await dBaseContext.SaveChangesAsync();
     }
 

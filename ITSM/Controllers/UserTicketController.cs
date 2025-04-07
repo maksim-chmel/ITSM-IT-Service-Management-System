@@ -3,6 +3,7 @@ using ITSM.Repositories;
 using ITSM.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace ITSM.Controllers;
 
@@ -12,35 +13,52 @@ public class UserTicketController(IUserManagementRepository userRepository, ITic
     : Controller
 {
     [HttpGet]
-    public async Task<IActionResult> CreateTicket()
+    public async Task<IActionResult> CreateTicket(int? categoryId)
     {
-        var viewModel = await ticketRepository.AddCategoriesToViewModel();
-
+        var viewModel = await ticketRepository.BuildCreateTicketViewModel(categoryId);
         return View(viewModel);
     }
 
     [HttpPost]
-    public async Task<IActionResult> CreateTicket(TicketCreateViewModel newTicketCreate)
+    public async Task<IActionResult> CreateTicket(TicketCreateViewModel model)
     {
         var currentUser = await userRepository.GetCurrentUserAsync(User);
-
-        if (currentUser != null) await ticketRepository.CreateNewTicket(newTicketCreate, currentUser.Id);
+        if (currentUser != null)
+        {
+            await ticketRepository.CreateNewTicket(model, currentUser.Id);
+            TempData["SuccessMessage"] = "Ticket created.";
+        }
+        else
+        {
+            TempData["ErrorMessage"] = "User not found.";
+        }
 
         return RedirectToAction("CreateTicket");
     }
-
     [HttpGet]
-    public async Task<IActionResult> UserTicketsList(string categoryId,TicketStatus? status)
+    public async Task<IActionResult> UserTicketsList(int? categoryId,TicketStatus? status)
     {
-        var currentUser = await userRepository.GetCurrentUserAsync(User);
+        try
+        {
+            var currentUser = await userRepository.GetCurrentUserAsync(User);
 
-        if (currentUser == null) throw new Exception("User not found");
+            if (currentUser == null)
+            {
+                TempData["ErrorMessage"] = "Пользователь не найден.";
+                return RedirectToAction("Error", "Home");
+            }
 
-        var list = await ticketRepository.GetUserTickets(currentUser.Id);
-        list = ticketSortRepository.GetFilteredTickets(categoryId, null, status);
-        ViewBag.Categories = ticketSortRepository.GetCategorySelectList();
+            var list = await ticketRepository.GetUserTickets(currentUser.Id);
+            var filteredTickets = ticketSortRepository.GetFilteredTickets(list, categoryId, null, status);
+            ViewBag.Categories = ticketSortRepository.GetCategorySelectList();
+            return View(filteredTickets);
+        }
+        catch (Exception)
+        {
+            TempData["ErrorMessage"] = "Произошла ошибка при загрузке тикетов.";
+            return RedirectToAction("Error", "Home");
+        }
         
-
-        return View(list);
+        
     }
 }

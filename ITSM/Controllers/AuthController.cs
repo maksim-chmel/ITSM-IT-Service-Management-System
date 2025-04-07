@@ -25,8 +25,8 @@ public class AuthController(UserManager<User> userManager, SignInManager<User> s
             var existingUserByEmail = await userManager.FindByEmailAsync(model.Email);
             if (existingUserByEmail != null)
             {
-                ModelState.AddModelError("Email", "Пользователь с таким email уже существует.");
-                return View(model);
+                TempData["ErrorMessage"] = "Пользователь с таким email уже существует.";
+                return RedirectToAction("Register");
             }
 
             var user = new User { UserName = model.UserName, Email = model.Email };
@@ -40,7 +40,7 @@ public class AuthController(UserManager<User> userManager, SignInManager<User> s
 
             foreach (var error in result.Errors)
             {
-                ModelState.AddModelError(string.Empty, error.Description);
+                TempData["ErrorMessage"] = error.Description;  
             }
         }
 
@@ -53,8 +53,6 @@ public class AuthController(UserManager<User> userManager, SignInManager<User> s
     {
         return View();
     }
-
-
     [HttpPost]
     public async Task<IActionResult> Login(LoginViewModel model)
     {
@@ -69,14 +67,11 @@ public class AuthController(UserManager<User> userManager, SignInManager<User> s
                 {
                     return RedirectToAction("Index", "Home");
                 }
-                else
-                {
-                    ModelState.AddModelError(string.Empty, "Неверный пароль или имя пользователя.");
-                }
+               
             }
             else
             {
-                ModelState.AddModelError(string.Empty, "Пользователь не найден.");
+                TempData["ErrorMessage"] = "Неверный пароль или имя пользователя.";  
             }
         }
 

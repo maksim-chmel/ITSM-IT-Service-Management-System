@@ -12,10 +12,10 @@ public class TicketAssignmentController(
     : Controller
 {
     [HttpGet]
-    public async Task<IActionResult> ReviewAllTickets(string categoryId, TicketPriority? priority, TicketStatus? status)
+    public async Task<IActionResult> ReviewAllTickets(int? categoryId, TicketPriority? priority, TicketStatus? status)
     {
         var list = await ticketRepository.GetAllTickets();
-        list = ticketSortRepository.GetFilteredTickets(categoryId, priority, status);
+        list = ticketSortRepository.GetFilteredTickets(list,categoryId, priority, status);
         ViewBag.Categories = ticketSortRepository.GetCategorySelectList();
         return View(list);
     }

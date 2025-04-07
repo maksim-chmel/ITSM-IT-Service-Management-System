@@ -121,3 +121,19 @@ body.loaded {
   overflow: visible; /* Меню не ограничено по высоте */
 }
 
+.password-fields {
+  display: none; /* Скрытие полей по умолчанию */
+}
+
+.password-fields.show {
+  display: block; /* Показывать поля, если класс 'show' присутствует */
+}
+.alert {
+  position: fixed;
+  top: 20px; /* Adjust based on how far you want the message to be from the top */
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1050; /* Ensure it's above other content */
+  width: 100%;
+  max-width: 600px; /* Optional, to prevent it from being too wide */
+}

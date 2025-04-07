@@ -7,8 +7,6 @@
 }
 <h2 class="text-center mb-4">@ViewData["Title"]</h2>
 
-
-
 <div class="mb-3">
     <div class="dropdown">
         <button class="btn btn-outline-primary dropdown-toggle" type="button" id="filterDropdown"
@@ -74,6 +72,7 @@
             <th>Status</th>
             <th>Priority</th>
             <th>Category</th>
+            <th>SubCategory</th>
             <th>Author Name</th>
             <th>Assigned To</th>
             <th>Created At</th>
@@ -113,6 +112,7 @@
                 </td>
 
                 <td>@ticket.Category?.Name</td>
+                <td>@ticket.TicketSubCategory?.Name</td>
                 <td>@ticket.Author?.UserName</td>
                 <td>@ticket.AssignedUser</td>
                 <td>@ticket.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>

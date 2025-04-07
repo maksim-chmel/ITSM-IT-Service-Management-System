@@ -9,12 +9,12 @@ namespace ITSM.Controllers;
 public class TechnicianTicketController(ITicketRepository ticketRepository,IUserManagementRepository userRepository,ITicketSortRepository ticketSortRepository) : Controller
 {
     [HttpGet]
-    public async Task<IActionResult> ToDoTicketsList(string categoryId, TicketPriority? priority, TicketStatus? status)
+    public async Task<IActionResult> ToDoTicketsList(int? categoryId, TicketPriority? priority, TicketStatus? status)
     {
         var currentUser = await userRepository.GetCurrentUserAsync(User);
         var list = await ticketRepository.GetTicketsAssignedToAdminAsync(currentUser.Id);
-        list = ticketSortRepository.GetFilteredTickets(categoryId, priority, status);
-               ViewBag.Categories = ticketSortRepository.GetCategorySelectList();
+             list = ticketSortRepository.GetFilteredTickets(list,categoryId, priority, status);
+            ViewBag.Categories = ticketSortRepository.GetCategorySelectList();
 
         return View(list);
     }

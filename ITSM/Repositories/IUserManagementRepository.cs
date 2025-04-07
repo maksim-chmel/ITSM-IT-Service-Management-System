@@ -13,4 +13,5 @@ public interface IUserManagementRepository
     Task EditUser(string id, EditUserViewModel editmodel);
     Task<EditUserViewModel> CreateEditUserViewModel(string userId);
    
+
 }

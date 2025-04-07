@@ -21,4 +21,6 @@ public class Ticket
     public List<TicketHistory> TicketHistory { get; set; } = new();
      public int? CategoryId { get; set; }
     public TicketCategory? Category { get; set; }
+    public int? TicketSubCategoryId { get; set; }  
+    public TicketSubCategory TicketSubCategory { get; set; }
 }

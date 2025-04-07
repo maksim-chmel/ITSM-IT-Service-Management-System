@@ -1,8 +1,11 @@
 ﻿using ITSM.DB;
 using ITSM.Enums;
+using ITSM.Migrations;
 using ITSM.Models;
 using ITSM.ViewModels;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using TicketCategory = ITSM.Models.TicketCategory;
 
 namespace ITSM.Repositories;
 
@@ -18,13 +21,13 @@ public class TicketRepository(DBaseContext dBaseContext, ITicketCategoryReposito
             CreatedAt = model.CreatedAt,
             Status = TicketStatus.New,
             CategoryId = model.CategoryId,
+            TicketSubCategoryId = model.SubCategoryId,
             AuthorId = currentUserId
         };
 
         dBaseContext.Tickets.Add(ticket);
         await dBaseContext.SaveChangesAsync();
     }
-
 
     public async Task MassDeleteTickets()
     {
@@ -69,6 +72,7 @@ public class TicketRepository(DBaseContext dBaseContext, ITicketCategoryReposito
         return await dBaseContext.Tickets
             .Include(t => t.Author)
             .Include(t => t.Category)
+            .Include(t => t.TicketSubCategory)
             .Include(t => t.AssignedUser)
             .ToListAsync();
     }
@@ -79,7 +83,8 @@ public class TicketRepository(DBaseContext dBaseContext, ITicketCategoryReposito
         return await dBaseContext.Tickets
             .Where(t => t.AssignedUserId == adminId)
             .Include(t => t.Category)
-            .Include(t =>t.Author)
+            .Include(t => t.TicketSubCategory)
+            .Include(t => t.Author)
             .ToListAsync();
     }
 
@@ -88,6 +93,7 @@ public class TicketRepository(DBaseContext dBaseContext, ITicketCategoryReposito
         return await dBaseContext.Tickets
             .Where(t => t.AuthorId == userId)
             .Include(t => t.Category)
+            .Include(t => t.TicketSubCategory)
             .ToListAsync();
     }
 
@@ -119,7 +125,7 @@ public class TicketRepository(DBaseContext dBaseContext, ITicketCategoryReposito
     {
         var ticket = await dBaseContext.Tickets
             .Include(t => t.Author)
-            .Include(t=>t.AssignedUser)
+            .Include(t => t.AssignedUser)
             .FirstOrDefaultAsync(t => t.Id == ticketId);
         var ticketHistory = await GetTicketHistoryByTicketId(ticketId);
 
@@ -145,12 +151,59 @@ public class TicketRepository(DBaseContext dBaseContext, ITicketCategoryReposito
         await dBaseContext.SaveChangesAsync();
     }
 
-    public async Task<TicketCreateViewModel> AddCategoriesToViewModel()
+    private async Task<List<TicketCategory>> GetCategories()
     {
-        var categories = await ticketCategoryRepository.GetCategorySelectList();
+        return await dBaseContext.TicketCategories.ToListAsync();
+    }
+
+
+    private async Task<List<TicketSubCategory>> GetSubCategories(int categoryId)
+    {
+        return await dBaseContext.TicketSubCategories
+            .Where(sc => sc.CategoryId == categoryId)
+            .ToListAsync();
+    }
+
+    public async Task<TicketCreateViewModel> BuildCreateTicketViewModel(int? selectedCategoryId = null)
+    {
+        var categories = await GetCategories();
+        var subCategories = await GetSubCategoriesForCategory(selectedCategoryId);
+
         return new TicketCreateViewModel
         {
-            Categories = categories
+            CategoryId = selectedCategoryId,
+            Categories = MapCategoriesToSelectList(categories),
+            SubCategories = MapSubCategoriesToSelectList(subCategories)
         };
     }
+
+    private async Task<List<TicketSubCategory>> GetSubCategoriesForCategory(int? selectedCategoryId)
+    {
+        if (selectedCategoryId.HasValue)
+        {
+            return await GetSubCategories(selectedCategoryId.Value);
+        }
+
+        return new List<TicketSubCategory>();
+    }
+
+    private List<SelectListItem> MapCategoriesToSelectList(List<TicketCategory> categories)
+    {
+        return categories.Select(c => new SelectListItem
+        {
+            Value = c.Id.ToString(),
+            Text = c.Name
+        }).ToList();
+    }
+
+    private List<SelectListItem> MapSubCategoriesToSelectList(List<TicketSubCategory> subCategories)
+    {
+        return subCategories.Select(sc => new SelectListItem
+        {
+            Value = sc.Id.ToString(),
+            Text = sc.Name
+        }).ToList();
+    }
+
+
 }

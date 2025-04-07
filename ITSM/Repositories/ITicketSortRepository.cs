@@ -6,7 +6,8 @@ namespace ITSM.Repositories;
 
 public interface ITicketSortRepository
 {
-    IEnumerable<Ticket> GetFilteredTickets(string categoryId, TicketPriority? priority, TicketStatus? status);
-    
+    IEnumerable<Ticket> GetFilteredTickets(IEnumerable<Ticket> tickets, int? categoryId, TicketPriority? priority,
+        TicketStatus? status);
+
     IEnumerable<SelectListItem> GetCategorySelectList();
 }

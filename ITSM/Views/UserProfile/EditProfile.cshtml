@@ -1,0 +1,72 @@
+﻿@using Microsoft.AspNetCore.Mvc.TagHelpers
+@model ITSM.ViewModels.EditUserViewModel
+@{
+    ViewData["Title"] = "Edit Profile";
+}
+
+<h1 class="text-center mb-4">@ViewData["Title"]</h1>
+
+@if (TempData["StatusMessage"] != null)
+{
+    <div class="alert alert-success">@TempData["StatusMessage"]</div>
+}
+
+<form asp-action="EditProfile" method="post" class="d-flex justify-content-center">
+    <!-- Поля для редактирования данных пользователя с фиксированной шириной -->
+    <div class="col-md-6"> <!-- Это ограничивает ширину формы до половины контейнера -->
+        <div class="mb-3">
+            <label for="UserName" class="form-label">User Name</label>
+            <input type="text" class="form-control" id="UserName" name="UserName" value="@Model.UserName" required />
+        </div>
+
+        <div class="mb-3">
+            <label for="Email" class="form-label">Email</label>
+            <input type="email" class="form-control" id="Email" name="Email" value="@Model.Email" required />
+        </div>
+
+        <div class="mb-3">
+            <label for="PhoneNumber" class="form-label">Phone Number</label>
+            <input type="text" class="form-control" id="PhoneNumber" name="PhoneNumber" value="@Model.PhoneNumber" required />
+        </div>
+
+        <!-- Свитч для отображения/скрытия полей пароля -->
+        <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" id="showPasswordFields" />
+            <label class="form-check-label" for="showPasswordFields">Change Password</label>
+        </div>
+
+        <!-- Поля для смены пароля (скрыты по умолчанию) -->
+        <div id="passwordFields" class="password-fields" style="display: none;">
+            <div class="mb-3">
+                <label for="NewPassword" class="form-label">New Password</label>
+                <input type="password" class="form-control" id="NewPassword" name="NewPassword" />
+            </div>
+
+            <div class="mb-3">
+                <label for="ConfirmPassword" class="form-label">Confirm New Password</label>
+                <input type="password" class="form-control" id="ConfirmPassword" name="ConfirmPassword" />
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-between">
+            <button type="submit" class="btn btn-outline-success">Save Changes</button>
+            <a asp-controller="UserManagement" asp-action="UsersList" class="btn btn-outline-secondary">Back</a>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    <script>
+        // Функция для переключения видимости полей пароля
+        document.getElementById("showPasswordFields").addEventListener("change", function() {
+            var passwordFields = document.getElementById("passwordFields");
+            
+            // Добавляем или удаляем класс 'show' в зависимости от состояния чекбокса
+            if (this.checked) {
+                passwordFields.style.display = "block";
+            } else {
+                passwordFields.style.display = "none";
+            }
+        });
+    </script>
+}

@@ -1,5 +1,4 @@
-﻿using ITSM.Models;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 
@@ -10,7 +9,7 @@ public class HomeController : Controller
 {
     public IActionResult Index()
     {
-        ViewData["UserName"] = User.Identity.IsAuthenticated ? User.Identity.Name : "Guest";
+        ViewData["UserName"] = User.Identity is { IsAuthenticated: true } ? User.Identity.Name : "Guest";
         return View();
     }
 
@@ -19,9 +18,9 @@ public class HomeController : Controller
         return View();
     }
 
-    public IActionResult Error(string message = "Произошла ошибка")
+    public IActionResult Error()
     {
-        var model = new ErrorViewModel { ErrorMessage = message };
-        return View(model);
+        
+        return View();
     }
 }

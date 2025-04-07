@@ -21,9 +21,14 @@ public class TicketCreateViewModel
     public TicketStatus Status { get; set; }
 
     [Required(ErrorMessage = "Категорія обов'язкова")]
-    public int CategoryId { get; set; }
+    public int? CategoryId { get; set; }
     public string? AuthorId { get; set; }
     public IEnumerable<SelectListItem> Categories { get; set; }
     public string? AuthorName { get; set; }
     public string? CategoryName { get; set; }
+  
+    public int? SubCategoryId { get; set; }
+
+  
+    public List<SelectListItem> SubCategories { get; set; } = new();
 }

@@ -25,6 +25,7 @@ public class TicketCategoryController(ITicketCategoryRepository categoryReposito
     public async Task<IActionResult> CreateCategory(string name)
     {
         await categoryRepository.CreateCategory(name);
+        TempData["SuccessMessage"] = "Категория успешно создана.";
         return RedirectToAction("CategoryList");
     }
     [HttpPost]
@@ -41,6 +42,29 @@ public class TicketCategoryController(ITicketCategoryRepository categoryReposito
         }
 
         return RedirectToAction("CategoryList");
+    }
+    
+    [HttpGet]
+    public async Task<IActionResult> SubCategoryList(int categoryId)
+    {
+        var category = await categoryRepository.GetSubCategoryListAsync(categoryId);
+        return View(category);
+    }
+
+
+    [HttpPost]
+    public async Task<IActionResult> DeleteSubCategory(int subCategoryId)
+    {
+        await categoryRepository.DeleteSubCategoryAsync(subCategoryId);
+        return RedirectToAction("CategoryList");
+    }
+
+  
+    [HttpPost]
+    public async Task<IActionResult> AddSubCategory(int categoryId, string name)
+    {
+        await categoryRepository.AddSubCategoryAsync(categoryId, name);
+        return RedirectToAction(nameof(SubCategoryList), new { categoryId });
     }
 
 }

@@ -72,6 +72,7 @@
             <th>Priority</th>
             <th>Title</th>
             <th>Category</th>
+            <th>SubCategory</th>
             <th>Author Name</th>
             <th>Created At</th>
             <th>Closed At</th>
@@ -95,6 +96,7 @@
                 </td>
                 <td class="text-truncate" style="max-width: 200px;" title="@ticket.Title">@ticket.Title</td>
                 <td>@ticket.Category?.Name</td>
+                <td>@ticket.TicketSubCategory?.Name</td>
                 <td>@ticket.Author?.UserName</td>
                 <td>@ticket.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
                 <td>@(ticket.ClosedAt?.ToString("yyyy-MM-dd HH:mm") ?? "-")</td>

@@ -1,6 +1,10 @@
-﻿namespace ITSM.Middleware;
+﻿using Microsoft.AspNetCore.Mvc.ViewFeatures;
 
-public class ExceptionMiddleware(RequestDelegate next, ILogger<ExceptionMiddleware> logger)
+namespace ITSM.Middleware;
+public class ExceptionMiddleware(
+    RequestDelegate next,
+    ILogger<ExceptionMiddleware> logger,
+    ITempDataDictionaryFactory tempDataFactory)
 {
     public async Task InvokeAsync(HttpContext context)
     {
@@ -11,13 +15,13 @@ public class ExceptionMiddleware(RequestDelegate next, ILogger<ExceptionMiddlewa
         catch (Exception ex)
         {
             logger.LogError(ex, "Unhandled exception occurred.");
-            await HandleExceptionAsync(context, ex);
-        }
-    }
 
-    private static Task HandleExceptionAsync(HttpContext context, Exception exception)
-    {
-        context.Response.Redirect($"/Home/Error?message={exception.Message}");
-        return Task.CompletedTask;
+            // Получаем TempData для передачи сообщения об ошибке
+            var tempData = tempDataFactory.GetTempData(context);
+            tempData["ErrorMessage"] = ex.Message;
+
+          
+            context.Response.Redirect("/Home/Error");
+        }
     }
 }

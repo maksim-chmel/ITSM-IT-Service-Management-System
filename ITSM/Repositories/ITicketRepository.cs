@@ -9,7 +9,7 @@ public interface ITicketRepository
 {
     Task<Ticket?> GetTicketById(int id);
     Task CreateNewTicket(TicketCreateViewModel model, string currentUserId);
-    Task<TicketCreateViewModel> AddCategoriesToViewModel();
+    
     Task MassDeleteTickets();
     Task ResolveTicket(int id, string solution);
     Task<IEnumerable<Ticket>> GetAllTickets();
@@ -20,4 +20,5 @@ public interface ITicketRepository
     Task<IEnumerable<Ticket>> GetTicketsAssignedToAdminAsync(string adminId);
     Task ChangeTicketStatus(int id, TicketStatus status);
     Task AddCancelReason(int id, string reason);
+    Task<TicketCreateViewModel> BuildCreateTicketViewModel(int? selectedCategoryId = null);
 }
