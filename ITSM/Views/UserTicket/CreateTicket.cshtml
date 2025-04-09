@@ -1,4 +1,4 @@
-﻿@model ITSM.ViewModels.TicketCreateViewModel
+﻿@model ITSM.ViewModels.Create.TicketCreateViewModel
 @using Microsoft.AspNetCore.Mvc.TagHelpers
 
 <h2 class="text-center mb-4">Create Ticket</h2>
@@ -22,19 +22,7 @@
 
    
     <form asp-action="CreateTicket" method="post">
-        <input type="hidden" asp-for="CategoryId" />
-        <div class="form-floating mb-3">
-            <input asp-for="Title" class="form-control" placeholder="Title" />
-            <label asp-for="Title">Title</label>
-        </div>
-
-      
-        <div class="form-floating mb-3">
-            <textarea asp-for="Description" class="form-control" placeholder="Description" style="height: 100px;"></textarea>
-            <label asp-for="Description">Description</label>
-        </div>
-
-      
+        <input type="hidden" asp-for="CategoryId"/>
         <div class="form-floating mb-4">
             <select asp-for="SubCategoryId" class="form-select">
                 <option value="">Select Subcategory</option>
@@ -45,7 +33,16 @@
             </select>
             <label asp-for="SubCategoryId">Subcategory</label>
         </div>
+        <div class="form-floating mb-3">
+            <input asp-for="Title" class="form-control" placeholder="Title"/>
+            <label asp-for="Title">Title</label>
+        </div>
 
+
+        <div class="form-floating mb-3">
+            <textarea asp-for="Description" class="form-control" placeholder="Description" style="height: 100px;"></textarea>
+            <label asp-for="Description">Description</label>
+        </div>
         <button type="submit" class="btn btn-outline-primary w-100">Create</button>
     </form>
 </div>

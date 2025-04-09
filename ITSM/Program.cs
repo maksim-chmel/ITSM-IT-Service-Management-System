@@ -1,7 +1,15 @@
 ﻿using ITSM.DB;
 using ITSM.Middleware;
 using ITSM.Models;
-using ITSM.Repositories;
+using ITSM.Repositories.Authorisation;
+using ITSM.Repositories.Discussion;
+using ITSM.Repositories.RoleManager;
+using ITSM.Repositories.Ticket;
+using ITSM.Repositories.TicketAssignment;
+using ITSM.Repositories.TicketCategory;
+using ITSM.Repositories.TicketSort;
+using ITSM.Repositories.UserManagment;
+using ITSM.Repositories.UserProfile;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -24,6 +32,8 @@ builder.Services.AddScoped<IUserRolesRepository, UserRolesRepository>();
 builder.Services.AddScoped<ITicketAssignmentRepository, TicketAssignmentRepository>();
 builder.Services.AddScoped<ITicketSortRepository, TicketSortRepository>();
 builder.Services.AddScoped<IUserProfileRepository, UserProfileRepository>();
+builder.Services.AddScoped<IDiscussionRepository, DiscussionRepository>();
+
 builder.Services.AddLogging();
 
 

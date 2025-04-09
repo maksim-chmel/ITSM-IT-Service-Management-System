@@ -1,0 +1,96 @@
+﻿@using Microsoft.AspNetCore.Mvc.TagHelpers
+@model IEnumerable<ITSM.Models.Discussion>
+
+@{
+    ViewData["Title"] = "Discussions";
+}
+
+<h2 class="mb-4 text-center">Open Discussion Topics</h2>
+
+@if (!Model.Any())
+{
+    <p class="text-center">No available discussion topics.</p>
+}
+else
+{
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        @foreach (var thread in Model)
+        {
+            <div class="col">
+                <div class="card discussion-card h-100 shadow-lg rounded-lg transition-card">
+                    <div class="card-body">
+                        <h5 class="card-title text-truncate">@thread.Title</h5>
+                        <p class="card-text">
+                            <strong>Author:</strong> @thread.Author?.UserName <br />
+                            <strong>Created:</strong> @thread.CreatedAt.ToLocalTime().ToString("g")
+                        </p>
+                        <a asp-action="ViewDiscussion" asp-route-id="@thread.Id" class="btn btn-outline-primary btn-sm w-100">View Discussion</a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <div class="mt-4 text-center">
+        <a asp-controller="Discussion" asp-action="CreateDiscussion" class="btn btn-outline-secondary btn-lg">Create Discussion</a>
+    </div>
+}
+
+<style>
+    .transition-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border-radius: 12px;
+    }
+
+    .transition-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+    }
+
+    .discussion-card {
+        background-color: #ffffff;
+        border: none;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .card-title {
+        font-size: 1.1rem;
+        font-weight: bold;
+        color: #333;
+    }
+
+    .card-text {
+        color: #555;
+        font-size: 0.9rem;
+    }
+
+    .btn-outline-primary {
+        border: 2px solid #007bff;
+        color: #007bff;
+    }
+
+    .btn-outline-primary:hover {
+        background-color: #007bff;
+        color: white;
+    }
+
+    .btn-outline-secondary {
+        border: 2px solid #6c757d;
+        color: #6c757d;
+    }
+
+    .btn-outline-secondary:hover {
+        background-color: #6c757d;
+        color: white;
+    }
+
+    .text-truncate {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .mt-4 {
+        margin-top: 2rem;
+    }
+</style>

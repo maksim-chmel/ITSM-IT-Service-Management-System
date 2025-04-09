@@ -46,7 +46,7 @@
                     <label class="form-label small mb-1">Status</label>
                     <select name="Status" class="form-select form-select-sm">
                         <option value="">All</option>
-                        @foreach (var s in Enum.GetValues(typeof(ITSM.Enums.TicketStatus)))
+                        @foreach (var s in Enum.GetValues(typeof(ITSM.Enums.Status)))
                         {
                             <option value="@s">@s</option>
                         }
@@ -90,12 +90,12 @@
 
                 <td>
                         <span class="badge 
-                            @(ticket.Status == TicketStatus.Open ? "bg-primary text-white" :
-                                                                 ticket.Status == TicketStatus.Progress ? "bg-info text-white" :
-                                                                 ticket.Status == TicketStatus.Resolved ? "bg-success text-white" :
-                                                                 ticket.Status == TicketStatus.Reopened ? "bg-warning text-white" :
-                                                                 ticket.Status == TicketStatus.Canceled ? "bg-danger text-white" :
-                                                                 ticket.Status == TicketStatus.Done ? "bg-secondary text-white" : "bg-dark")">
+                            @(ticket.Status == Status.Open ? "bg-primary text-white" :
+                                                                 ticket.Status == Status.Progress ? "bg-info text-white" :
+                                                                 ticket.Status == Status.Resolved ? "bg-success text-white" :
+                                                                 ticket.Status == Status.Reopened ? "bg-warning text-white" :
+                                                                 ticket.Status == Status.Canceled ? "bg-danger text-white" :
+                                                                 ticket.Status == Status.Done ? "bg-secondary text-white" : "bg-dark")">
                             @ticket.Status
                         </span>
                 </td>
@@ -120,7 +120,7 @@
 
 
                 <td>
-                    @if (ticket.Status != TicketStatus.Canceled)
+                    @if (ticket.Status != Status.Canceled)
                     {
                         <div class="dropdown">
                             <button class="btn btn-outline-secondary dropdown-toggle" type="button"
@@ -136,7 +136,7 @@
                                         Information
                                     </a>
                                 </li>
-                                @if (ticket.Status != TicketStatus.Done)
+                                @if (ticket.Status != Status.Done)
                                 {
                                     <li>
                                         <a class="dropdown-item" asp-controller="TicketAssignment"

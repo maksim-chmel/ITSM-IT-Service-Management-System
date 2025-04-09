@@ -1,9 +1,10 @@
 ﻿using ITSM.Enums;
-using ITSM.Repositories;
-using ITSM.ViewModels;
+using ITSM.Repositories.Ticket;
+using ITSM.Repositories.TicketSort;
+using ITSM.Repositories.UserManagment;
+using ITSM.ViewModels.Create;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace ITSM.Controllers;
 
@@ -36,7 +37,7 @@ public class UserTicketController(IUserManagementRepository userRepository, ITic
         return RedirectToAction("CreateTicket");
     }
     [HttpGet]
-    public async Task<IActionResult> UserTicketsList(int? categoryId,TicketStatus? status)
+    public async Task<IActionResult> UserTicketsList(int? categoryId,Status? status)
     {
         try
         {

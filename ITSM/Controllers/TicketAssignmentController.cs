@@ -1,5 +1,7 @@
 ﻿using ITSM.Enums;
-using ITSM.Repositories;
+using ITSM.Repositories.Ticket;
+using ITSM.Repositories.TicketAssignment;
+using ITSM.Repositories.TicketSort;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -12,7 +14,7 @@ public class TicketAssignmentController(
     : Controller
 {
     [HttpGet]
-    public async Task<IActionResult> ReviewAllTickets(int? categoryId, TicketPriority? priority, TicketStatus? status)
+    public async Task<IActionResult> ReviewAllTickets(int? categoryId, TicketPriority? priority, Status? status)
     {
         var list = await ticketRepository.GetAllTickets();
         list = ticketSortRepository.GetFilteredTickets(list,categoryId, priority, status);
@@ -46,14 +48,14 @@ public class TicketAssignmentController(
     [HttpPost]
     public async Task<IActionResult> CloseTicket(int id)
     {
-        await ticketRepository.ChangeTicketStatus(id, TicketStatus.Done);
+        await ticketRepository.ChangeTicketStatus(id, Status.Done);
         return RedirectToAction("InfoAboutTicket", new { id });
     }
 
     [HttpPost]
     public async Task<IActionResult> ReOpenTicket(int id)
     {
-        await ticketRepository.ChangeTicketStatus(id, TicketStatus.Reopened);
+        await ticketRepository.ChangeTicketStatus(id, Status.Reopened);
         return RedirectToAction("InfoAboutTicket", new { id });
     }
 

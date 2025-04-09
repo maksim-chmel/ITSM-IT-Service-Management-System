@@ -1,6 +1,6 @@
 ﻿@using ITSM.Enums
 @using Microsoft.AspNetCore.Mvc.TagHelpers
-@model ITSM.ViewModels.TicketDetailsViewModel
+@model ITSM.ViewModels.Create.TicketDetailsViewModel
 @if (TempData["TicketClosed"] != null)
 {
     <div class="alert alert-success" role="alert">
@@ -74,7 +74,7 @@
     </table>
 </div>
 
-@if (Model.Ticket.Status == TicketStatus.Progress)
+@if (Model.Ticket.Status == Status.Progress)
 {
     <div class="d-flex gap-3">
         <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addNoteModal">

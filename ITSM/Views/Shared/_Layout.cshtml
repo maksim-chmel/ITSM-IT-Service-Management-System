@@ -110,7 +110,14 @@
                             <i class="bi bi-bug"></i> <span>My Tasks</span>
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" asp-area="" asp-controller="Discussion" asp-action="ListOfDiscussions">
+                            <i class="bi bi-pencil"></i> <span>Discussions</span>
+                        </a>
+                    </li>
+                    
                 }
+                
 
                 @if (User.IsInRole(nameof(UserRoles.Admin)))
                 {

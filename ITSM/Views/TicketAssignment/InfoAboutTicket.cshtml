@@ -1,6 +1,6 @@
 ﻿@using ITSM.Enums
 @using Microsoft.AspNetCore.Mvc.TagHelpers
-@model ITSM.ViewModels.TicketDetailsViewModel
+@model ITSM.ViewModels.Create.TicketDetailsViewModel
 @if (TempData["TicketClosed"] != null)
 {
     <div class="alert alert-success" role="alert">
@@ -76,7 +76,7 @@
     </table>
 </div>
 
-@if (Model.Ticket.Status == TicketStatus.Resolved)
+@if (Model.Ticket.Status == Status.Resolved)
 {
     <div class="d-flex gap-3">
         <form asp-controller="TicketAssignment" asp-action="CloseTicket" method="post">
@@ -85,7 +85,7 @@
         </form>
     </div>
 }
-else if (Model.Ticket.Status == TicketStatus.Done)
+else if (Model.Ticket.Status == Status.Done)
 {
     <div class="d-flex gap-3">
         <form asp-controller="TicketAssignment" asp-action="ReOpenTicket" method="post">

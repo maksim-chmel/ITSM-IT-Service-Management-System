@@ -11,13 +11,12 @@ public class DBaseContext(DbContextOptions<DBaseContext> options) : IdentityDbCo
     public DbSet<TicketHistory> TicketHistory { get; set; }
     public DbSet<TicketCategory> TicketCategories { get; set; }
     public DbSet<TicketSubCategory> TicketSubCategories { get; set; }
+    public DbSet<Discussion> Discussions { get; set; }
+    public DbSet<DiscussionMessage> DiscussionMessages { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
-
-        // Настройка внешних ключей
-
         // Связь Ticket - User (Автор)
         modelBuilder.Entity<Ticket>()
             .HasOne(t => t.Author)
@@ -38,7 +37,32 @@ public class DBaseContext(DbContextOptions<DBaseContext> options) : IdentityDbCo
             .WithOne(s => s.Category)  // Каждая подкатегория связана с одной категорией
             .HasForeignKey(s => s.CategoryId)  // Внешний ключ для подкатегории
             .OnDelete(DeleteBehavior.Cascade); // При удалении категории будут удалены и все её подкатегории
-        // Начальные данные для TicketCategory
+        // DiscussionThread → ApplicationUser (Author)
+        modelBuilder.Entity<Discussion>()
+            .HasOne(t => t.Author)
+            .WithMany() // если у пользователя нет списка своих тредов
+            .HasForeignKey(t => t.AuthorId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // ThreadMessage → DiscussionThread
+        modelBuilder.Entity<DiscussionMessage>()
+            .HasOne(m => m.Discussion)
+            .WithMany(t => t.Messages)
+            .HasForeignKey(m => m.DiscussionId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // ThreadMessage → ApplicationUser (Author)
+        modelBuilder.Entity<DiscussionMessage>()
+            .HasOne(m => m.Author)
+            .WithMany() // если у пользователя нет списка своих сообщений
+            .HasForeignKey(m => m.AuthorId)
+            .OnDelete(DeleteBehavior.Restrict);
+        modelBuilder.Entity<Discussion>()
+            .HasOne(t => t.Category)
+            .WithMany(c => c.Threads)
+            .HasForeignKey(t => t.CategoryId)
+            .OnDelete(DeleteBehavior.Restrict);
+        
         modelBuilder.Entity<TicketCategory>().HasData(
             new TicketCategory { Id = 1, Name = "Техническая поддержка" },
             new TicketCategory { Id = 2, Name = "Сетевые проблемы" },

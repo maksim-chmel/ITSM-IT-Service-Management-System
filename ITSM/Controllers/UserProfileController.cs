@@ -1,5 +1,5 @@
-﻿using ITSM.Repositories;
-using ITSM.ViewModels;
+﻿using ITSM.Repositories.UserProfile;
+using ITSM.ViewModels.Manage;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

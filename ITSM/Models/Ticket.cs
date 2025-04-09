@@ -10,7 +10,7 @@ public class Ticket
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? ClosedAt { get; set; }
     public string? FixDescription { get; set; }
-    public TicketStatus Status { get; set; } = TicketStatus.New;
+    public Status Status { get; set; } = Status.New;
     public TicketPriority Priority { get; set; } = TicketPriority.Medium;
     public string? CancelReason { get; set; }
     public string? AuthorId { get; set; }

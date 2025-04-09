@@ -1,6 +1,6 @@
 ﻿using ITSM.Enums;
-using ITSM.Repositories;
-using ITSM.ViewModels;
+using ITSM.Repositories.UserManagment;
+using ITSM.ViewModels.Manage;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

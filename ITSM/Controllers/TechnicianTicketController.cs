@@ -1,5 +1,7 @@
 ﻿using ITSM.Enums;
-using ITSM.Repositories;
+using ITSM.Repositories.Ticket;
+using ITSM.Repositories.TicketSort;
+using ITSM.Repositories.UserManagment;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -9,7 +11,7 @@ namespace ITSM.Controllers;
 public class TechnicianTicketController(ITicketRepository ticketRepository,IUserManagementRepository userRepository,ITicketSortRepository ticketSortRepository) : Controller
 {
     [HttpGet]
-    public async Task<IActionResult> ToDoTicketsList(int? categoryId, TicketPriority? priority, TicketStatus? status)
+    public async Task<IActionResult> ToDoTicketsList(int? categoryId, TicketPriority? priority, Status? status)
     {
         var currentUser = await userRepository.GetCurrentUserAsync(User);
         var list = await ticketRepository.GetTicketsAssignedToAdminAsync(currentUser.Id);
@@ -33,13 +35,13 @@ public class TechnicianTicketController(ITicketRepository ticketRepository,IUser
     [HttpPost]
     public async Task<IActionResult> AcceptTicketProcessing (int id)
     {
-        await ticketRepository.ChangeTicketStatus(id, TicketStatus.Progress);
+        await ticketRepository.ChangeTicketStatus(id, Status.Progress);
         return RedirectToAction("ShowDetailsAboutTicket", new { id });
     }
     [HttpPost]
     public async Task<IActionResult> CancelTicketProcessing (int id)
     {
-        await ticketRepository.ChangeTicketStatus(id, TicketStatus.Canceled);
+        await ticketRepository.ChangeTicketStatus(id, Status.Canceled);
         return RedirectToAction("ToDoTicketsList");
     }
     [HttpGet]

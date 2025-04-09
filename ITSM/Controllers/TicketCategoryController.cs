@@ -1,5 +1,5 @@
 ﻿using ITSM.Enums;
-using ITSM.Repositories;
+using ITSM.Repositories.TicketCategory;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
