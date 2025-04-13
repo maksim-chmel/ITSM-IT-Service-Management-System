@@ -1,8 +1,6 @@
-﻿@using Microsoft.AspNetCore.Mvc.TagHelpers
-@model ITSM.Models.Discussion
+﻿@model ITSM.Models.Discussion
 <div class="chat-container position-relative">
-    <!-- Крестик для закрытия дискуссии -->
-    <a asp-action="ListOfDiscussions" class="position-absolute top-0 end-0 m-2 text-danger fs-4" title="Close">
+    <a asp-action="ArchiveOfDiscussions" class="position-absolute top-0 end-0 m-2 text-danger fs-5" title="Close">
         <i class="bi bi-x-lg"></i>
     </a>
 
@@ -10,8 +8,10 @@
     <p class="text-muted small mb-3">@Model.Description</p>
     <p class="small text-muted mb-2">
         <strong>Author:</strong> @Model.Author.UserName |
-        <strong>Created:</strong> @Model.CreatedAt.ToLocalTime().ToString("g")
+        <strong>Created:</strong> @Model.CreatedAt.ToLocalTime().ToString("g") |
+        <strong>Closed:</strong> @Model.ClosedAt
     </p>
+</div>
 
     <div class="chat-box shadow-sm mb-3">
         @if (Model.Messages != null && Model.Messages.Any())
@@ -35,12 +35,9 @@
         }
     </div>
 
-    <form method="post" asp-action="AddMessage" asp-route-id="@Model.Id" class="input-area">
-        <textarea name="messageContent" class="form-control form-control-sm" placeholder="Type your message..." rows="1" required></textarea>
-        <button type="submit" class="btn btn-success btn-sm">➤</button>
-    </form>
-</div>
-
+    <div class="text-center text-muted small py-2">
+        This discussion is archived. Messaging is no longer available.
+    </div>
 
 <style>
     .chat-box {

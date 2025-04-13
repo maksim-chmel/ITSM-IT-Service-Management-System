@@ -1,4 +1,5 @@
-﻿using ITSM.Repositories.Discussion;
+﻿using ITSM.Enums;
+using ITSM.Repositories.Discussion;
 using ITSM.Repositories.TicketCategory;
 using ITSM.Repositories.UserManagment;
 using ITSM.ViewModels.Create;
@@ -12,9 +13,14 @@ public class DiscussionController(
     IUserManagementRepository userManagementRepository) : Controller
 {
     [HttpGet]
-    public async Task<IActionResult> ListOfDiscussions()
+    public async Task<IActionResult> ListOfDiscussions(string? search)
     {
-        var listOfTreads = await discussionRepository.GetAllDiscussions();
+        var listOfTreads = await discussionRepository.GetAllDiscussions(Status.Open);
+        if (search != null)
+        {
+            listOfTreads = await discussionRepository.SearchDiscussion(Status.Open,search);
+        }
+
         return View(listOfTreads);
     }
 
@@ -22,9 +28,9 @@ public class DiscussionController(
     public async Task<IActionResult> CreateDiscussion()
     {
         var categories = await categoryRepository.GetCategorySelectList();
+        
 
-
-        var model = new DiscussionCreateViewModel()
+        var model = new DiscussionCreateViewModel
         {
             Categories = categories
         };
@@ -46,13 +52,6 @@ public class DiscussionController(
     public async Task<IActionResult> ViewDiscussion(int id)
     {
         var discussionThread = await discussionRepository.GetDiscussionByIdWithMessages(id);
-    
-        // Логирование для проверки
-        if (discussionThread != null)
-        {
-            Console.WriteLine($"Discussion found: Id = {discussionThread.Id}, Title = {discussionThread.Title}, MessagesCount = {discussionThread.Messages.Count}");
-        }
-
         return View(discussionThread);
     }
 
@@ -64,5 +63,40 @@ public class DiscussionController(
         await discussionRepository.AddMessage(userId.Id, id, messageContent);
 
         return RedirectToAction("ViewDiscussion", new { id });
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> ManageDiscussions()
+    {
+        var userId = await userManagementRepository.GetCurrentUserAsync(User);
+        var list = await discussionRepository.GetUserDiscussions(userId.Id);
+        return View(list);
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> ResolveDiscussion(int id)
+    {
+        var userId = await userManagementRepository.GetCurrentUserAsync(User);
+        await discussionRepository.ResolveDiscussion(id, userId.Id);
+        return RedirectToAction("ManageDiscussions");
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> ArchiveOfDiscussions(string? search)
+    {
+        var listOfTreads = await discussionRepository.GetAllDiscussions(Status.Resolved);
+        if (search != null)
+        {
+            listOfTreads = await discussionRepository.SearchDiscussion(Status.Resolved,search);
+        }
+        return View(listOfTreads);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> ArchiveViewDiscussion(int id)
+    {
+        var discussionThread = await discussionRepository.GetDiscussionByIdWithMessages(id);
+        
+        return View(discussionThread);
     }
 }

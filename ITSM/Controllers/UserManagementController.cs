@@ -10,9 +10,13 @@ namespace ITSM.Controllers;
 public class UserManagementController(IUserManagementRepository userRepository) : Controller
 {
     [HttpGet]
-    public async Task<IActionResult> UsersList()
+    public async Task<IActionResult> UsersList(string? search)
     {
         var list = await userRepository.GetAllUsersToList();
+        if (search != null)
+        {
+            list = await userRepository.SearchUser(search);
+        }
         
         return View(list);
     }
@@ -21,7 +25,7 @@ public class UserManagementController(IUserManagementRepository userRepository) 
     public async Task<IActionResult> DeleteUser(string id)
     {
         await userRepository.DeleteUserById(id);
-        
+
         return RedirectToAction("UsersList");
     }
 
@@ -29,7 +33,7 @@ public class UserManagementController(IUserManagementRepository userRepository) 
     public async Task<IActionResult> EditUser(string id)
     {
         var user = await userRepository.CreateEditUserViewModel(id);
-        
+
         return View(user);
     }
 
@@ -37,9 +41,9 @@ public class UserManagementController(IUserManagementRepository userRepository) 
     public async Task<IActionResult> EditUser(string id, EditUserViewModel editModel)
     {
         if (!ModelState.IsValid) return View(editModel);
-        
+
         await userRepository.EditUser(id, editModel);
-        
+
         return RedirectToAction("UsersList");
     }
 }

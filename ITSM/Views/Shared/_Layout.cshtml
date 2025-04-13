@@ -37,12 +37,7 @@
 
     <nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom box-shadow fixed-top">
         <div class="container-fluid">
-            @if (User.Identity.IsAuthenticated)
-            {
-                <a class="navbar-brand ms-3 fw-bold" asp-area="" asp-controller="Home" asp-action="Index">
-                    @ViewData["UserName"]
-                </a>
-            }
+           
 
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse"
                     aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
@@ -65,7 +60,7 @@
                     {
                         <li class="nav-item ms-auto">
                             <a class="nav-link text-dark" asp-area="" asp-controller="Auth" asp-action="Logout">
-                                Logout <i class="bi bi-door-open"></i>
+                                Logout <i class="bi bi-box-arrow-right"></i>
                             </a>
                         </li>
                     }
@@ -83,6 +78,11 @@
                         <i class="bi bi-house"></i> <span>Home</span>
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link" asp-area="" asp-controller="Home" asp-action="ThrowError">
+                        <i class="bi bi-house"></i> <span>Error</span>
+                    </a>
+                </li>
 
                 @if (User.IsInRole(nameof(UserRoles.User)))
                 {
@@ -93,7 +93,7 @@
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" asp-area="" asp-controller="UserTicket" asp-action="UserTicketsList">
-                            <i class="bi bi-card-text"></i> <span>My Tickets</span>
+                            <i class="bi bi-journal-text"></i> <span>My Tickets</span>
                         </a>
                     </li>
                     <li class="nav-item">
@@ -107,12 +107,12 @@
                 {
                     <li class="nav-item">
                         <a class="nav-link" asp-area="" asp-controller="TechnicianTicket" asp-action="ToDoTicketsList">
-                            <i class="bi bi-bug"></i> <span>My Tasks</span>
+                            <i class="bi bi-list-task"></i> <span>My Tasks</span>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" asp-area="" asp-controller="Discussion" asp-action="ListOfDiscussions">
-                            <i class="bi bi-pencil"></i> <span>Discussions</span>
+                            <i class="bi bi-chat"></i> <span>Discussions</span>
                         </a>
                     </li>
                     

@@ -24,8 +24,16 @@ public class TicketCategoryController(ITicketCategoryRepository categoryReposito
     [HttpPost]
     public async Task<IActionResult> CreateCategory(string name)
     {
-        await categoryRepository.CreateCategory(name);
-        TempData["SuccessMessage"] = "Категория успешно создана.";
+        try
+        {
+            await categoryRepository.CreateCategory(name);
+            TempData["SuccessMessage"] = "Категория успешно создана.";
+        }
+        catch (InvalidOperationException ex)
+        {
+            TempData["ErrorMessage"] = ex.Message;
+        }
+        
         return RedirectToAction("CategoryList");
     }
     [HttpPost]

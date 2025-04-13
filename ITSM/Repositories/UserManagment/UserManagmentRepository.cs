@@ -129,4 +129,22 @@ public class UserManagementRepository(DBaseContext dBaseContext, UserManager<Use
             PhoneNumber = user.PhoneNumber,
         };
     }
+    public async Task<UserWithRolesViewModel[]> SearchUser(string? search)
+    {
+        var allUsers = await GetAllUsersToList();
+
+        if (string.IsNullOrWhiteSpace(search))
+            return allUsers.ToArray();
+
+        search = search.ToLower();
+
+        var filtered = allUsers
+            .Where(u =>
+                (!string.IsNullOrEmpty(u.UserName) && u.UserName.Contains(search, StringComparison.CurrentCultureIgnoreCase)) ||
+                (!string.IsNullOrEmpty(u.Email) && u.Email.Contains(search, StringComparison.CurrentCultureIgnoreCase)))
+            .ToArray();
+
+        return filtered;
+    }
+
 }

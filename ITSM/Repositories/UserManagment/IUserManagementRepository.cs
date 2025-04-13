@@ -12,6 +12,7 @@ public interface IUserManagementRepository
     Task<User?> GetCurrentUserAsync(ClaimsPrincipal principal);
     Task EditUser(string id, EditUserViewModel editmodel);
     Task<EditUserViewModel> CreateEditUserViewModel(string userId);
-   
+    Task<UserWithRolesViewModel[]> SearchUser(string? search);
+
 
 }

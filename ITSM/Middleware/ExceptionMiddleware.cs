@@ -1,27 +1,41 @@
 ﻿using Microsoft.AspNetCore.Mvc.ViewFeatures;
-
-namespace ITSM.Middleware;
-public class ExceptionMiddleware(
-    RequestDelegate next,
-    ILogger<ExceptionMiddleware> logger,
-    ITempDataDictionaryFactory tempDataFactory)
+namespace ITSM.Middleware
 {
-    public async Task InvokeAsync(HttpContext context)
+    public class ExceptionMiddleware
     {
-        try
+        private readonly RequestDelegate _next;
+        private readonly ILogger<ExceptionMiddleware> _logger;
+        private readonly ITempDataDictionaryFactory _tempDataFactory;
+
+        // Конструктор
+        public ExceptionMiddleware(RequestDelegate next, ILogger<ExceptionMiddleware> logger, ITempDataDictionaryFactory tempDataFactory)
         {
-            await next(context);
+            _next = next;
+            _logger = logger;
+            _tempDataFactory = tempDataFactory;
         }
-        catch (Exception ex)
+
+        // Метод для обработки исключений
+        public async Task InvokeAsync(HttpContext context)
         {
-            logger.LogError(ex, "Unhandled exception occurred.");
+            try
+            {
+                // Переход к следующему middleware
+                await _next(context);
+            }
+            catch (Exception ex)
+            {
+                // Логируем ошибку
+                _logger.LogError(ex, "Unhandled exception occurred.");
 
-            // Получаем TempData для передачи сообщения об ошибке
-            var tempData = tempDataFactory.GetTempData(context);
-            tempData["ErrorMessage"] = ex.Message;
+                // Получаем TempData для передачи сообщения об ошибке
+                var tempData = _tempDataFactory.GetTempData(context);
+                tempData["ErrorMessage"] = ex.Message; // Передаем сообщение об ошибке
 
-          
-            context.Response.Redirect("/Home/Error");
+                // Перенаправляем пользователя на страницу ошибки
+                context.Response.Redirect("/Home/Error");
+            }
         }
     }
 }
+

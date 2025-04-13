@@ -1,9 +1,17 @@
 ﻿@using Microsoft.AspNetCore.Mvc.TagHelpers
 @model IEnumerable<ITSM.ViewModels.Manage.UserWithRolesViewModel>
+
 @{
     ViewData["Title"] = "User Management";
+    var search = Context.Request.Query["search"];
 }
+
 <h2 class="text-center mb-4">@ViewData["Title"]</h2>
+
+<form method="get" class="mb-4 d-flex justify-content-center">
+    <input type="text" name="search" class="form-control w-50 me-2" placeholder="Search by name or email" value="@search" />
+    <button type="submit" class="btn btn-outline-primary"><i class="bi bi-search"></i></button>
+</form>
 
 <div class="table-responsive shadow-sm rounded">
     <table class="table table-hover table-bordered align-middle text-center">
@@ -36,7 +44,7 @@
                                 <li>
                                     <a class="dropdown-item" asp-controller="UserManagement" asp-action="EditUser"
                                        asp-route-id="@user.Id">
-                                        EditProfile
+                                        Edit Profile
                                     </a>
                                 </li>
                                 <li>

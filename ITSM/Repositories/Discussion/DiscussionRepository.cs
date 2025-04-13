@@ -10,6 +10,7 @@ public class DiscussionRepository(DBaseContext context) : IDiscussionRepository
 {
     public async Task CreateDiscussion(DiscussionCreateViewModel viewModel, string userId)
     {
+        
         var newDiscussion = new Models.Discussion
         {
             Title = viewModel.Title,
@@ -24,7 +25,7 @@ public class DiscussionRepository(DBaseContext context) : IDiscussionRepository
     }
 
 
-    public async Task CloseDiscussion(int discussionId, string userId)
+    public async Task ResolveDiscussion(int discussionId, string userId)
     {
         var discussion = await context.Discussions.FindAsync(discussionId);
 
@@ -37,16 +38,16 @@ public class DiscussionRepository(DBaseContext context) : IDiscussionRepository
         }
     }
 
-    public async Task<IEnumerable<Models.Discussion>> GetAllDiscussions()
+    public async Task<IEnumerable<Models.Discussion>> GetAllDiscussions(Status status)
     {
         return await context.Discussions
+            .Where(t => t.Status == status)
             .Include(t => t.Author)
             .Include(t => t.Category)
             .Include(t => t.Messages)
             .ToListAsync();
     }
-
-
+    
     public async Task<Models.Discussion> GetDiscussionByIdWithMessages(int id)
     {
         var discussion = await context.Discussions
@@ -71,5 +72,27 @@ public class DiscussionRepository(DBaseContext context) : IDiscussionRepository
 
         await context.DiscussionMessages.AddAsync(message);
         await context.SaveChangesAsync();
+    }
+    
+    public async Task<IEnumerable<Models.Discussion>> GetUserDiscussions(string userId)
+    {
+        
+        return await context.Discussions 
+            .Where(t => t.AuthorId == userId)
+            .Include(t => t.Author)
+            .Include(t => t.Category)
+            .Include(t => t.Messages)
+            .ToListAsync();
+    }
+    public async Task<IEnumerable<Models.Discussion>> SearchDiscussion(Status status,string search)
+    {
+        search = search.ToLower();
+        return await context.Discussions
+            .Where(t => !string.IsNullOrEmpty(t.Title) && t.Title.ToLower().Contains(search))
+            .Where(t => t.Status == status)
+            .Include(t => t.Author)
+            .Include(t => t.Category)
+            .Include(t => t.Messages)
+            .ToListAsync();
     }
 }

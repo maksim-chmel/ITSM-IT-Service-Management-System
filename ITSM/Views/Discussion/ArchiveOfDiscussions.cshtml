@@ -2,27 +2,20 @@
 @model IEnumerable<ITSM.Models.Discussion>
 
 @{
-    ViewData["Title"] = "Discussions";
+    ViewData["Title"] = "Archive";
 }
 
-<h2 class="mb-4 text-center">Open Discussion Topics</h2>
+<h2 class="mb-4 text-center">Archive Discussion Topics</h2>
+
 <form method="get" class="mb-4 d-flex justify-content-center">
     <input type="text" name="search" class="form-control w-25 me-2" placeholder="Search by title..." value="@Context.Request.Query["search"]" />
     <button type="submit" class="btn btn-outline-primary"><i class="bi bi-search"></i></button>
 </form>
-
 <div class="btn-toolbar justify-content-center mb-4" role="toolbar">
-    <div class="btn-group me-2" role="group">
-        <a asp-controller="Discussion" asp-action="CreateDiscussion" class="btn btn-outline-secondary"><i class="bi bi-patch-plus"></i> Create</a>
-    </div>
-    <div class="btn-group me-2" role="group">
-        <a asp-controller="Discussion" asp-action="ManageDiscussions" class="btn btn-outline-secondary"> <i class="bi bi-pencil"></i> Manage</a>
-    </div>
     <div class="btn-group" role="group">
-        <a asp-controller="Discussion" asp-action="ArchiveOfDiscussions" class="btn btn-outline-secondary"><i class="bi bi-archive"></i> Archive</a>
+        <a asp-controller="Discussion" asp-action="ListOfDiscussions" class="btn btn-outline-secondary"><i class="bi bi-chat"></i> Actual Discussion</a>
     </div>
 </div>
-
 @if (!Model.Any())
 {
     <p class="text-center">No available discussion topics.</p>
@@ -38,9 +31,10 @@ else
                         <h5 class="card-title text-truncate">@thread.Title</h5>
                         <p class="card-text">
                             <strong>Author:</strong> @thread.Author?.UserName <br />
-                            <strong>Created:</strong> @thread.CreatedAt.ToLocalTime().ToString("g")
+                            <strong>Created:</strong> @thread.CreatedAt.ToLocalTime().ToString("g") <br />
+                            <strong>Closed:</strong> @thread.ClosedAt <br />
                         </p>
-                        <a asp-action="ViewDiscussion" asp-route-id="@thread.Id" class="btn btn-outline-primary btn-sm w-100"><i class="bi bi-chat-text"></i> View</a>
+                        <a asp-action="ArchiveViewDiscussion" asp-route-id="@thread.Id" class="btn btn-outline-primary btn-sm w-100">View Discussion</a>
                     </div>
                 </div>
             </div>
@@ -104,9 +98,5 @@ else
 
     .mt-4 {
         margin-top: 2rem;
-    }
-
-    .btn-toolbar .btn {
-        min-width: 180px;
     }
 </style>
