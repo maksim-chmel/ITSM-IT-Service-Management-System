@@ -14,5 +14,4 @@ public interface IUserManagementRepository
     Task<EditUserViewModel> CreateEditUserViewModel(string userId);
     Task<UserWithRolesViewModel[]> SearchUser(string? search);
 
-
 }

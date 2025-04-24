@@ -13,7 +13,7 @@ public class DBaseContext(DbContextOptions<DBaseContext> options) : IdentityDbCo
     public DbSet<TicketSubCategory> TicketSubCategories { get; set; }
     public DbSet<Discussion> Discussions { get; set; }
     public DbSet<DiscussionMessage> DiscussionMessages { get; set; }
-
+    public DbSet<UserCategoryAssignment> UserCategoryAssignments { get; set; }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -62,7 +62,19 @@ public class DBaseContext(DbContextOptions<DBaseContext> options) : IdentityDbCo
             .WithMany(c => c.Threads)
             .HasForeignKey(t => t.CategoryId)
             .OnDelete(DeleteBehavior.Restrict);
-        
+        // Устанавливаем связь многие ко многим между пользователями и категориями
+        modelBuilder.Entity<UserCategoryAssignment>()
+            .HasKey(uca => new { uca.UserId, uca.CategoryId });
+
+        modelBuilder.Entity<UserCategoryAssignment>()
+            .HasOne(uca => uca.User)
+            .WithMany(u => u.UserCategoryAssignments)
+            .HasForeignKey(uca => uca.UserId);
+
+        modelBuilder.Entity<UserCategoryAssignment>()
+            .HasOne(uca => uca.TicketCategory)
+            .WithMany(tc => tc.UserCategoryAssignments)
+            .HasForeignKey(uca => uca.CategoryId);
         modelBuilder.Entity<TicketCategory>().HasData(
             new TicketCategory { Id = 1, Name = "Техническая поддержка" },
             new TicketCategory { Id = 2, Name = "Сетевые проблемы" },

@@ -26,6 +26,7 @@ public class TicketRepository(DBaseContext dBaseContext, ITicketCategoryReposito
 
         dBaseContext.Tickets.Add(ticket);
         await dBaseContext.SaveChangesAsync();
+       await AssignTicketToUserAsync(ticket.Id);
     }
 
     public async Task MassDeleteTickets()
@@ -203,6 +204,48 @@ public class TicketRepository(DBaseContext dBaseContext, ITicketCategoryReposito
             Text = sc.Name
         }).ToList();
     }
+
+    private async Task AssignTicketToUserAsync(int ticketId)
+    {
+        var ticket = await dBaseContext.Tickets
+            .Include(t => t.Category)  // Учитываем только категорию
+            .Include(t => t.AssignedUser)
+            .FirstOrDefaultAsync(t => t.Id == ticketId);
+
+        // Проверка: заявка не существует, уже назначена или не указана категория
+        if (ticket == null || ticket.AssignedUserId != null || ticket.CategoryId == null)
+            return;
+
+        // Находим пользователей с нужной категорией и агрегируем информацию о приоритетах
+        var candidates = await dBaseContext.Users
+            .Where(u => u.UserCategoryAssignments.Any(uca => uca.CategoryId == ticket.CategoryId))
+            .Select(u => new
+            {
+                u.Id,
+                // Суммируем приоритеты активных заявок пользователя
+                ActiveTicketsPrioritySum = u.AssignedTickets
+                    .Where(t => t.Status != Status.Resolved && t.Status != Status.Canceled)
+                    .Sum(t => (int)t.Priority),
+                u.SkillLevel  // Уровень скилла пользователя
+            })
+            .OrderBy(u => u.ActiveTicketsPrioritySum)  // Сортировка по сумме приоритетов заявок
+            .ThenBy(u => u.SkillLevel)  // Сортировка по скиллу пользователя
+            .ToListAsync();
+
+        // Если подходящих кандидатов нет — выходим
+        if (candidates.Count == 0)
+            return;
+
+        // Назначаем пользователя с наименьшей нагрузкой по приоритету
+        var selectedUserId = candidates.First().Id;
+
+        // Назначаем пользователя
+        ticket.AssignedUserId = selectedUserId;
+        ticket.Status = Status.Progress;
+
+        await dBaseContext.SaveChangesAsync();
+    }
+
 
 
 }

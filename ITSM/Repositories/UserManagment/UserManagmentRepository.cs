@@ -3,6 +3,7 @@ using ITSM.DB;
 using ITSM.Models;
 using ITSM.ViewModels.Manage;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 
 namespace ITSM.Repositories.UserManagment;
@@ -61,13 +62,22 @@ public class UserManagementRepository(DBaseContext dBaseContext, UserManager<Use
     private async Task<UserWithRolesViewModel> GetUserWithRoles(User user)
     {
         var roles = await userManager.GetRolesAsync(user);
+        var assignedCategories = await dBaseContext.UserCategoryAssignments
+            .Where(uca => uca.UserId == user.Id)
+            .Join(dBaseContext.TicketCategories,
+                uca => uca.CategoryId,
+                cat => cat.Id,
+                (uca, cat) => cat.Name)
+            .ToListAsync();
+
         return new UserWithRolesViewModel
         {
             Id = user.Id,
             UserName = user.UserName,
             Email = user.Email,
             PhoneNumber = user.PhoneNumber,
-            Roles = string.Join(", ", roles)
+            Roles = roles.ToList(),
+            AssignedCategories = assignedCategories
         };
     }
 
@@ -146,5 +156,4 @@ public class UserManagementRepository(DBaseContext dBaseContext, UserManager<Use
 
         return filtered;
     }
-
 }

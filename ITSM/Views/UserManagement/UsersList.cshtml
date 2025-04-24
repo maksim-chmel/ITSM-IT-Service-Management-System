@@ -1,5 +1,4 @@
-﻿@using Microsoft.AspNetCore.Mvc.TagHelpers
-@model IEnumerable<ITSM.ViewModels.Manage.UserWithRolesViewModel>
+﻿@model IEnumerable<ITSM.ViewModels.Manage.UserWithRolesViewModel>
 
 @{
     ViewData["Title"] = "User Management";
@@ -22,6 +21,7 @@
                 <th>Email</th>
                 <th>Phone Number</th>
                 <th>Role</th>
+                <th>Specification</th>
                 <th>Actions</th>
             </tr>
         </thead>
@@ -33,7 +33,29 @@
                     <td class="text-truncate" style="max-width: 200px;" title="@user.UserName">@user.UserName</td>
                     <td>@user.Email</td>
                     <td>@user.PhoneNumber</td>
-                    <td>@user.Roles</td>
+                    <td>
+                        <ul>
+                            @foreach (var role in user.Roles)
+                            {
+                                <li>@role</li>
+                            }
+                        </ul>
+                    </td>
+                    <td>
+                        @if (user.AssignedCategories.Any())
+                        {
+                            <ul>
+                                @foreach (var category in user.AssignedCategories)
+                                {
+                                    <li>@category</li>
+                                }
+                            </ul>
+                        }
+                        else
+                        {
+                            <span class="text-muted">No categories assigned</span>
+                        }
+                    </td>
                     <td>
                         <div class="dropdown">
                             <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="userActionsDropdown"
@@ -51,6 +73,12 @@
                                     <a class="dropdown-item" asp-controller="UserRoles" asp-action="ManageRoles"
                                        asp-route-userId="@user.Id">
                                         Manage Roles
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" asp-controller="UserManagement" asp-action="AssignCategoryToUser"
+                                       asp-route-userId="@user.Id">
+                                        Category
                                     </a>
                                 </li>
                                 <li>
