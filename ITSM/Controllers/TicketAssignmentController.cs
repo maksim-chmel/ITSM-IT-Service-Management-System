@@ -10,30 +10,63 @@ namespace ITSM.Controllers;
 [Authorize(Roles = nameof(UserRoles.Coordinator))]
 public class TicketAssignmentController(
     ITicketRepository ticketRepository,
-    ITicketAssignmentRepository ticketAssignmentRepository,ITicketSortRepository ticketSortRepository)
+    ITicketAssignmentRepository ticketAssignmentRepository,
+    ITicketSortRepository ticketSortRepository)
     : Controller
 {
     [HttpGet]
     public async Task<IActionResult> ReviewAllTickets(int? categoryId, TicketPriority? priority, Status? status)
     {
         var list = await ticketRepository.GetAllTickets();
-        list = ticketSortRepository.GetFilteredTickets(list,categoryId, priority, status);
+        list = ticketSortRepository.GetFilteredTickets(list, categoryId, priority, status);
         ViewBag.Categories = ticketSortRepository.GetCategorySelectList();
         return View(list);
     }
 
     [HttpGet]
-    public async Task<IActionResult> AssignTicket(int id)
+    public async Task<IActionResult> AssignTechnician(int id)
     {
-        var model = await ticketAssignmentRepository.CreateAssignTicketViewModel(id);
-
+        var model = await ticketAssignmentRepository.CreateAssignTechnicianViewModel(id);
         return View(model);
     }
 
+
     [HttpPost]
-    public async Task<IActionResult> AssignTicket(int ticketId, string userId, TicketPriority priority)
+    public async Task<IActionResult> AssignTechnician(int ticketId, string userId)
     {
-        await ticketAssignmentRepository.AssignTicketToUser(ticketId, userId, priority);
+        if (string.IsNullOrEmpty(userId))
+        {
+            ModelState.AddModelError("userId", "Please select a technician.");
+            var model = await ticketAssignmentRepository.CreateAssignTechnicianViewModel(ticketId);
+            return View(model);
+        }
+
+
+        await ticketAssignmentRepository.AssignTicketToTechnician(ticketId, userId);
+        return RedirectToAction("ReviewAllTickets");
+    }
+
+
+    [HttpGet]
+    public async Task<IActionResult> AssignPriority(int id)
+    {
+        var model = await ticketAssignmentRepository.CreateAssignPriorityViewModel(id);
+        return View(model);
+    }
+
+
+    [HttpPost]
+    public async Task<IActionResult> AssignPriority(int ticketId, TicketPriority priority)
+    {
+        if (!Enum.IsDefined(typeof(TicketPriority), priority))
+        {
+            ModelState.AddModelError("priority", "Invalid priority selected.");
+            var model = await ticketAssignmentRepository.CreateAssignPriorityViewModel(ticketId);
+            return View(model);
+        }
+
+
+        await ticketAssignmentRepository.UpdateTicketPriority(ticketId, priority);
         return RedirectToAction("ReviewAllTickets");
     }
 

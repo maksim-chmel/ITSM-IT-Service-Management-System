@@ -7,6 +7,5 @@ public interface ITicketSortRepository
 {
     IEnumerable<Models.Ticket> GetFilteredTickets(IEnumerable<Models.Ticket> tickets, int? categoryId, TicketPriority? priority,
         Status? status);
-
     IEnumerable<SelectListItem> GetCategorySelectList();
 }

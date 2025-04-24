@@ -5,6 +5,9 @@ namespace ITSM.Repositories.TicketAssignment;
 
 public interface ITicketAssignmentRepository
 {
-    Task<AssignTicketViewModel> CreateAssignTicketViewModel(int id);
-    Task AssignTicketToUser(int ticketId, string userId, TicketPriority priority);
+   
+    Task<AssignTicketPriorityViewModel> CreateAssignPriorityViewModel(int ticketId);
+    Task<AssignTicketViewModel> CreateAssignTechnicianViewModel(int ticketId);
+    Task AssignTicketToTechnician(int ticketId, string userId);
+    Task UpdateTicketPriority(int ticketId, TicketPriority priority);
 }

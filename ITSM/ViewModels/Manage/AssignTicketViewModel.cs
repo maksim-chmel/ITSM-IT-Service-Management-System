@@ -7,7 +7,6 @@ namespace ITSM.ViewModels.Manage;
 public class AssignTicketViewModel
 {
     public Ticket Ticket { get; set; }
-    public TicketPriority Priority { get; set; }  
-    public List<SelectListItem> Users { get; set; }
-    public List<SelectListItem> Priorities { get; set; }  
+    public string SelectedUserId { get; set; } 
+    public List<SelectListItem> Users { get; set; } 
 }

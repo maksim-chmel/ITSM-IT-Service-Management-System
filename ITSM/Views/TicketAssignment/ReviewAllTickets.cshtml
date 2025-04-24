@@ -139,9 +139,16 @@
                                 {
                                     <li>
                                         <a class="dropdown-item" asp-controller="TicketAssignment"
-                                           asp-action="AssignTicket"
+                                           asp-action="AssignTechnician"
                                            asp-route-id="@ticket.Id">
                                             Manage
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="TicketAssignment"
+                                           asp-action="AssignPriority"
+                                           asp-route-id="@ticket.Id">
+                                            Manage priority
                                         </a>
                                     </li>
                                     <li>

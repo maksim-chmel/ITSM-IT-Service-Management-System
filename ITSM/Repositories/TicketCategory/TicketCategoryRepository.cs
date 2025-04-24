@@ -49,6 +49,7 @@ public class TicketCategoryRepository(DBaseContext context) : ITicketCategoryRep
 
         return true;
     }
+
     public async Task<List<SelectListItem>> GetCategorySelectList()
     {
         return await context.TicketCategories
@@ -59,8 +60,8 @@ public class TicketCategoryRepository(DBaseContext context) : ITicketCategoryRep
             })
             .ToListAsync();
     }
-    
-   
+
+
     public async Task<Models.TicketCategory> GetSubCategoryListAsync(int categoryId)
     {
         return await context.TicketCategories
@@ -69,8 +70,6 @@ public class TicketCategoryRepository(DBaseContext context) : ITicketCategoryRep
     }
 
 
-
-    
     public async Task DeleteSubCategoryAsync(int subCategoryId)
     {
         var subCategory = await context.TicketSubCategories.FindAsync(subCategoryId);
@@ -81,8 +80,7 @@ public class TicketCategoryRepository(DBaseContext context) : ITicketCategoryRep
         }
     }
 
-  
-   
+
     public async Task AddSubCategoryAsync(int categoryId, string name)
     {
         var subCategory = new TicketSubCategory
@@ -94,5 +92,4 @@ public class TicketCategoryRepository(DBaseContext context) : ITicketCategoryRep
         context.TicketSubCategories.Add(subCategory);
         await context.SaveChangesAsync();
     }
-
 }
