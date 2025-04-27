@@ -1,0 +1,56 @@
+﻿@model ITSM.ViewModels.Manage.CreateKnowArtViewModel
+
+@{
+    ViewData["Title"] = "Create New Article";
+}
+
+<h2 class="text-center mb-4">Create New Article</h2>
+
+<div class="bg-light p-4 rounded shadow-sm mx-auto" style="max-width: 600px;">
+
+    <form asp-action="CreateArticle" method="post">
+        
+        <div class="form-floating mb-4">
+            <input asp-for="Article" class="form-control" placeholder="Article Title" />
+            <label asp-for="Article">Article Title</label>
+            <span asp-validation-for="Article" class="text-danger"></span>
+        </div>
+
+        <div class="form-floating mb-4">
+            <textarea asp-for="Content" class="form-control" placeholder="Content" style="height: 150px;"></textarea>
+            <label asp-for="Content">Content</label>
+            <span asp-validation-for="Content" class="text-danger"></span>
+        </div>
+
+        <div class="form-floating mb-4">
+            <select asp-for="CategoryId" asp-items="ViewBag.Categories" class="form-select">
+                <option value="">-- Select Category --</option>
+            </select>
+            <label asp-for="CategoryId">Category</label>
+            <span asp-validation-for="CategoryId" class="text-danger"></span>
+        </div>
+
+        <button type="submit" class="btn btn-outline-primary w-100 mb-2">
+            <i class="bi bi-journal-plus"></i> Create Article
+        </button>
+        
+        <a asp-action="AllAuthorArticles" class="btn btn-outline-secondary w-100">
+            <i class="bi bi-arrow-left"></i> Back to My Articles
+        </a>
+
+    </form>
+
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const inputs = document.querySelectorAll(".form-control, .form-select");
+
+        inputs.forEach(input => {
+            input.addEventListener("input", function () {
+                this.classList.toggle("is-invalid", !this.checkValidity());
+                this.classList.toggle("is-valid", this.checkValidity());
+            });
+        });
+    });
+</script>

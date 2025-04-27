@@ -11,7 +11,8 @@ namespace ITSM.Controllers;
 public class TicketAssignmentController(
     ITicketRepository ticketRepository,
     ITicketAssignmentRepository ticketAssignmentRepository,
-    ITicketSortRepository ticketSortRepository)
+    ITicketSortRepository ticketSortRepository,
+    IAutoServiceRepository serviceRepository)
     : Controller
 {
     [HttpGet]
@@ -97,5 +98,41 @@ public class TicketAssignmentController(
     {
         await ticketRepository.AddCancelReason(id, reason);
         return RedirectToAction("ReviewAllTickets");
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> AssignTickets()
+    {
+       
+        try
+        {
+            await serviceRepository.AssignTicketsByCategoryAndLoadAsync();
+            TempData["SuccessMessage"] = "Tickets assigned successfully!";
+            return RedirectToAction("ReviewAllTickets");
+        }
+        catch (Exception ex)
+        {
+            TempData["ErrorMessage"] = "Error during ticket assignment: " + ex.Message;
+            return RedirectToAction("Error", "Home");
+        }
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> ResetTickets()
+    {
+        
+        try
+        {
+           
+            await serviceRepository.ResetTicketsAsync();
+
+            TempData["SuccessMessage"] = "Tickets reset successfully!";
+            return RedirectToAction("ReviewAllTickets"); 
+        }
+        catch (Exception ex)
+        {
+            TempData["ErrorMessage"] = "Error during ticket reset: " + ex.Message;
+            return RedirectToAction("Error", "Home"); 
+        }
     }
 }

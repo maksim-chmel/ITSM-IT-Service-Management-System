@@ -8,4 +8,5 @@ public class TicketCategory
     public List<TicketSubCategory> SubCategories { get; set; } = new();
     public List<Discussion> Threads { get; set; } = new();
     public List<UserCategoryAssignment> UserCategoryAssignments { get; set; } = new();
+    public List<KnowledgeBaseArticle> Articles { get; set; } = new();
 }

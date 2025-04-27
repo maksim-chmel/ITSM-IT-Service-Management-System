@@ -14,6 +14,7 @@ public class DBaseContext(DbContextOptions<DBaseContext> options) : IdentityDbCo
     public DbSet<Discussion> Discussions { get; set; }
     public DbSet<DiscussionMessage> DiscussionMessages { get; set; }
     public DbSet<UserCategoryAssignment> UserCategoryAssignments { get; set; }
+    public DbSet<KnowledgeBaseArticle> KnowledgeBaseArticles { get; set; }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -81,7 +82,19 @@ public class DBaseContext(DbContextOptions<DBaseContext> options) : IdentityDbCo
             new TicketCategory { Id = 3, Name = "Оборудование" },
             new TicketCategory { Id = 4, Name = "Программное обеспечение" }
         );
-        
+        // Связь: KnowledgeBaseArticle → User (Автор статьи)
+        modelBuilder.Entity<KnowledgeBaseArticle>()
+            .HasOne(a => a.Author)
+            .WithMany() // У пользователя нет списка всех его статей — если нужен, можно добавить
+            .HasForeignKey(a => a.AuthorId)
+            .OnDelete(DeleteBehavior.Restrict); // Если пользователя удалить, статья останется
+
+        // Связь: KnowledgeBaseArticle → TicketCategory (Категория статьи)
+        modelBuilder.Entity<KnowledgeBaseArticle>()
+            .HasOne(a => a.Category)
+            .WithMany(c => c.Articles)
+            .HasForeignKey(a => a.CategoryId)
+            .OnDelete(DeleteBehavior.Cascade); // Если удалить категорию — статьи тоже удалятся (можно поменять на Restrict)
       
     }
 }

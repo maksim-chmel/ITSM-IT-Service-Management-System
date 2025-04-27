@@ -100,6 +100,16 @@
                             <i class="bi bi-person"></i> <span>Profile</span>
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" asp-area="" asp-controller="KnowledgeBase" asp-action="AllAuthorArticles">
+                            <i class="bi bi-book"></i> <span>My Articles</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" asp-area="" asp-controller="KnowledgeBase" asp-action="KnowledgeBaseByCategories">
+                            <i class="bi bi-question-circle"></i> <span>Help Center</span>
+                        </a>
+                    </li>
                 }
 
                 @if (User.IsInRole(nameof(UserRoles.Technician)))

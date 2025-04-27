@@ -88,26 +88,26 @@
 
 
                 <td>
-                        <span class="badge 
+                    <span class="badge 
                             @(ticket.Status == Status.Open ? "bg-primary text-white" :
-                                                                 ticket.Status == Status.Progress ? "bg-info text-white" :
-                                                                 ticket.Status == Status.Resolved ? "bg-success text-white" :
-                                                                 ticket.Status == Status.Reopened ? "bg-warning text-white" :
-                                                                 ticket.Status == Status.Canceled ? "bg-danger text-white" :
-                                                                 ticket.Status == Status.Done ? "bg-secondary text-white" : "bg-dark")">
-                            @ticket.Status
-                        </span>
+                            ticket.Status == Status.Progress ? "bg-info text-white" :
+                            ticket.Status == Status.Resolved ? "bg-success text-white" :
+                            ticket.Status == Status.Reopened ? "bg-warning text-white" :
+                            ticket.Status == Status.Canceled ? "bg-danger text-white" :
+                            ticket.Status == Status.Done ? "bg-secondary text-white" : "bg-dark")">
+                        @ticket.Status
+                    </span>
                 </td>
 
 
                 <td>
-                        <span class="badge 
+                    <span class="badge 
                             @(ticket.Priority == TicketPriority.Low ? "bg-secondary text-white" :
-                                                                 ticket.Priority == TicketPriority.Medium ? "bg-primary text-white" :
-                                                                 ticket.Priority == TicketPriority.High ? "bg-warning text-white" :
-                                                                 ticket.Priority == TicketPriority.Critical ? "bg-danger text-white" : "bg-dark text-white")">
-                            @ticket.Priority
-                        </span>
+                            ticket.Priority == TicketPriority.Medium ? "bg-primary text-white" :
+                            ticket.Priority == TicketPriority.High ? "bg-warning text-white" :
+                            ticket.Priority == TicketPriority.Critical ? "bg-danger text-white" : "bg-dark text-white")">
+                        @ticket.Priority
+                    </span>
                 </td>
 
                 <td>@ticket.Category?.Name</td>
@@ -197,4 +197,10 @@
         }
         </tbody>
     </table>
+    <form asp-action="AssignTickets" method="post">
+        <button type="submit" class="btn btn-primary">Assign Tickets</button>
+    </form>
+    <form asp-action="ResetTickets" method="post">
+        <button type="submit" class="btn btn-primary">Reset Tickets</button>
+    </form>
 </div>

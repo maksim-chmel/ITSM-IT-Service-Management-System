@@ -1,5 +1,4 @@
-﻿using ITSM.Enums;
-using ITSM.Models;
+﻿using ITSM.Models;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace ITSM.ViewModels.Manage;

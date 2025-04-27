@@ -1,6 +1,4 @@
-﻿using ITSM.Enums;
-
-namespace ITSM.Models;
+﻿namespace ITSM.Models;
 
 public class UserCategoryAssignment
 {

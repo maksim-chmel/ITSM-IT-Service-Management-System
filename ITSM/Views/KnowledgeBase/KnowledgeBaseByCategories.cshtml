@@ -1,0 +1,207 @@
+﻿@model List<ITSM.Models.TicketCategory>
+
+@{
+    ViewData["Title"] = "Knowledge Base - Articles";
+}
+
+<h1 class="text-center mb-4">Knowledge Base</h1>
+
+<div class="filter-container">
+    <input type="text" id="categoryFilter" placeholder="Search by category..." onkeyup="filterCategories()" class="form-control mb-3" />
+</div>
+
+<div id="category-container" class="category-scroll-container">
+    @foreach (var group in Model.GroupBy(c => c.Name[0].ToString().ToUpper()))
+    {
+        <div class="category-group">
+            <h3 class="category-group-title">@group.Key</h3>
+            <div class="category-container">
+                @foreach (var category in group)
+                {
+                    <div class="category-card mb-4">
+                        <div class="category-header" onclick="toggleCategory('@category.Name')">
+                            <h4>@category.Name</h4>
+                            <span class="toggle-icon">&#x25B6;</span>
+                        </div>
+                        <div class="category-body" id="category-body-@category.Name" style="display: none;">
+                            @if (category.Articles != null && category.Articles.Any())
+                            {
+                                <div class="article-list">
+                                    @foreach (var article in category.Articles)
+                                    {
+                                        <div class="article-item">
+                                            <div class="article-details">
+                                                <h5>
+                                                    <a asp-action="ViewArticle" asp-route-id="@article.Id">
+                                                        @article.Article
+                                                    </a>
+                                                </h5>
+                                                <p class="author">By @article.Author?.UserName| @article.CreatedAt.ToString("yyyy-MM-dd")</p>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                            else
+                            {
+                                <p class="text-muted">No articles available in this category.</p>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+<script>
+    function toggleCategory(categoryName) {
+        var categoryBody = document.getElementById("category-body-" + categoryName);
+        var toggleIcon = categoryBody.previousElementSibling.querySelector('.toggle-icon');
+        if (categoryBody.style.display === "none") {
+            categoryBody.style.display = "block";
+            toggleIcon.style.transform = "rotate(90deg)";
+        } else {
+            categoryBody.style.display = "none";
+            toggleIcon.style.transform = "rotate(0deg)";
+        }
+    }
+
+    function filterCategories() {
+        var input = document.getElementById('categoryFilter');
+        var filter = input.value.toUpperCase();
+        var container = document.getElementById('category-container');
+        var categories = container.getElementsByClassName('category-group');
+
+        Array.from(categories).forEach(function (group) {
+            var categoriesInGroup = group.getElementsByClassName('category-card');
+            var groupTitle = group.getElementsByClassName('category-group-title')[0].textContent.toUpperCase();
+
+            var isVisibleGroup = false;
+            Array.from(categoriesInGroup).forEach(function (category) {
+                var categoryName = category.getElementsByClassName('category-header')[0].textContent.toUpperCase();
+                if (categoryName.indexOf(filter) > -1 || groupTitle.indexOf(filter) > -1) {
+                    category.style.display = '';
+                    isVisibleGroup = true;
+                } else {
+                    category.style.display = 'none';
+                }
+            });
+
+            group.style.display = isVisibleGroup ? '' : 'none';
+        });
+    }
+</script>
+
+<style>
+    .filter-container {
+        width: 100%;
+        margin-bottom: 20px;
+    }
+
+    .category-scroll-container {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        padding-bottom: 10px;
+    }
+
+    .category-group {
+        margin-bottom: 15px;
+    }
+
+    .category-group-title {
+        font-size: 1.6rem;
+        color: #333;
+        margin-bottom: 10px;
+    }
+
+    .category-container {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .category-card {
+        border-radius: 8px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        background-color: #fff;
+        padding: 12px;
+        transition: transform 0.3s ease;
+        overflow: hidden;
+    }
+
+    .category-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .category-header {
+        background-color: #2d9cdb;
+        padding: 10px;
+        border-radius: 6px;
+        color: #fff;
+        margin-bottom: 15px;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .category-header h4 {
+        margin: 0;
+        font-size: 1.6rem;
+    }
+
+    .toggle-icon {
+        font-size: 16px;
+        transition: transform 0.3s ease;
+    }
+
+    .category-body {
+        padding: 8px 0;
+        max-height: 350px;
+        overflow-y: auto;
+    }
+
+    .article-list {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .article-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px;
+        border-bottom: 1px solid #f0f0f0;
+        transition: background-color 0.3s ease;
+    }
+
+    .article-item:hover {
+        background-color: #f9f9f9;
+    }
+
+    .article-details h5 {
+        margin: 0;
+        font-size: 1.2rem;
+    }
+
+    .article-details p {
+        color: #777;
+        font-size: 0.85rem;
+    }
+
+    .article-details a {
+        color: #2d9cdb;
+        text-decoration: none;
+        transition: color 0.3s ease;
+    }
+
+    .article-details a:hover {
+        color: #0056b3;
+    }
+
+    .text-muted {
+        font-style: italic;
+        color: #888;
+    }
+</style>

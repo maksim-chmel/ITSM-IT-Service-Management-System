@@ -6,7 +6,6 @@ using ITSM.Repositories.UserManagment;
 using ITSM.ViewModels.Create;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace ITSM.Controllers;
 

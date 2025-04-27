@@ -1,8 +1,10 @@
-﻿using ITSM.DB;
+﻿using ITSM;
+using ITSM.DB;
 using ITSM.Middleware;
 using ITSM.Models;
 using ITSM.Repositories.Authorisation;
 using ITSM.Repositories.Discussion;
+using ITSM.Repositories.KnowledgeBase;
 using ITSM.Repositories.Qualification;
 using ITSM.Repositories.RoleManager;
 using ITSM.Repositories.Ticket;
@@ -35,6 +37,8 @@ builder.Services.AddScoped<ITicketSortRepository, TicketSortRepository>();
 builder.Services.AddScoped<IUserProfileRepository, UserProfileRepository>();
 builder.Services.AddScoped<IDiscussionRepository, DiscussionRepository>();
 builder.Services.AddScoped<IQualificationRepository, QualificationRepository>();
+builder.Services.AddScoped<IKnowledgeBaseRepository, KnowledgeBaseRepository>();
+builder.Services.AddScoped<IAutoServiceRepository,AutoServiceRepository>();
 
 builder.Services.AddLogging();
 
