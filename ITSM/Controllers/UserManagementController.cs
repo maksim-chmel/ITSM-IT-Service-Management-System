@@ -25,7 +25,7 @@ public class UserManagementController(IUserManagementRepository userRepository,I
     [HttpPost]
     public async Task<IActionResult> DeleteUser(string id)
     {
-        await userRepository.DeleteUserById(id);
+        await userRepository.SoftDeleteUserById(id);
 
         return RedirectToAction("UsersList");
     }

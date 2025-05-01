@@ -13,12 +13,23 @@ namespace ITSM.Controllers;
 public class UserTicketController(
     IUserManagementRepository userRepository,
     ITicketRepository ticketRepository,
-    ITicketSortRepository ticketSortRepository,
-    DBaseContext dBaseContext)
+    ITicketSortRepository ticketSortRepository)
     : Controller
 {
+    private void SetTempDataMessage(bool isSuccess, string successMessage, string errorMessage)
+    {
+        if (isSuccess)
+        {
+            TempData["SuccessMessage"] = successMessage;
+        }
+        else
+        {
+            TempData["ErrorMessage"] = errorMessage;
+        }
+    }
+
     [HttpGet]
-    public async Task<IActionResult> CreateTicket(int? categoryId)
+    public async Task<IActionResult> CreateTicket(int categoryId)
     {
         var viewModel = await ticketRepository.BuildCreateTicketViewModel(categoryId);
         return View(viewModel);
@@ -28,24 +39,19 @@ public class UserTicketController(
     public async Task<IActionResult> CreateTicket(TicketCreateViewModel model)
     {
         var currentUser = await userRepository.GetCurrentUserAsync(User);
-        if (currentUser != null)
-        {
-            await ticketRepository.CreateNewTicket(model, currentUser.Id);
-            TempData["SuccessMessage"] = "Ticket created.";
-        }
-        else
-        {
-            TempData["ErrorMessage"] = "User not found.";
-        }
-
+        
+        if (currentUser == null) return RedirectToAction("CreateTicket");
+        
+        var result = await ticketRepository.CreateNewTicket(model, currentUser.Id);
+        
+        SetTempDataMessage(result, "Тикет успешно создан.", "Ошибка при создании тикета.");
+        
         return RedirectToAction("CreateTicket");
     }
 
     [HttpGet]
     public async Task<IActionResult> UserTicketsList(int? categoryId, Status? status)
     {
-        try
-        {
             var currentUser = await userRepository.GetCurrentUserAsync(User);
 
             if (currentUser == null)
@@ -58,11 +64,5 @@ public class UserTicketController(
             var filteredTickets = ticketSortRepository.GetFilteredTickets(list, categoryId, null, status);
             ViewBag.Categories = ticketSortRepository.GetCategorySelectList();
             return View(filteredTickets);
-        }
-        catch (Exception)
-        {
-            TempData["ErrorMessage"] = "Произошла ошибка при загрузке тикетов.";
-            return RedirectToAction("Error", "Home");
-        }
     }
 }

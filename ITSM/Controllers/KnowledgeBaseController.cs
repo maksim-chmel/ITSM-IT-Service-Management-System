@@ -13,18 +13,32 @@ public class KnowledgeBaseController(
     IKnowledgeBaseRepository knowledgeBaseRepository,
     IUserManagementRepository userRepository) : Controller
 {
+    private void SetTempDataMessage(bool isSuccess, string successMessage, string errorMessage)
+    {
+        if (isSuccess)
+        {
+            TempData["SuccessMessage"] = successMessage;
+        }
+        else
+        {
+            TempData["ErrorMessage"] = errorMessage;
+        }
+    }
+
     [HttpGet]
     public async Task<IActionResult> KnowledgeBaseByCategories()
     {
         var articles = await knowledgeBaseRepository.GetAllArticlesByCategory();
         return View(articles);
     }
+
     [HttpGet]
     public async Task<IActionResult> ViewArticle(int id)
     {
         var articles = await knowledgeBaseRepository.GetArticleById(id);
         return View(articles);
     }
+
     [HttpGet]
     public async Task<IActionResult> AllAuthorArticles()
     {
@@ -37,7 +51,7 @@ public class KnowledgeBaseController(
     [HttpGet]
     public async Task<IActionResult> CreateArticle()
     {
-        ViewBag.Categories = await categoryRepository.GetCategorySelectList();
+        ViewBag.Categories = await categoryRepository.GetCategorySelectListAsync();
         return View();
     }
 
@@ -47,8 +61,8 @@ public class KnowledgeBaseController(
         var currentUser = await userRepository.GetCurrentUserAsync(User);
         if (currentUser != null)
         {
-            await knowledgeBaseRepository.CreateArticle(currentUser.Id, viewModel);
-            TempData["SuccessMessage"] = "Article created.";
+            var result = await knowledgeBaseRepository.CreateArticle(currentUser.Id, viewModel);
+            SetTempDataMessage(result, "Статья успешно создан.", "Ошибка при создании статьи.");
         }
         else
         {
@@ -57,14 +71,16 @@ public class KnowledgeBaseController(
 
         return RedirectToAction("AllAuthorArticles");
     }
+
     [HttpPost]
     public async Task<IActionResult> DeleteArticle(int id)
     {
         var currentUser = await userRepository.GetCurrentUserAsync(User);
         if (currentUser != null)
         {
-            await knowledgeBaseRepository.DeleteArticle(id,currentUser.Id);
-            TempData["SuccessMessage"] = "Article delete.";
+            var result = await knowledgeBaseRepository.DeleteArticle(id, currentUser.Id);
+            SetTempDataMessage(result, "Cтатья успешно удалена.",
+                "Ошибка при удалении статьи.");
         }
         else
         {
@@ -73,6 +89,7 @@ public class KnowledgeBaseController(
 
         return RedirectToAction("AllAuthorArticles");
     }
+
     [HttpGet]
     public async Task<IActionResult> EditArticle(int id)
     {
@@ -84,17 +101,26 @@ public class KnowledgeBaseController(
             Article = article.Article,
             CategoryId = article.CategoryId
         };
-        ViewBag.Categories = await categoryRepository.GetCategorySelectList(); 
+        ViewBag.Categories = await categoryRepository.GetCategorySelectListAsync();
         return View(viewmodel);
-
-
     }
 
     [HttpPost]
     public async Task<IActionResult> EditArticle(EditKnowBaseViewModel viewModel)
     {
         var currentUser = await userRepository.GetCurrentUserAsync(User);
-        await knowledgeBaseRepository.UpdateArticle(currentUser.Id, viewModel);
+        if (currentUser != null)
+        {
+            var result = await knowledgeBaseRepository.UpdateArticle(currentUser.Id, viewModel);
+            SetTempDataMessage(result, "Cтатья успешно Обновлена.",
+                "Ошибка при обновлении статьи.");
+        }
+
+        else
+        {
+            TempData["ErrorMessage"] = "User not found.";
+        }
+
         return RedirectToAction("AllAuthorArticles");
     }
 }

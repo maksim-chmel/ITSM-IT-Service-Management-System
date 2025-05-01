@@ -56,29 +56,27 @@ public class TicketAssignmentRepository(
     }
 
     
-    public async Task AssignTicketToTechnician(int ticketId, string userId)
+    public async Task<bool> AssignTicketToTechnician(int ticketId, string userId)
     {
         var ticket = await ticketRepository.GetTicketById(ticketId);
 
-        if (ticket != null)
-        {
-            ticket.Status = Status.Open;
-            ticket.AssignedUserId = userId;
-        }
-
+        if (ticket == null) return false;
+        ticket.Status = Status.Open;
+        ticket.AssignedUserId = userId;
         await context.SaveChangesAsync();
+        return true;
+
     }
 
    
-    public async Task UpdateTicketPriority(int ticketId, TicketPriority priority)
+    public async Task<bool> UpdateTicketPriority(int ticketId, TicketPriority priority)
     {
         var ticket = await ticketRepository.GetTicketById(ticketId);
 
-        if (ticket != null)
-        {
-            ticket.Priority = priority;
-        }
-
+        if (ticket == null) return false;
+        ticket.Priority = priority;
         await context.SaveChangesAsync();
+        return true;
+
     }
 }

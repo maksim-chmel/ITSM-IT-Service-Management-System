@@ -8,9 +8,11 @@ namespace ITSM.Repositories.Discussion;
 
 public class DiscussionRepository(DBaseContext context) : IDiscussionRepository
 {
-    public async Task CreateDiscussion(DiscussionCreateViewModel viewModel, string userId)
+    public async Task<bool> CreateDiscussion(DiscussionCreateViewModel viewModel, string userId)
     {
-        
+        if (string.IsNullOrWhiteSpace(viewModel.Title) && string.IsNullOrWhiteSpace(viewModel.Description))
+            return false;
+
         var newDiscussion = new Models.Discussion
         {
             Title = viewModel.Title,
@@ -19,23 +21,25 @@ public class DiscussionRepository(DBaseContext context) : IDiscussionRepository
             AuthorId = userId,
             CategoryId = viewModel.CategoryId
         };
-        
-       await context.Discussions.AddAsync(newDiscussion);
+
+        await context.Discussions.AddAsync(newDiscussion);
         await context.SaveChangesAsync();
+        return true;
     }
 
 
-    public async Task ResolveDiscussion(int discussionId, string userId)
+    public async Task<bool> ResolveDiscussion(int discussionId, string userId)
     {
         var discussion = await context.Discussions.FindAsync(discussionId);
 
-        if (discussion != null && discussion.AuthorId == userId)
-        {
-            discussion.Status = Status.Resolved;
-            discussion.ClosedAt = DateTime.Now;
-            context.Discussions.Update(discussion);
-            await context.SaveChangesAsync();
-        }
+        if (discussion == null || discussion.AuthorId != userId) return false;
+        discussion.Status = Status.Resolved;
+        discussion.ClosedAt = DateTime.Now;
+        discussion.IsDeleted = true;
+        context.Discussions.Update(discussion);
+        await context.SaveChangesAsync();
+        return true;
+
     }
 
     public async Task<IEnumerable<Models.Discussion>> GetAllDiscussions(Status status)
@@ -47,11 +51,11 @@ public class DiscussionRepository(DBaseContext context) : IDiscussionRepository
             .Include(t => t.Messages)
             .ToListAsync();
     }
-    
+
     public async Task<Models.Discussion> GetDiscussionByIdWithMessages(int id)
     {
         var discussion = await context.Discussions
-            .Include(t => t.Author) 
+            .Include(t => t.Author)
             .Include(t => t.Messages)
             .ThenInclude(m => m.Author)
             .FirstOrDefaultAsync(t => t.Id == id);
@@ -59,9 +63,9 @@ public class DiscussionRepository(DBaseContext context) : IDiscussionRepository
     }
 
 
-
-    public async Task AddMessage(string userId, int discusId,string messageContent)
+    public async Task<bool> AddMessage(string userId, int discusId, string messageContent)
     {
+        if (!string.IsNullOrWhiteSpace(userId) && !string.IsNullOrWhiteSpace(messageContent)) return false;
         var message = new DiscussionMessage
         {
             AuthorId = userId,
@@ -72,19 +76,20 @@ public class DiscussionRepository(DBaseContext context) : IDiscussionRepository
 
         await context.DiscussionMessages.AddAsync(message);
         await context.SaveChangesAsync();
+        return true;
     }
-    
+
     public async Task<IEnumerable<Models.Discussion>> GetUserDiscussions(string userId)
     {
-        
-        return await context.Discussions 
+        return await context.Discussions
             .Where(t => t.AuthorId == userId)
             .Include(t => t.Author)
             .Include(t => t.Category)
             .Include(t => t.Messages)
             .ToListAsync();
     }
-    public async Task<IEnumerable<Models.Discussion>> SearchDiscussion(Status status,string search)
+
+    public async Task<IEnumerable<Models.Discussion>> SearchDiscussion(Status status, string search)
     {
         search = search.ToLower();
         return await context.Discussions

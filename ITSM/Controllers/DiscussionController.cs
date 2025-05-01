@@ -3,22 +3,36 @@ using ITSM.Repositories.Discussion;
 using ITSM.Repositories.TicketCategory;
 using ITSM.Repositories.UserManagment;
 using ITSM.ViewModels.Create;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ITSM.Controllers;
 
+[Authorize(Roles = nameof(UserRoles.Admin))]
 public class DiscussionController(
     ITicketCategoryRepository categoryRepository,
     IDiscussionRepository discussionRepository,
     IUserManagementRepository userManagementRepository) : Controller
 {
+    private void SetTempDataMessage(bool isSuccess, string successMessage, string errorMessage)
+    {
+        if (isSuccess)
+        {
+            TempData["SuccessMessage"] = successMessage;
+        }
+        else
+        {
+            TempData["ErrorMessage"] = errorMessage;
+        }
+    }
+
     [HttpGet]
     public async Task<IActionResult> ListOfDiscussions(string? search)
     {
         var listOfTreads = await discussionRepository.GetAllDiscussions(Status.Open);
         if (search != null)
         {
-            listOfTreads = await discussionRepository.SearchDiscussion(Status.Open,search);
+            listOfTreads = await discussionRepository.SearchDiscussion(Status.Open, search);
         }
 
         return View(listOfTreads);
@@ -27,8 +41,8 @@ public class DiscussionController(
     [HttpGet]
     public async Task<IActionResult> CreateDiscussion()
     {
-        var categories = await categoryRepository.GetCategorySelectList();
-        
+        var categories = await categoryRepository.GetCategorySelectListAsync();
+
 
         var model = new DiscussionCreateViewModel
         {
@@ -42,9 +56,18 @@ public class DiscussionController(
     [HttpPost]
     public async Task<IActionResult> CreateDiscussion(DiscussionCreateViewModel viewModel)
     {
-        viewModel.Categories = await categoryRepository.GetCategorySelectList();
+        viewModel.Categories = await categoryRepository.GetCategorySelectListAsync();
         var userId = await userManagementRepository.GetCurrentUserAsync(User);
-        await discussionRepository.CreateDiscussion(viewModel, userId.Id);
+        if (userId != null)
+        {
+            var result = await discussionRepository.CreateDiscussion(viewModel, userId.Id);
+            SetTempDataMessage(result, "Обсуждение успешно создан.", "Ошибка при создании обсуждения.");
+        }
+        else
+        {
+            TempData["ErrorMessage"] = "User not found.";
+        }
+
         return RedirectToAction("ListOfDiscussions");
     }
 
@@ -60,7 +83,15 @@ public class DiscussionController(
     public async Task<IActionResult> AddMessage(int id, string messageContent)
     {
         var userId = await userManagementRepository.GetCurrentUserAsync(User);
-        await discussionRepository.AddMessage(userId.Id, id, messageContent);
+        if (userId != null)
+        {
+            var result = await discussionRepository.AddMessage(userId.Id, id, messageContent);
+            SetTempDataMessage(result, "Комментарий успешно создан.", "Ошибка при создании комментария.");
+        }
+        else
+        {
+            TempData["ErrorMessage"] = "User not found.";
+        }
 
         return RedirectToAction("ViewDiscussion", new { id });
     }
@@ -77,7 +108,16 @@ public class DiscussionController(
     public async Task<IActionResult> ResolveDiscussion(int id)
     {
         var userId = await userManagementRepository.GetCurrentUserAsync(User);
-        await discussionRepository.ResolveDiscussion(id, userId.Id);
+        if (userId != null)
+        {
+            var result = await discussionRepository.ResolveDiscussion(id, userId.Id);
+            SetTempDataMessage(result, "Дискуссия успешно решена.", "Ошибка при решении  дискуссии.");
+        }
+        else
+        {
+            TempData["ErrorMessage"] = "User not found.";
+        }
+
         return RedirectToAction("ManageDiscussions");
     }
 
@@ -87,8 +127,9 @@ public class DiscussionController(
         var listOfTreads = await discussionRepository.GetAllDiscussions(Status.Resolved);
         if (search != null)
         {
-            listOfTreads = await discussionRepository.SearchDiscussion(Status.Resolved,search);
+            listOfTreads = await discussionRepository.SearchDiscussion(Status.Resolved, search);
         }
+
         return View(listOfTreads);
     }
 
@@ -96,7 +137,7 @@ public class DiscussionController(
     public async Task<IActionResult> ArchiveViewDiscussion(int id)
     {
         var discussionThread = await discussionRepository.GetDiscussionByIdWithMessages(id);
-        
+
         return View(discussionThread);
     }
 }

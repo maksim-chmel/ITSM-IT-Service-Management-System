@@ -1,0 +1,72 @@
+﻿@model IEnumerable<ITSM.Models.Ticket>
+@{
+    ViewData["Title"] = "Archived Tickets";
+}
+
+<h2 class="text-center mb-4">@ViewData["Title"]</h2>
+
+<form asp-action="RestoreTickets" method="post">
+    <div class="mb-3 d-flex justify-content-end">
+        <button type="submit" class="btn btn-outline-success">
+            <i class="bi bi-arrow-counterclockwise"></i> Restore Selected
+        </button>
+    </div>
+
+    <div class="table-responsive shadow-sm rounded">
+        <table class="table table-hover table-bordered align-middle text-center">
+            <thead class="table-dark text-white">
+            <tr>
+                <th><input type="checkbox" id="selectAll" /></th>
+                <th>#</th>
+                <th>Title</th>
+                <th>Category</th>
+                <th>SubCategory</th>
+                <th>Description</th>
+                <th>Status</th>
+                <th>Created At</th>
+            </tr>
+            </thead>
+            <tbody class="table-light">
+            @foreach (var ticket in Model)
+            {
+                <tr>
+                    <td>
+                        <input type="checkbox" name="selectedTicketIds" value="@ticket.Id" class="form-check-input" />
+
+                    </td>
+                    <td><strong>@ticket.Id</strong></td>
+                    <td>@ticket.Title</td>
+                    <td>@ticket.Category?.Name</td>
+                    <td>@ticket.TicketSubCategory?.Name</td>
+                    <td class="text-truncate" style="max-width: 250px;" title="@ticket.Description">
+                        @ticket.Description
+                    </td>
+                    <td>
+                        <span class="badge 
+                            @(ticket.Status == ITSM.Enums.Status.Open ? "bg-primary text-white" :
+                            ticket.Status == ITSM.Enums.Status.Progress ? "bg-info text-white" :
+                            ticket.Status == ITSM.Enums.Status.Resolved ? "bg-success text-white" :
+                            ticket.Status == ITSM.Enums.Status.Canceled ? "bg-danger text-white" :
+                            ticket.Status == ITSM.Enums.Status.Done ? "bg-secondary text-white" : "bg-dark")">
+                            @ticket.Status
+                        </span>
+                    </td>
+                    <td>@ticket.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</form>
+
+@section Scripts {
+    <script>
+        document.getElementById("selectAll").addEventListener("change", function () {
+            const checkboxes = document.querySelectorAll('input[name="selectedTicketIds"]');
+
+            for (const cb of checkboxes) {
+                cb.checked = this.checked;
+            }
+        });
+    </script>
+}

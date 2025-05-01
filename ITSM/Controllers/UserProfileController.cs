@@ -14,6 +14,7 @@ public class UserProfileController(IUserProfileRepository userProfileRepository)
         if (user == null) return NotFound();
 
         var model = await userProfileRepository.GetUserProfileAsync(user);
+        ViewBag.StatusMessage = TempData["StatusMessage"];
         return View(model);
     }
 
@@ -27,7 +28,6 @@ public class UserProfileController(IUserProfileRepository userProfileRepository)
         var user = await userProfileRepository.GetUserAsync(User);
         if (user == null) return NotFound();
 
-       
         var updateResult = await userProfileRepository.UpdateUserProfileAsync(user, model);
         if (!updateResult.Succeeded)
         {
@@ -36,14 +36,27 @@ public class UserProfileController(IUserProfileRepository userProfileRepository)
             return View(model);
         }
 
-      
-        var isPasswordChangeRequested = 
-            !string.IsNullOrWhiteSpace(model.CurrentPassword) &&
-            !string.IsNullOrWhiteSpace(model.NewPassword) &&
+        var isPasswordChangeRequested =
+            !string.IsNullOrWhiteSpace(model.CurrentPassword) ||
+            !string.IsNullOrWhiteSpace(model.NewPassword) ||
             !string.IsNullOrWhiteSpace(model.ConfirmPassword);
 
         if (isPasswordChangeRequested)
         {
+            if (string.IsNullOrWhiteSpace(model.CurrentPassword) ||
+                string.IsNullOrWhiteSpace(model.NewPassword) ||
+                string.IsNullOrWhiteSpace(model.ConfirmPassword))
+            {
+                ModelState.AddModelError(string.Empty, "Please fill out all password fields.");
+                return View(model);
+            }
+
+            if (model.NewPassword != model.ConfirmPassword)
+            {
+                ModelState.AddModelError(string.Empty, "The new password and confirmation password do not match.");
+                return View(model);
+            }
+
             var passwordResult = await userProfileRepository.ChangeUserPasswordAsync(user, model.CurrentPassword, model.NewPassword);
             if (!passwordResult.Succeeded)
             {
@@ -53,7 +66,6 @@ public class UserProfileController(IUserProfileRepository userProfileRepository)
             }
         }
 
-        
         await userProfileRepository.RefreshUserSignInAsync(user);
         TempData["StatusMessage"] = "Profile updated successfully.";
         return RedirectToAction(nameof(EditProfile));

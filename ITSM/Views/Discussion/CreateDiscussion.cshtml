@@ -3,7 +3,7 @@
 <h2 class="text-center mb-4">Create Discussion</h2>
 
 <div class="bg-light p-4 rounded shadow-sm mx-auto" style="max-width: 600px;">
-    <!-- Форма для создания обсуждения -->
+   
     <form method="post">
         <div class="form-floating">
             <select asp-for="CategoryId" class="form-select">
@@ -15,16 +15,19 @@
 
             </select>
             <label>Category</label>
+            <span class="text-danger" asp-validation-for="CategoryId"></span>
         </div>
  
         <div class="form-floating mb-3">
             <input asp-for="Title" class="form-control" placeholder="Title" required />
             <label asp-for="Title">Title</label>
+            <span class="text-danger" asp-validation-for="Title"></span>
         </div>
 
         <div class="form-floating mb-3">
             <textarea asp-for="Description" class="form-control" placeholder="Description" style="height: 100px;" required></textarea>
             <label asp-for="Description">Description</label>
+            <span class="text-danger" asp-validation-for="Description"></span>
         </div>
 
         <button type="submit" class="btn btn-outline-primary w-100">Create</button>

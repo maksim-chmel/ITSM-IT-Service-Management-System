@@ -10,11 +10,22 @@ public class KnowledgeBaseRepository(DBaseContext dBaseContext) : IKnowledgeBase
     
     public async Task<List<Models.TicketCategory>> GetAllArticlesByCategory()
     {
-        return await dBaseContext.TicketCategories
+        var categories = await dBaseContext.TicketCategories
+            .Where(c => !c.IsDeleted)
             .Include(c => c.Articles)
             .ThenInclude(a => a.Author)
             .ToListAsync();
+        
+        foreach (var category in categories)
+        {
+            category.Articles = category.Articles
+                .Where(a => !a.IsDeleted)
+                .ToList();
+        }
+
+        return categories;
     }
+
 
     public async Task<KnowledgeBaseArticle> GetArticleById(int id)
     {
@@ -28,13 +39,15 @@ public class KnowledgeBaseRepository(DBaseContext dBaseContext) : IKnowledgeBase
     {
         return await dBaseContext.KnowledgeBaseArticles
             .Where(a => a.AuthorId == authorId)
+            .Where(c => !c.IsDeleted)
             .Include(a => a.Author)
             .Include(a => a.Category)
             .ToListAsync();
     }
 
-    public async Task CreateArticle(string userId,CreateKnowArtViewModel viewModel)
+    public async Task<bool> CreateArticle(string userId,CreateKnowArtViewModel viewModel)
     {
+        if (string.IsNullOrWhiteSpace(viewModel.Article) && string.IsNullOrWhiteSpace(viewModel.Content)) return false;
         var newArticle = new KnowledgeBaseArticle
         {
             Article = viewModel.Article,
@@ -45,29 +58,31 @@ public class KnowledgeBaseRepository(DBaseContext dBaseContext) : IKnowledgeBase
         };
         await dBaseContext.KnowledgeBaseArticles.AddAsync(newArticle);
         await dBaseContext.SaveChangesAsync();
+        return true;
     }
 
-    public async Task DeleteArticle(int articleId, string authorId)
+    public async Task<bool> DeleteArticle(int articleId, string authorId)
     {
         var article = await dBaseContext.KnowledgeBaseArticles.FindAsync(articleId);
-        if (article != null && article.AuthorId == authorId)
-        {
-            dBaseContext.KnowledgeBaseArticles.Remove(article);
-            await dBaseContext.SaveChangesAsync();
-        }
+        if (article == null || article.AuthorId != authorId) return false;
+
+        article.IsDeleted = true;
+        await dBaseContext.SaveChangesAsync();
+        return true;
     }
 
-    public async Task UpdateArticle(string authorId, EditKnowBaseViewModel viewModel)
+
+    public async Task<bool> UpdateArticle(string authorId, EditKnowBaseViewModel viewModel)
     {
         var article = await dBaseContext.KnowledgeBaseArticles.FindAsync(viewModel.Id);
-        if (article != null && article.AuthorId == authorId)
-        {
-            article.Article = viewModel.Article;
-            article.Content = viewModel.Content;
-            article.CategoryId = viewModel.CategoryId;
-            article.CreatedAt = DateTime.Now;
-            dBaseContext.KnowledgeBaseArticles.Update(article);
-            await dBaseContext.SaveChangesAsync();
-        }
+        if (article == null || article.AuthorId != authorId) return false;
+        article.Article = viewModel.Article;
+        article.Content = viewModel.Content;
+        article.CategoryId = viewModel.CategoryId;
+        article.CreatedAt = DateTime.Now;
+        dBaseContext.KnowledgeBaseArticles.Update(article);
+        await dBaseContext.SaveChangesAsync();
+        return true;
+
     }
 }

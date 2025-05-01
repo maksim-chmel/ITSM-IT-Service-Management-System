@@ -8,7 +8,7 @@ namespace ITSM.Repositories.RoleManager;
 
 public class UserRolesRepository(
     UserManager<User> userManager,
-    RoleManager<IdentityRole> roleManager,IAuthRepository authRepository)
+    RoleManager<IdentityRole> roleManager)
     : IUserRolesRepository
 {
     public async Task<ManageUserRolesViewModel?> GetUserRolesViewModel(string userId)
@@ -43,7 +43,7 @@ public class UserRolesRepository(
 
         await userManager.RemoveFromRolesAsync(user, currentRoles);
         await userManager.AddToRolesAsync(user, rolesToAdd);
-        //  await authRepository.RefreshSignInAsync(user);
+       
 
         return true;
     }

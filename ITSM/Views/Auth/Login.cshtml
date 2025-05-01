@@ -1,53 +1,68 @@
 ﻿@model ITSM.ViewModels.Authorization.LoginViewModel
-<form asp-action="Login" method="post" class="p-4 rounded shadow-sm bg-light">
+
+@{
+    ViewData["Title"] = "Вход";
+}
+
+<form asp-action="Login" method="post" class="p-4 rounded shadow-sm bg-light" novalidate>
     <h2 class="text-center mb-4">Вход</h2>
 
+  
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger text-center" role="alert">
+            @TempData["ErrorMessage"]
+        </div>
+    }
+
+   
+    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
     <div class="form-floating mb-3">
-        <input asp-for="Email" class="form-control" id="floatingEmail" placeholder="name@example.com" required/>
+        <input asp-for="Email" class="form-control" id="floatingEmail" placeholder="name@example.com" required />
         <label for="floatingEmail">Email</label>
-        <span asp-validation-for="Email" class="invalid-feedback"></span>
+        <span asp-validation-for="Email" class="invalid-feedback d-block"></span>
     </div>
-
 
     <div class="form-floating mb-3">
-        <input asp-for="Password" class="form-control" id="floatingPassword" type="password" placeholder="Пароль"
-               required/>
+        <input asp-for="Password" class="form-control" id="floatingPassword" type="password" placeholder="Пароль" required />
         <label for="floatingPassword">Пароль</label>
-        <span asp-validation-for="Password" class="invalid-feedback"></span>
+        <span asp-validation-for="Password" class="invalid-feedback d-block"></span>
     </div>
-
 
     <div class="form-check mb-3">
-        <input type="checkbox" class="form-check-input" id="showPassword"/>
+        <input type="checkbox" class="form-check-input" id="showPassword" />
         <label class="form-check-label" for="showPassword">Показать пароль</label>
     </div>
 
-    <button type="submit" class="btn  btn-outline-primary w-100">Войти
-        <i class="bi bi-box-arrow-in-right"></i></button>
+    <div class="form-check mb-3">
+        <input asp-for="RememberMe" class="form-check-input" id="rememberMe" />
+        <label class="form-check-label" for="rememberMe">Запомнить меня</label>
+    </div>
+
+    <button type="submit" class="btn btn-outline-primary w-100">
+        Войти <i class="bi bi-box-arrow-in-right"></i>
+    </button>
 </form>
 
 @section Scripts {
-    <partial name="_ValidationScriptsPartial"/>
-}
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const inputs = document.querySelectorAll(".form-control");
+            const passwordField = document.getElementById("floatingPassword");
+            const showPasswordCheckbox = document.getElementById("showPassword");
 
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const inputs = document.querySelectorAll(".form-control");
-        const passwordField = document.getElementById("floatingPassword");
-        const showPasswordCheckbox = document.getElementById("showPassword");
+            inputs.forEach(input => {
+                input.addEventListener("input", function () {
+                    this.classList.toggle("is-invalid", !this.checkValidity());
+                    this.classList.toggle("is-valid", this.checkValidity());
+                });
+            });
 
-
-        inputs.forEach(input => {
-            input.addEventListener("input", function () {
-                this.classList.toggle("is-invalid", !this.checkValidity());
-                this.classList.toggle("is-valid", this.checkValidity());
+            showPasswordCheckbox.addEventListener("change", function () {
+                passwordField.type = this.checked ? "text" : "password";
             });
         });
-
-       
-        showPasswordCheckbox.addEventListener("change", function () {
-            passwordField.type = this.checked ? "text" : "password";
-        });
-    });
-</script>
+    </script>
+}

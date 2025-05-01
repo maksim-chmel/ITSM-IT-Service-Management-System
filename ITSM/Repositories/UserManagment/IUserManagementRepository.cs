@@ -13,5 +13,6 @@ public interface IUserManagementRepository
     Task EditUser(string id, EditUserViewModel editmodel);
     Task<EditUserViewModel> CreateEditUserViewModel(string userId);
     Task<UserWithRolesViewModel[]> SearchUser(string? search);
+    Task<bool> SoftDeleteUserById(string userId);
 
 }

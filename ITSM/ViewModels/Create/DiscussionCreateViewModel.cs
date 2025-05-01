@@ -8,10 +8,11 @@ public class DiscussionCreateViewModel
 {
     public int Id { get; set; }
 
-    [Required]
+    [Required(ErrorMessage = "Title is required.")]
+    [StringLength(100, ErrorMessage = "Title cannot exceed 100 characters.")]
     public string? Title { get; set; }
-
-    [Required]
+    [Required(ErrorMessage = "Description is required.")]
+    [StringLength(1000, ErrorMessage = "Description cannot exceed 1000 characters.")]
     public string? Description { get; set; }
 
 
@@ -22,7 +23,7 @@ public class DiscussionCreateViewModel
     public User Author { get; set; }
     
     [Required(ErrorMessage = "Please select a category.")]
-    public int? CategoryId { get; set; }
+    public int CategoryId { get; set; }
     public TicketCategory Category { get; set; } 
     public List<SelectListItem> Categories { get; set; }
 }

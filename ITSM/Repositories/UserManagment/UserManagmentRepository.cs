@@ -43,10 +43,34 @@ public class UserManagementRepository(DBaseContext dBaseContext, UserManager<Use
 
         return true;
     }
+    public async Task<bool> SoftDeleteUserById(string userId)
+    {
+        await using var transaction = await dBaseContext.Database.BeginTransactionAsync();
+        var user = await dBaseContext.Users
+            .Include(u => u.CreatedTickets)
+            .Include(u => u.AssignedTickets)
+            .FirstOrDefaultAsync(u => u.Id == userId);
+
+        if (user == null)
+            return false;
+        user.IsDeleted = true;
+        user.LockoutEnabled = true;
+
+        dBaseContext.Users.Update(user);
+        await dBaseContext.SaveChangesAsync();
+
+        await transaction.CommitAsync();
+
+        return true;
+    }
+
 
     public async Task<UserWithRolesViewModel[]> GetAllUsersToList()
     {
-        var users = await dBaseContext.Users.AsNoTracking().ToListAsync();
+        var users = await dBaseContext.Users
+            .Where(c => !c.IsDeleted)
+            .AsNoTracking()
+            .ToListAsync();
         var userWithRolesList = new List<UserWithRolesViewModel>();
 
         foreach (var user in users)
@@ -76,7 +100,8 @@ public class UserManagementRepository(DBaseContext dBaseContext, UserManager<Use
             Email = user.Email,
             PhoneNumber = user.PhoneNumber,
             Roles = roles.ToList(),
-            AssignedCategories = assignedCategories
+            AssignedCategories = assignedCategories,
+            IsDeleted = user.IsDeleted
         };
     }
 

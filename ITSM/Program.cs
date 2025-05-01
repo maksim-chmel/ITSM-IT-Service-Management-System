@@ -2,6 +2,8 @@
 using ITSM.DB;
 using ITSM.Middleware;
 using ITSM.Models;
+using ITSM.Repositories;
+using ITSM.Repositories.Archive;
 using ITSM.Repositories.Authorisation;
 using ITSM.Repositories.Discussion;
 using ITSM.Repositories.KnowledgeBase;
@@ -39,6 +41,7 @@ builder.Services.AddScoped<IDiscussionRepository, DiscussionRepository>();
 builder.Services.AddScoped<IQualificationRepository, QualificationRepository>();
 builder.Services.AddScoped<IKnowledgeBaseRepository, KnowledgeBaseRepository>();
 builder.Services.AddScoped<IAutoServiceRepository,AutoServiceRepository>();
+builder.Services.AddScoped<IArchiveRepository,ArchiveRepository>();
 
 builder.Services.AddLogging();
 

@@ -3,11 +3,19 @@
     ViewData["Title"] = "Edit Profile";
 }
 
-<h1 class="text-center mb-4">@ViewData["Title"]</h1>
-
-@if (TempData["StatusMessage"] != null)
+@if (ViewBag.StatusMessage != null)
 {
-    <div class="alert alert-success">@TempData["StatusMessage"]</div>
+    <div class="alert alert-success">@ViewBag.StatusMessage</div>
+}
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="alert alert-danger">
+        @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+        {
+            <div>@error.ErrorMessage</div>
+        }
+    </div>
 }
 
 <form asp-action="EditProfile" method="post" class="d-flex justify-content-center">
@@ -33,19 +41,23 @@
             <input class="form-check-input" type="checkbox" id="showPasswordFields" />
             <label class="form-check-label" for="showPasswordFields">Change Password</label>
         </div>
-
+        
         <!-- Поля для смены пароля (скрыты по умолчанию) -->
         <div id="passwordFields" class="password-fields" style="display: none;">
+            <div class="mb-3">
+                <label for="CurrentPassword" class="form-label">Current Password</label>
+                <input type="password" class="form-control" id="CurrentPassword" name="CurrentPassword" />
+            </div>
             <div class="mb-3">
                 <label for="NewPassword" class="form-label">New Password</label>
                 <input type="password" class="form-control" id="NewPassword" name="NewPassword" />
             </div>
-
             <div class="mb-3">
                 <label for="ConfirmPassword" class="form-label">Confirm New Password</label>
                 <input type="password" class="form-control" id="ConfirmPassword" name="ConfirmPassword" />
             </div>
         </div>
+
 
         <div class="d-flex justify-content-between">
             <button type="submit" class="btn btn-outline-success">Save Changes</button>

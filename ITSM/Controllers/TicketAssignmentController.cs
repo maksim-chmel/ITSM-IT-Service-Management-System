@@ -15,6 +15,18 @@ public class TicketAssignmentController(
     IAutoServiceRepository serviceRepository)
     : Controller
 {
+    private void SetTempDataMessage(bool isSuccess, string successMessage, string errorMessage)
+    {
+        if (isSuccess)
+        {
+            TempData["SuccessMessage"] = successMessage;
+        }
+        else
+        {
+            TempData["ErrorMessage"] = errorMessage;
+        }
+    }
+
     [HttpGet]
     public async Task<IActionResult> ReviewAllTickets(int? categoryId, TicketPriority? priority, Status? status)
     {
@@ -42,8 +54,9 @@ public class TicketAssignmentController(
             return View(model);
         }
 
-
-        await ticketAssignmentRepository.AssignTicketToTechnician(ticketId, userId);
+        var result = await ticketAssignmentRepository.AssignTicketToTechnician(ticketId, userId);
+        SetTempDataMessage(result, "Назначен успешно.",
+            "Ошибка при назначении.");
         return RedirectToAction("ReviewAllTickets");
     }
 
@@ -65,9 +78,10 @@ public class TicketAssignmentController(
             var model = await ticketAssignmentRepository.CreateAssignPriorityViewModel(ticketId);
             return View(model);
         }
-
-
-        await ticketAssignmentRepository.UpdateTicketPriority(ticketId, priority);
+        
+        var result = await ticketAssignmentRepository.UpdateTicketPriority(ticketId, priority);
+        SetTempDataMessage(result, "Назначен успешно.",
+            "Ошибка при назначении.");
         return RedirectToAction("ReviewAllTickets");
     }
 
@@ -103,7 +117,6 @@ public class TicketAssignmentController(
     [HttpPost]
     public async Task<IActionResult> AssignTickets()
     {
-       
         try
         {
             await serviceRepository.AssignTicketsByCategoryAndLoadAsync();
@@ -120,19 +133,17 @@ public class TicketAssignmentController(
     [HttpPost]
     public async Task<IActionResult> ResetTickets()
     {
-        
         try
         {
-           
             await serviceRepository.ResetTicketsAsync();
 
             TempData["SuccessMessage"] = "Tickets reset successfully!";
-            return RedirectToAction("ReviewAllTickets"); 
+            return RedirectToAction("ReviewAllTickets");
         }
         catch (Exception ex)
         {
             TempData["ErrorMessage"] = "Error during ticket reset: " + ex.Message;
-            return RedirectToAction("Error", "Home"); 
+            return RedirectToAction("Error", "Home");
         }
     }
 }

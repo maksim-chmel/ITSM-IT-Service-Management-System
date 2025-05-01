@@ -1,16 +1,15 @@
 ﻿using ITSM.DB;
 using ITSM.Models;
+using ITSM.Repositories.TicketCategory;
 using ITSM.Repositories.UserManagment;
 using ITSM.ViewModels.Manage;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 
 namespace ITSM.Repositories.Qualification;
 
-public class QualificationRepository(DBaseContext dBaseContext, IUserManagementRepository userManagement)
+public class QualificationRepository(DBaseContext dBaseContext, IUserManagementRepository userManagement,ITicketCategoryRepository categoryRepository)
     : IQualificationRepository
 {
-    
     public async Task<AssignCategoryToUserViewModel> GetAssignCategoryViewModelAsync(string userId)
     {
         var user = await userManagement.GetUserById(userId);
@@ -18,7 +17,7 @@ public class QualificationRepository(DBaseContext dBaseContext, IUserManagementR
             return null;
 
         var assignedCategoryIds = await GetAssignedCategoryIdsAsync(userId);
-        var categories = await GetAllTicketCategoriesAsync();
+        var categories = await categoryRepository.GetCategorySelectListAsync();
 
         return new AssignCategoryToUserViewModel
         {
@@ -26,30 +25,24 @@ public class QualificationRepository(DBaseContext dBaseContext, IUserManagementR
             UserName = user.UserName,
             Categories = categories,
             SelectedCategoryIds = assignedCategoryIds,
-            SkillLevel = user.SkillLevel 
+            SkillLevel = user.SkillLevel
         };
     }
 
-   
+
     public async Task<bool> AssignCategoriesToUserAsync(AssignCategoryToUserViewModel model)
     {
         var user = await userManagement.GetUserById(model.UserId);
         if (user == null)
             return false;
-
-      
         user.SkillLevel = model.SkillLevel;
-
-       
         model.SelectedCategoryIds ??= new List<string>();
-
-      
         await RemoveExistingAssignmentsAsync(model.UserId);
 
-       
+
         await AddNewAssignmentsAsync(model.UserId, model.SelectedCategoryIds);
 
-       
+
         await dBaseContext.SaveChangesAsync();
         return true;
     }
@@ -60,16 +53,6 @@ public class QualificationRepository(DBaseContext dBaseContext, IUserManagementR
             .Where(uca => uca.UserId == userId)
             .Select(uca => uca.CategoryId.ToString())
             .ToListAsync();
-    }
-
-    private async Task<List<SelectListItem>> GetAllTicketCategoriesAsync()
-    {
-        return await dBaseContext.TicketCategories
-            .Select(c => new SelectListItem
-            {
-                Value = c.Id.ToString(),
-                Text = c.Name
-            }).ToListAsync();
     }
 
     private async Task RemoveExistingAssignmentsAsync(string userId)

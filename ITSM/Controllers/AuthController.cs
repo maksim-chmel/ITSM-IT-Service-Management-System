@@ -60,19 +60,24 @@ public class AuthController(UserManager<User> userManager, SignInManager<User> s
         {
             var user = await userManager.FindByEmailAsync(model.Email);
 
-            if (user != null)
+            if (user != null && !user.IsDeleted)
             {
                 var result = await signInManager.PasswordSignInAsync(user, model.Password, model.RememberMe, false);
                 if (result.Succeeded)
                 {
                     return RedirectToAction("Index", "Home");
                 }
-               
+
+                TempData["ErrorMessage"] = "Неверный пароль или имя пользователя.";
             }
             else
             {
-                TempData["ErrorMessage"] = "Неверный пароль или имя пользователя.";  
+                TempData["ErrorMessage"] = "Пользователь не найден.";
             }
+        }
+        else
+        {
+            TempData["ErrorMessage"] = "Заполните все поля корректно.";
         }
 
         return View(model);
