@@ -9,9 +9,9 @@ namespace ITSM.Controllers;
 
 [Authorize]
 public class KnowledgeBaseController(
-    ITicketCategoryRepository categoryRepository,
-    IKnowledgeBaseRepository knowledgeBaseRepository,
-    IUserManagementRepository userRepository) : Controller
+    ITicketCategoryService categoryService,
+    IKnowledgeBaseService knowledgeBaseService,
+    IUserManagementService userService) : Controller
 {
     private void SetTempDataMessage(bool isSuccess, string successMessage, string errorMessage)
     {
@@ -28,40 +28,40 @@ public class KnowledgeBaseController(
     [HttpGet]
     public async Task<IActionResult> KnowledgeBaseByCategories()
     {
-        var articles = await knowledgeBaseRepository.GetAllArticlesByCategory();
+        var articles = await knowledgeBaseService.GetAllArticlesByCategory();
         return View(articles);
     }
 
     [HttpGet]
     public async Task<IActionResult> ViewArticle(int id)
     {
-        var articles = await knowledgeBaseRepository.GetArticleById(id);
+        var articles = await knowledgeBaseService.GetArticleById(id);
         return View(articles);
     }
 
     [HttpGet]
     public async Task<IActionResult> AllAuthorArticles()
     {
-        var currentUser = await userRepository.GetCurrentUserAsync(User);
+        var currentUser = await userService.GetCurrentUserAsync(User);
 
-        var articles = await knowledgeBaseRepository.GetAllAuthorArticles(currentUser.Id);
+        var articles = await knowledgeBaseService.GetAllAuthorArticles(currentUser.Id);
         return View(articles);
     }
 
     [HttpGet]
     public async Task<IActionResult> CreateArticle()
     {
-        ViewBag.Categories = await categoryRepository.GetCategorySelectListAsync();
+        ViewBag.Categories = await categoryService.GetCategorySelectListAsync();
         return View();
     }
 
     [HttpPost]
     public async Task<IActionResult> CreateArticle(CreateKnowArtViewModel viewModel)
     {
-        var currentUser = await userRepository.GetCurrentUserAsync(User);
+        var currentUser = await userService.GetCurrentUserAsync(User);
         if (currentUser != null)
         {
-            var result = await knowledgeBaseRepository.CreateArticle(currentUser.Id, viewModel);
+            var result = await knowledgeBaseService.CreateArticle(currentUser.Id, viewModel);
             SetTempDataMessage(result, "Статья успешно создан.", "Ошибка при создании статьи.");
         }
         else
@@ -75,10 +75,10 @@ public class KnowledgeBaseController(
     [HttpPost]
     public async Task<IActionResult> DeleteArticle(int id)
     {
-        var currentUser = await userRepository.GetCurrentUserAsync(User);
+        var currentUser = await userService.GetCurrentUserAsync(User);
         if (currentUser != null)
         {
-            var result = await knowledgeBaseRepository.DeleteArticle(id, currentUser.Id);
+            var result = await knowledgeBaseService.DeleteArticle(id, currentUser.Id);
             SetTempDataMessage(result, "Cтатья успешно удалена.",
                 "Ошибка при удалении статьи.");
         }
@@ -93,7 +93,7 @@ public class KnowledgeBaseController(
     [HttpGet]
     public async Task<IActionResult> EditArticle(int id)
     {
-        var article = await knowledgeBaseRepository.GetArticleById(id);
+        var article = await knowledgeBaseService.GetArticleById(id);
         var viewmodel = new EditKnowBaseViewModel
         {
             Id = article.Id,
@@ -101,17 +101,17 @@ public class KnowledgeBaseController(
             Article = article.Article,
             CategoryId = article.CategoryId
         };
-        ViewBag.Categories = await categoryRepository.GetCategorySelectListAsync();
+        ViewBag.Categories = await categoryService.GetCategorySelectListAsync();
         return View(viewmodel);
     }
 
     [HttpPost]
     public async Task<IActionResult> EditArticle(EditKnowBaseViewModel viewModel)
     {
-        var currentUser = await userRepository.GetCurrentUserAsync(User);
+        var currentUser = await userService.GetCurrentUserAsync(User);
         if (currentUser != null)
         {
-            var result = await knowledgeBaseRepository.UpdateArticle(currentUser.Id, viewModel);
+            var result = await knowledgeBaseService.UpdateArticle(currentUser.Id, viewModel);
             SetTempDataMessage(result, "Cтатья успешно Обновлена.",
                 "Ошибка при обновлении статьи.");
         }

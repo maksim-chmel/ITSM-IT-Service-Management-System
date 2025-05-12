@@ -9,10 +9,10 @@ namespace ITSM.Controllers;
 
 [Authorize(Roles = nameof(UserRoles.Coordinator))]
 public class TicketAssignmentController(
-    ITicketRepository ticketRepository,
-    ITicketAssignmentRepository ticketAssignmentRepository,
-    ITicketSortRepository ticketSortRepository,
-    IAutoServiceRepository serviceRepository)
+    ITicketService ticketService,
+    ITicketAssignmentService ticketAssignmentService,
+    ITicketSortService ticketSortService,
+    IAutoServiceService serviceService)
     : Controller
 {
     private void SetTempDataMessage(bool isSuccess, string successMessage, string errorMessage)
@@ -30,16 +30,16 @@ public class TicketAssignmentController(
     [HttpGet]
     public async Task<IActionResult> ReviewAllTickets(int? categoryId, TicketPriority? priority, Status? status)
     {
-        var list = await ticketRepository.GetAllTickets();
-        list = ticketSortRepository.GetFilteredTickets(list, categoryId, priority, status);
-        ViewBag.Categories = ticketSortRepository.GetCategorySelectList();
+        var list = await ticketService.GetAllTickets();
+        list = ticketSortService.GetFilteredTickets(list, categoryId, priority, status);
+        ViewBag.Categories = ticketSortService.GetCategorySelectList();
         return View(list);
     }
 
     [HttpGet]
     public async Task<IActionResult> AssignTechnician(int id)
     {
-        var model = await ticketAssignmentRepository.CreateAssignTechnicianViewModel(id);
+        var model = await ticketAssignmentService.CreateAssignTechnicianViewModel(id);
         return View(model);
     }
 
@@ -50,11 +50,11 @@ public class TicketAssignmentController(
         if (string.IsNullOrEmpty(userId))
         {
             ModelState.AddModelError("userId", "Please select a technician.");
-            var model = await ticketAssignmentRepository.CreateAssignTechnicianViewModel(ticketId);
+            var model = await ticketAssignmentService.CreateAssignTechnicianViewModel(ticketId);
             return View(model);
         }
 
-        var result = await ticketAssignmentRepository.AssignTicketToTechnician(ticketId, userId);
+        var result = await ticketAssignmentService.AssignTicketToTechnician(ticketId, userId);
         SetTempDataMessage(result, "Назначен успешно.",
             "Ошибка при назначении.");
         return RedirectToAction("ReviewAllTickets");
@@ -64,7 +64,7 @@ public class TicketAssignmentController(
     [HttpGet]
     public async Task<IActionResult> AssignPriority(int id)
     {
-        var model = await ticketAssignmentRepository.CreateAssignPriorityViewModel(id);
+        var model = await ticketAssignmentService.CreateAssignPriorityViewModel(id);
         return View(model);
     }
 
@@ -75,11 +75,11 @@ public class TicketAssignmentController(
         if (!Enum.IsDefined(typeof(TicketPriority), priority))
         {
             ModelState.AddModelError("priority", "Invalid priority selected.");
-            var model = await ticketAssignmentRepository.CreateAssignPriorityViewModel(ticketId);
+            var model = await ticketAssignmentService.CreateAssignPriorityViewModel(ticketId);
             return View(model);
         }
         
-        var result = await ticketAssignmentRepository.UpdateTicketPriority(ticketId, priority);
+        var result = await ticketAssignmentService.UpdateTicketPriority(ticketId, priority);
         SetTempDataMessage(result, "Назначен успешно.",
             "Ошибка при назначении.");
         return RedirectToAction("ReviewAllTickets");
@@ -88,7 +88,7 @@ public class TicketAssignmentController(
     [HttpGet]
     public async Task<IActionResult> InfoAboutTicket(int id)
     {
-        var viewModel = await ticketRepository.CreateTicketDetailsViewModel(id);
+        var viewModel = await ticketService.CreateTicketDetailsViewModel(id);
 
         return View(viewModel);
     }
@@ -96,21 +96,21 @@ public class TicketAssignmentController(
     [HttpPost]
     public async Task<IActionResult> CloseTicket(int id)
     {
-        await ticketRepository.ChangeTicketStatus(id, Status.Done);
+        await ticketService.ChangeTicketStatus(id, Status.Done);
         return RedirectToAction("InfoAboutTicket", new { id });
     }
 
     [HttpPost]
     public async Task<IActionResult> ReOpenTicket(int id)
     {
-        await ticketRepository.ChangeTicketStatus(id, Status.Reopened);
+        await ticketService.ChangeTicketStatus(id, Status.Reopened);
         return RedirectToAction("InfoAboutTicket", new { id });
     }
 
     [HttpPost]
     public async Task<IActionResult> CancelTicket(int id, string reason)
     {
-        await ticketRepository.AddCancelReason(id, reason);
+        await ticketService.AddCancelReason(id, reason);
         return RedirectToAction("ReviewAllTickets");
     }
 
@@ -119,7 +119,7 @@ public class TicketAssignmentController(
     {
         try
         {
-            await serviceRepository.AssignTicketsByCategoryAndLoadAsync();
+            await serviceService.AssignTicketsByCategoryAndLoadAsync();
             TempData["SuccessMessage"] = "Tickets assigned successfully!";
             return RedirectToAction("ReviewAllTickets");
         }
@@ -135,7 +135,7 @@ public class TicketAssignmentController(
     {
         try
         {
-            await serviceRepository.ResetTicketsAsync();
+            await serviceService.ResetTicketsAsync();
 
             TempData["SuccessMessage"] = "Tickets reset successfully!";
             return RedirectToAction("ReviewAllTickets");

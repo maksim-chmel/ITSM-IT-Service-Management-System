@@ -5,15 +5,15 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ITSM.Controllers;
 [Authorize]
-public class UserProfileController(IUserProfileRepository userProfileRepository) : Controller
+public class UserProfileController(IUserProfileService userProfileService) : Controller
 {
     [HttpGet]
     public async Task<IActionResult> EditProfile()
     {
-        var user = await userProfileRepository.GetUserAsync(User);
+        var user = await userProfileService.GetUserAsync(User);
         if (user == null) return NotFound();
 
-        var model = await userProfileRepository.GetUserProfileAsync(user);
+        var model = await userProfileService.GetUserProfileAsync(user);
         ViewBag.StatusMessage = TempData["StatusMessage"];
         return View(model);
     }
@@ -25,10 +25,10 @@ public class UserProfileController(IUserProfileRepository userProfileRepository)
         if (!ModelState.IsValid)
             return View(model);
 
-        var user = await userProfileRepository.GetUserAsync(User);
+        var user = await userProfileService.GetUserAsync(User);
         if (user == null) return NotFound();
 
-        var updateResult = await userProfileRepository.UpdateUserProfileAsync(user, model);
+        var updateResult = await userProfileService.UpdateUserProfileAsync(user, model);
         if (!updateResult.Succeeded)
         {
             foreach (var error in updateResult.Errors)
@@ -57,7 +57,7 @@ public class UserProfileController(IUserProfileRepository userProfileRepository)
                 return View(model);
             }
 
-            var passwordResult = await userProfileRepository.ChangeUserPasswordAsync(user, model.CurrentPassword, model.NewPassword);
+            var passwordResult = await userProfileService.ChangeUserPasswordAsync(user, model.CurrentPassword, model.NewPassword);
             if (!passwordResult.Succeeded)
             {
                 foreach (var error in passwordResult.Errors)
@@ -66,7 +66,7 @@ public class UserProfileController(IUserProfileRepository userProfileRepository)
             }
         }
 
-        await userProfileRepository.RefreshUserSignInAsync(user);
+        await userProfileService.RefreshUserSignInAsync(user);
         TempData["StatusMessage"] = "Profile updated successfully.";
         return RedirectToAction(nameof(EditProfile));
     }

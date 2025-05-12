@@ -2,8 +2,8 @@
 using ITSM.DB;
 using ITSM.Middleware;
 using ITSM.Models;
-using ITSM.Repositories;
 using ITSM.Repositories.Archive;
+using ITSM.Repositories.Authomatization;
 using ITSM.Repositories.Authorisation;
 using ITSM.Repositories.Discussion;
 using ITSM.Repositories.KnowledgeBase;
@@ -19,7 +19,11 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
-
+    /*builder.WebHost.ConfigureKestrel(options =>
+{
+    options.ListenAnyIP(5000); 
+});
+*/
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<DBaseContext>(options =>
@@ -29,25 +33,25 @@ builder.Services.AddIdentity<User, IdentityRole>()
     .AddEntityFrameworkStores<DBaseContext>()
     .AddDefaultTokenProviders();
 
-builder.Services.AddScoped<IAuthRepository, AuthRepository>();
-builder.Services.AddScoped<ITicketCategoryRepository, TicketCategoryRepository>();
-builder.Services.AddScoped<ITicketRepository, TicketRepository>();
-builder.Services.AddScoped<IUserManagementRepository, UserManagementRepository>();
-builder.Services.AddScoped<IUserRolesRepository, UserRolesRepository>();
-builder.Services.AddScoped<ITicketAssignmentRepository, TicketAssignmentRepository>();
-builder.Services.AddScoped<ITicketSortRepository, TicketSortRepository>();
-builder.Services.AddScoped<IUserProfileRepository, UserProfileRepository>();
-builder.Services.AddScoped<IDiscussionRepository, DiscussionRepository>();
-builder.Services.AddScoped<IQualificationRepository, QualificationRepository>();
-builder.Services.AddScoped<IKnowledgeBaseRepository, KnowledgeBaseRepository>();
-builder.Services.AddScoped<IAutoServiceRepository,AutoServiceRepository>();
-builder.Services.AddScoped<IArchiveRepository,ArchiveRepository>();
-
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<ITicketCategoryService, TicketCategoryService>();
+builder.Services.AddScoped<ITicketService, TicketService>();
+builder.Services.AddScoped<IUserManagementService, UserManagementService>();
+builder.Services.AddScoped<IUserRolesService, UserRolesService>();
+builder.Services.AddScoped<ITicketAssignmentService, TicketAssignmentService>();
+builder.Services.AddScoped<ITicketSortService, TicketSortService>();
+builder.Services.AddScoped<IUserProfileService, UserProfileService>();
+builder.Services.AddScoped<IDiscussionService, DiscussionService>();
+builder.Services.AddScoped<IQualificationService, QualificationService>();
+builder.Services.AddScoped<IKnowledgeBaseService, KnowledgeBaseService>();
+builder.Services.AddScoped<IAutoServiceService,AutoServiceService>();
+builder.Services.AddScoped<IArchiveService,ArchiveService>();
 builder.Services.AddLogging();
 
 
 
 var app = builder.Build();
+
 
 using (var scope = app.Services.CreateScope())
 {
@@ -65,5 +69,8 @@ app.UseMiddleware<ExceptionMiddleware>();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Landing}/{action=Index}/{id?}");
-
+app.MapControllerRoute(
+        name: "authorized",
+        pattern: "{controller=Home}/{action=Index}/{id?}")
+    .RequireAuthorization();
 app.Run();

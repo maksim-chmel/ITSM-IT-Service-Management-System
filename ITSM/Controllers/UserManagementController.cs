@@ -8,15 +8,15 @@ using Microsoft.AspNetCore.Mvc;
 namespace ITSM.Controllers;
 
 [Authorize(Roles = nameof(UserRoles.Admin))]
-public class UserManagementController(IUserManagementRepository userRepository,IQualificationRepository qualification) : Controller
+public class UserManagementController(IUserManagementService userService,IQualificationService qualification) : Controller
 {
     [HttpGet]
     public async Task<IActionResult> UsersList(string? search)
     {
-        var list = await userRepository.GetAllUsersToList();
+        var list = await userService.GetAllUsersToList();
         if (search != null)
         {
-            list = await userRepository.SearchUser(search);
+            list = await userService.SearchUser(search);
         }
 
         return View(list);
@@ -25,7 +25,7 @@ public class UserManagementController(IUserManagementRepository userRepository,I
     [HttpPost]
     public async Task<IActionResult> DeleteUser(string id)
     {
-        await userRepository.SoftDeleteUserById(id);
+        await userService.SoftDeleteUserById(id);
 
         return RedirectToAction("UsersList");
     }
@@ -33,7 +33,7 @@ public class UserManagementController(IUserManagementRepository userRepository,I
     [HttpGet]
     public async Task<IActionResult> EditUser(string id)
     {
-        var user = await userRepository.CreateEditUserViewModel(id);
+        var user = await userService.CreateEditUserViewModel(id);
 
         return View(user);
     }
@@ -43,7 +43,7 @@ public class UserManagementController(IUserManagementRepository userRepository,I
     {
         if (!ModelState.IsValid) return View(editModel);
 
-        await userRepository.EditUser(id, editModel);
+        await userService.EditUser(id, editModel);
 
         return RedirectToAction("UsersList");
     }

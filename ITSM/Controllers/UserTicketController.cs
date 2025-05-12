@@ -11,9 +11,9 @@ namespace ITSM.Controllers;
 
 [Authorize(Roles = nameof(UserRoles.User))]
 public class UserTicketController(
-    IUserManagementRepository userRepository,
-    ITicketRepository ticketRepository,
-    ITicketSortRepository ticketSortRepository)
+    IUserManagementService userService,
+    ITicketService ticketService,
+    ITicketSortService ticketSortService)
     : Controller
 {
     private void SetTempDataMessage(bool isSuccess, string successMessage, string errorMessage)
@@ -31,18 +31,18 @@ public class UserTicketController(
     [HttpGet]
     public async Task<IActionResult> CreateTicket(int categoryId)
     {
-        var viewModel = await ticketRepository.BuildCreateTicketViewModel(categoryId);
+        var viewModel = await ticketService.BuildCreateTicketViewModel(categoryId);
         return View(viewModel);
     }
 
     [HttpPost]
     public async Task<IActionResult> CreateTicket(TicketCreateViewModel model)
     {
-        var currentUser = await userRepository.GetCurrentUserAsync(User);
+        var currentUser = await userService.GetCurrentUserAsync(User);
         
         if (currentUser == null) return RedirectToAction("CreateTicket");
         
-        var result = await ticketRepository.CreateNewTicket(model, currentUser.Id);
+        var result = await ticketService.CreateNewTicket(model, currentUser.Id);
         
         SetTempDataMessage(result, "Тикет успешно создан.", "Ошибка при создании тикета.");
         
@@ -52,7 +52,7 @@ public class UserTicketController(
     [HttpGet]
     public async Task<IActionResult> UserTicketsList(int? categoryId, Status? status)
     {
-            var currentUser = await userRepository.GetCurrentUserAsync(User);
+            var currentUser = await userService.GetCurrentUserAsync(User);
 
             if (currentUser == null)
             {
@@ -60,9 +60,9 @@ public class UserTicketController(
                 return RedirectToAction("Error", "Home");
             }
 
-            var list = await ticketRepository.GetUserTickets(currentUser.Id);
-            var filteredTickets = ticketSortRepository.GetFilteredTickets(list, categoryId, null, status);
-            ViewBag.Categories = ticketSortRepository.GetCategorySelectList();
+            var list = await ticketService.GetUserTickets(currentUser.Id);
+            var filteredTickets = ticketSortService.GetFilteredTickets(list, categoryId, null, status);
+            ViewBag.Categories = ticketSortService.GetCategorySelectList();
             return View(filteredTickets);
     }
 }

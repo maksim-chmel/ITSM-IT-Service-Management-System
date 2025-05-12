@@ -8,15 +8,15 @@ using Microsoft.AspNetCore.Mvc;
 namespace ITSM.Controllers;
 
 [Authorize(Roles = nameof(UserRoles.Technician))]
-public class TechnicianTicketController(ITicketRepository ticketRepository,IUserManagementRepository userRepository,ITicketSortRepository ticketSortRepository) : Controller
+public class TechnicianTicketController(ITicketService ticketService,IUserManagementService userService,ITicketSortService ticketSortService) : Controller
 {
     [HttpGet]
     public async Task<IActionResult> ToDoTicketsList(int? categoryId, TicketPriority? priority, Status? status)
     {
-        var currentUser = await userRepository.GetCurrentUserAsync(User);
-        var list = await ticketRepository.GetTicketsAssignedToAdminAsync(currentUser.Id);
-             list = ticketSortRepository.GetFilteredTickets(list,categoryId, priority, status);
-            ViewBag.Categories = ticketSortRepository.GetCategorySelectList();
+        var currentUser = await userService.GetCurrentUserAsync(User);
+        var list = await ticketService.GetTicketsAssignedToAdminAsync(currentUser.Id);
+             list = ticketSortService.GetFilteredTickets(list,categoryId, priority, status);
+            ViewBag.Categories = ticketSortService.GetCategorySelectList();
 
         return View(list);
     }
@@ -25,7 +25,7 @@ public class TechnicianTicketController(ITicketRepository ticketRepository,IUser
     [HttpPost]
     public async Task<IActionResult> ResolveTicket(int id, string solution)
     {
-        await ticketRepository.ResolveTicket(id, solution);
+        await ticketService.ResolveTicket(id, solution);
 
         TempData["TicketClosed"] = "Заявка успешно решена.";
 
@@ -35,19 +35,19 @@ public class TechnicianTicketController(ITicketRepository ticketRepository,IUser
     [HttpPost]
     public async Task<IActionResult> AcceptTicketProcessing (int id)
     {
-        await ticketRepository.ChangeTicketStatus(id, Status.Progress);
+        await ticketService.ChangeTicketStatus(id, Status.Progress);
         return RedirectToAction("ShowDetailsAboutTicket", new { id });
     }
     [HttpPost]
     public async Task<IActionResult> CancelTicketProcessing (int id)
     {
-        await ticketRepository.ChangeTicketStatus(id, Status.Canceled);
+        await ticketService.ChangeTicketStatus(id, Status.Canceled);
         return RedirectToAction("ToDoTicketsList");
     }
     [HttpGet]
     public async Task<IActionResult> ShowDetailsAboutTicket(int id)
     {
-        var viewModel = await ticketRepository.CreateTicketDetailsViewModel(id);
+        var viewModel = await ticketService.CreateTicketDetailsViewModel(id);
 
         return View(viewModel);
     }
@@ -55,7 +55,7 @@ public class TechnicianTicketController(ITicketRepository ticketRepository,IUser
     [HttpPost]
     public async Task<IActionResult> AddNewCommentToTicket(int ticketId, string adminComment)
     {
-        await ticketRepository.AddTicketStepAsync(ticketId, adminComment);
+        await ticketService.AddTicketStepAsync(ticketId, adminComment);
         return RedirectToAction("ShowDetailsAboutTicket", new { id = ticketId });
     }
 }

@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ITSM.Controllers;
 
-public class ArchiveController(IArchiveRepository archiveRepository) : Controller
+public class ArchiveController(IArchiveService archiveService) : Controller
 {
     public IActionResult Index()
     {
@@ -13,27 +13,27 @@ public class ArchiveController(IArchiveRepository archiveRepository) : Controlle
 
     public async Task<IActionResult> DeletedArticles()
     {
-        var articles = await archiveRepository.GetDeletedArticlesAsync();
+        var articles = await archiveService.GetDeletedArticlesAsync();
         return View(articles);
     }
 
 
     public async Task<IActionResult> DeletedTickets()
     {
-        var tickets = await archiveRepository.GetDeletedTicketsAsync();
+        var tickets = await archiveService.GetDeletedTicketsAsync();
         return View(tickets);
     }
 
     public async Task<IActionResult> DeletedCategories()
     {
-        var categories = await archiveRepository.GetDeletedCategoriesAsync();
+        var categories = await archiveService.GetDeletedCategoriesAsync();
         return View(categories);
     }
 
     [HttpGet]
     public async Task<IActionResult> DeletedUsers()
     {
-        var users = await archiveRepository.GetDeletedUsersAsync();
+        var users = await archiveService.GetDeletedUsersAsync();
         return View(users);
     }
 
@@ -44,7 +44,7 @@ public class ArchiveController(IArchiveRepository archiveRepository) : Controlle
         if (selectedArticleIds == null || !selectedArticleIds.Any())
             return RedirectToAction("DeletedArticles");
 
-        await archiveRepository.RestoreArticlesAsync(selectedArticleIds);
+        await archiveService.RestoreArticlesAsync(selectedArticleIds);
         return RedirectToAction("DeletedArticles");
     }
 
@@ -55,7 +55,7 @@ public class ArchiveController(IArchiveRepository archiveRepository) : Controlle
         if (selectedTicketIds == null || !selectedTicketIds.Any())
             return RedirectToAction("DeletedTickets");
 
-        await archiveRepository.RestoreTicketsAsync(selectedTicketIds);
+        await archiveService.RestoreTicketsAsync(selectedTicketIds);
         return RedirectToAction("DeletedTickets");
     }
 
@@ -65,7 +65,7 @@ public class ArchiveController(IArchiveRepository archiveRepository) : Controlle
         if (selectedCategoryIds == null || !selectedCategoryIds.Any())
             return RedirectToAction("DeletedCategories");
 
-        await archiveRepository.RestoreCategoriesAsync(selectedCategoryIds);
+        await archiveService.RestoreCategoriesAsync(selectedCategoryIds);
         return RedirectToAction("DeletedCategories");
     }
 
@@ -75,7 +75,7 @@ public class ArchiveController(IArchiveRepository archiveRepository) : Controlle
         if (selectedSubCategoryIds == null || !selectedSubCategoryIds.Any())
             return RedirectToAction("DeletedCategories");
 
-        await archiveRepository.RestoreSubCategoriesAsync(selectedSubCategoryIds);
+        await archiveService.RestoreSubCategoriesAsync(selectedSubCategoryIds);
         return RedirectToAction("DeletedCategories");
     }
 
@@ -85,7 +85,7 @@ public class ArchiveController(IArchiveRepository archiveRepository) : Controlle
         if (selectedUserIds == null || !selectedUserIds.Any())
             return RedirectToAction("DeletedUsers");
 
-        await archiveRepository.RestoreUsersAsync(selectedUserIds);
+        await archiveService.RestoreUsersAsync(selectedUserIds);
         return RedirectToAction("DeletedUsers");
     }
 }

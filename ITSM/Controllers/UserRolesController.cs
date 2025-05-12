@@ -7,12 +7,12 @@ using Microsoft.AspNetCore.Mvc;
 namespace ITSM.Controllers;
 
 [Authorize(Roles = nameof(UserRoles.Admin))]
-public class UserRolesController(IUserRolesRepository userRolesRepository) : Controller
+public class UserRolesController(IUserRolesService userRolesService) : Controller
 {
     [HttpGet]
     public async Task<IActionResult> ManageRoles(string userId)
     {
-        var model = await userRolesRepository.GetUserRolesViewModel(userId);
+        var model = await userRolesService.GetUserRolesViewModel(userId);
         if (model == null)
             return NotFound("User not found");
 
@@ -22,7 +22,7 @@ public class UserRolesController(IUserRolesRepository userRolesRepository) : Con
     [HttpPost]
     public async Task<IActionResult> ManageRoles(ManageUserRolesViewModel model)
     {
-        var result = await userRolesRepository.UpdateUserRolesAsync(model.UserId, model.Roles);
+        var result = await userRolesService.UpdateUserRolesAsync(model.UserId, model.Roles);
         if (!result)
             return NotFound("User not found");
 
