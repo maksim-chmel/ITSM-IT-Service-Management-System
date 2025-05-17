@@ -58,15 +58,23 @@ public class KnowledgeBaseController(
     [HttpPost]
     public async Task<IActionResult> CreateArticle(CreateKnowArtViewModel viewModel)
     {
-        var currentUser = await userService.GetCurrentUserAsync(User);
-        if (currentUser != null)
+        if (ModelState.IsValid)
         {
-            var result = await knowledgeBaseService.CreateArticle(currentUser.Id, viewModel);
-            SetTempDataMessage(result, "Статья успешно создан.", "Ошибка при создании статьи.");
+            var currentUser = await userService.GetCurrentUserAsync(User);
+        
+            if (currentUser != null)
+            {
+                var result = await knowledgeBaseService.CreateArticle(currentUser.Id, viewModel);
+                SetTempDataMessage(result, "Статья успешно создан.", "Ошибка при создании статьи.");
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "User not found.";
+            }
         }
         else
         {
-            TempData["ErrorMessage"] = "User not found.";
+            TempData["ErrorMessage"] = "Пожалуйста, исправьте ошибки в форме.";
         }
 
         return RedirectToAction("AllAuthorArticles");
