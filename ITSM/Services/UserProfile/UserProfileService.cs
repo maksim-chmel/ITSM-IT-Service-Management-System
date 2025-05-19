@@ -3,7 +3,7 @@ using ITSM.Models;
 using ITSM.ViewModels.Manage;
 using Microsoft.AspNetCore.Identity;
 
-namespace ITSM.Repositories.UserProfile;
+namespace ITSM.Services.UserProfile;
 public class UserProfileService(UserManager<User> userManager, SignInManager<User> signInManager)
     : IUserProfileService
 {

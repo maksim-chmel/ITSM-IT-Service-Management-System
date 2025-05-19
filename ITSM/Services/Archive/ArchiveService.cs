@@ -3,7 +3,7 @@ using ITSM.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
-namespace ITSM.Repositories.Archive;
+namespace ITSM.Services.Archive;
 
 public class ArchiveService(DBaseContext context, UserManager<User> userManager) : IArchiveService
 {
@@ -40,65 +40,11 @@ public class ArchiveService(DBaseContext context, UserManager<User> userManager)
             .Where(u => u.IsDeleted)
             .ToListAsync();
     }
-
-    public async Task RestoreArticlesAsync(List<int> selectedArticleIds)
+    
+    public async Task<bool> RestoreUsersAsync(List<string> selectedUserIds)
     {
-        var articles = await context.KnowledgeBaseArticles
-            .Where(a => selectedArticleIds.Contains(a.Id) && a.IsDeleted)
-            .ToListAsync();
-
-        foreach (var article in articles)
-        {
-            article.IsDeleted = false;
-        }
-
-        await context.SaveChangesAsync();
-    }
-
-    public async Task RestoreTicketsAsync(List<int> selectedTicketIds)
-    {
-        var tickets = await context.Tickets
-            .Where(t => selectedTicketIds.Contains(t.Id) && t.IsDeleted)
-            .ToListAsync();
-
-        foreach (var ticket in tickets)
-        {
-            ticket.IsDeleted = false;
-        }
-
-        await context.SaveChangesAsync();
-    }
-
-    public async Task RestoreCategoriesAsync(List<int> selectedCategoryIds)
-    {
-        var categories = await context.TicketCategories
-            .Where(c => selectedCategoryIds.Contains(c.Id) && c.IsDeleted)
-            .ToListAsync();
-
-        foreach (var category in categories)
-        {
-            category.IsDeleted = false;
-        }
-
-        await context.SaveChangesAsync();
-    }
-
-    public async Task RestoreSubCategoriesAsync(List<int> selectedSubCategoryIds)
-    {
-        var subCategories = await context.TicketSubCategories
-            .Where(sc => selectedSubCategoryIds.Contains(sc.Id) && sc.IsDeleted)
-            .ToListAsync();
-
-        foreach (var sub in subCategories)
-        {
-            sub.IsDeleted = false;
-        }
-
-        await context.SaveChangesAsync();
-    }
-
-    public async Task RestoreUsersAsync(List<string> selectedUserIds)
-    {
+        if (selectedUserIds == null || selectedUserIds.Count == 0)
+            return false;
         foreach (var userId in selectedUserIds)
         {
             var user = await userManager.FindByIdAsync(userId);
@@ -108,5 +54,28 @@ public class ArchiveService(DBaseContext context, UserManager<User> userManager)
             user.LockoutEnabled = false;
             await userManager.UpdateAsync(user);
         }
+
+        return true;
     }
+    public async Task<bool> RestoreEntitiesAsync<T>(DbSet<T> dbSet, List<int> selectedIds) where T : class, ISoftDeletableEntity
+    {
+        if (selectedIds == null || selectedIds.Count == 0)
+            return false;
+
+        var entities = await dbSet
+            .Where(e => selectedIds.Contains(e.Id) && e.IsDeleted)
+            .ToListAsync();
+
+        if (entities.Count == 0)
+            return false;
+
+        foreach (var entity in entities)
+        {
+            entity.IsDeleted = false;
+        }
+
+        await context.SaveChangesAsync();
+        return true;
+    }
+
 }

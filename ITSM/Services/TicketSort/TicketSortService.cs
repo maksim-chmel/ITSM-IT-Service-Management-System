@@ -2,7 +2,7 @@
 using ITSM.Enums;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
-namespace ITSM.Repositories.TicketSort;
+namespace ITSM.Services.TicketSort;
 
 public class TicketSortService(DBaseContext context) : ITicketSortService
 {

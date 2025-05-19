@@ -1,6 +1,6 @@
 ﻿using ITSM.Models;
 
-namespace ITSM.Repositories.Authorisation;
+namespace ITSM.Services.Authorisation;
 
 public interface IAuthService
 {

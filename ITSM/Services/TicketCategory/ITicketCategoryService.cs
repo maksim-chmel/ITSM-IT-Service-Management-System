@@ -2,7 +2,7 @@
 using ITSM.ViewModels.Create;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
-namespace ITSM.Repositories.TicketCategory;
+namespace ITSM.Services.TicketCategory;
 
 public interface ITicketCategoryService
 {

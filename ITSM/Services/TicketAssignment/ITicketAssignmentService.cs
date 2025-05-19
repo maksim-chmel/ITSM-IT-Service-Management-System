@@ -1,7 +1,7 @@
 ﻿using ITSM.Enums;
 using ITSM.ViewModels.Manage;
 
-namespace ITSM.Repositories.TicketAssignment;
+namespace ITSM.Services.TicketAssignment;
 
 public interface ITicketAssignmentService
 {

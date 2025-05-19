@@ -1,6 +1,7 @@
-﻿using ITSM.Repositories.KnowledgeBase;
-using ITSM.Repositories.TicketCategory;
-using ITSM.Repositories.UserManagment;
+﻿using ITSM.Services.KnowledgeBase;
+using ITSM.Services.TicketCategory;
+using ITSM.Services.UserManagment;
+using ITSM.ViewModels.Create;
 using ITSM.ViewModels.Manage;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -11,20 +12,8 @@ namespace ITSM.Controllers;
 public class KnowledgeBaseController(
     ITicketCategoryService categoryService,
     IKnowledgeBaseService knowledgeBaseService,
-    IUserManagementService userService) : Controller
+    IUserManagementService userService) : BaseController
 {
-    private void SetTempDataMessage(bool isSuccess, string successMessage, string errorMessage)
-    {
-        if (isSuccess)
-        {
-            TempData["SuccessMessage"] = successMessage;
-        }
-        else
-        {
-            TempData["ErrorMessage"] = errorMessage;
-        }
-    }
-
     [HttpGet]
     public async Task<IActionResult> KnowledgeBaseByCategories()
     {
@@ -58,27 +47,22 @@ public class KnowledgeBaseController(
     [HttpPost]
     public async Task<IActionResult> CreateArticle(CreateKnowArtViewModel viewModel)
     {
-        if (ModelState.IsValid)
+        if (!ModelState.IsValid)
         {
-            var currentUser = await userService.GetCurrentUserAsync(User);
-        
-            if (currentUser != null)
-            {
-                var result = await knowledgeBaseService.CreateArticle(currentUser.Id, viewModel);
-                SetTempDataMessage(result, "Статья успешно создан.", "Ошибка при создании статьи.");
-            }
-            else
-            {
-                TempData["ErrorMessage"] = "User not found.";
-            }
+            SetTempDataMessage(false, "", "Пожалуйста, исправьте ошибки в форме.");
+            return RedirectToAction("AllAuthorArticles");
         }
-        else
-        {
-            TempData["ErrorMessage"] = "Пожалуйста, исправьте ошибки в форме.";
-        }
+
+        var currentUser = await userService.GetCurrentUserAsync(User);
+        var result = currentUser != null && await knowledgeBaseService.CreateArticle(currentUser.Id, viewModel);
+
+        SetTempDataMessage(result, "Статья успешно создана.", currentUser == null
+            ? "Пользователь не найден."
+            : "Ошибка при создании статьи.");
 
         return RedirectToAction("AllAuthorArticles");
     }
+
 
     [HttpPost]
     public async Task<IActionResult> DeleteArticle(int id)
@@ -116,18 +100,18 @@ public class KnowledgeBaseController(
     [HttpPost]
     public async Task<IActionResult> EditArticle(EditKnowBaseViewModel viewModel)
     {
-        var currentUser = await userService.GetCurrentUserAsync(User);
-        if (currentUser != null)
+        if (!ModelState.IsValid)
         {
-            var result = await knowledgeBaseService.UpdateArticle(currentUser.Id, viewModel);
-            SetTempDataMessage(result, "Cтатья успешно Обновлена.",
-                "Ошибка при обновлении статьи.");
+            SetTempDataMessage(false, "", "Пожалуйста, исправьте ошибки в форме.");
+            return RedirectToAction("AllAuthorArticles");
         }
 
-        else
-        {
-            TempData["ErrorMessage"] = "User not found.";
-        }
+        var currentUser = await userService.GetCurrentUserAsync(User);
+        var result = currentUser != null && await knowledgeBaseService.UpdateArticle(currentUser.Id, viewModel);
+
+        SetTempDataMessage(result, "Статья успешно обновлена.", currentUser == null
+            ? "Пользователь не найден."
+            : "Ошибка при обновлении статьи.");
 
         return RedirectToAction("AllAuthorArticles");
     }

@@ -15,8 +15,7 @@ public class AuthController(UserManager<User> userManager, SignInManager<User> s
     {
         return View();
     }
-
-
+    
     [HttpPost]
     public async Task<IActionResult> Register(RegisterViewModel model)
     {
@@ -25,7 +24,8 @@ public class AuthController(UserManager<User> userManager, SignInManager<User> s
             var existingUserByEmail = await userManager.FindByEmailAsync(model.Email);
             if (existingUserByEmail != null)
             {
-                TempData["ErrorMessage"] = "Пользователь с таким email уже существует.";
+                TempData["ErrorMessage"] = "A user with this email already exists.";
+
                 return RedirectToAction("Register");
             }
 
@@ -40,7 +40,7 @@ public class AuthController(UserManager<User> userManager, SignInManager<User> s
 
             foreach (var error in result.Errors)
             {
-                TempData["ErrorMessage"] = error.Description;  
+                TempData["ErrorMessage"] = error.Description;
             }
         }
 
@@ -53,6 +53,7 @@ public class AuthController(UserManager<User> userManager, SignInManager<User> s
     {
         return View();
     }
+
     [HttpPost]
     public async Task<IActionResult> Login(LoginViewModel model)
     {
@@ -68,16 +69,16 @@ public class AuthController(UserManager<User> userManager, SignInManager<User> s
                     return RedirectToAction("Index", "Home");
                 }
 
-                TempData["ErrorMessage"] = "Неверный пароль или имя пользователя.";
+                TempData["ErrorMessage"] = "Invalid username or password.";
             }
             else
             {
-                TempData["ErrorMessage"] = "Пользователь не найден.";
+                TempData["ErrorMessage"] = "User not found.";
             }
         }
         else
         {
-            TempData["ErrorMessage"] = "Заполните все поля корректно.";
+            TempData["ErrorMessage"] = "Please fill in all fields correctly.";
         }
 
         return View(model);

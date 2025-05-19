@@ -1,7 +1,9 @@
 ﻿using ITSM.Enums;
-using ITSM.Repositories.Ticket;
-using ITSM.Repositories.TicketAssignment;
-using ITSM.Repositories.TicketSort;
+using ITSM.Services.Authomatization;
+using ITSM.Services.Charts;
+using ITSM.Services.Ticket;
+using ITSM.Services.TicketAssignment;
+using ITSM.Services.TicketSort;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -12,28 +14,23 @@ public class TicketAssignmentController(
     ITicketService ticketService,
     ITicketAssignmentService ticketAssignmentService,
     ITicketSortService ticketSortService,
-    IAutoServiceService serviceService)
-    : Controller
+    IAutoServiceService serviceService,
+    ITicketChartService chart)
+    : BaseController
 {
-    private void SetTempDataMessage(bool isSuccess, string successMessage, string errorMessage)
-    {
-        if (isSuccess)
-        {
-            TempData["SuccessMessage"] = successMessage;
-        }
-        else
-        {
-            TempData["ErrorMessage"] = errorMessage;
-        }
-    }
-
     [HttpGet]
     public async Task<IActionResult> ReviewAllTickets(int? categoryId, TicketPriority? priority, Status? status)
     {
-        var list = await ticketService.GetAllTickets();
-        list = ticketSortService.GetFilteredTickets(list, categoryId, priority, status);
+        var tickets = await ticketService.GetAllTickets();
+        tickets = ticketSortService.GetFilteredTickets(tickets, categoryId, priority, status);
+        ViewBag.StatusChartData = chart.GetStatusChartData(tickets);
+        ViewBag.PriorityChartData = chart.GetPriorityChartData(tickets);
         ViewBag.Categories = ticketSortService.GetCategorySelectList();
-        return View(list);
+        ViewBag.SelectedCategoryId = categoryId;
+        ViewBag.SelectedPriority = priority;
+        ViewBag.SelectedStatus = status;
+
+        return View(tickets);
     }
 
     [HttpGet]
@@ -55,8 +52,8 @@ public class TicketAssignmentController(
         }
 
         var result = await ticketAssignmentService.AssignTicketToTechnician(ticketId, userId);
-        SetTempDataMessage(result, "Назначен успешно.",
-            "Ошибка при назначении.");
+        SetTempDataMessage(result, "Assigned successfully.", "Error during assignment.");
+
         return RedirectToAction("ReviewAllTickets");
     }
 
@@ -78,10 +75,10 @@ public class TicketAssignmentController(
             var model = await ticketAssignmentService.CreateAssignPriorityViewModel(ticketId);
             return View(model);
         }
-        
+
         var result = await ticketAssignmentService.UpdateTicketPriority(ticketId, priority);
-        SetTempDataMessage(result, "Назначен успешно.",
-            "Ошибка при назначении.");
+        SetTempDataMessage(result, "Assigned successfully.", "Error during assignment.");
+
         return RedirectToAction("ReviewAllTickets");
     }
 
@@ -120,15 +117,18 @@ public class TicketAssignmentController(
         try
         {
             await serviceService.AssignTicketsByCategoryAndLoadAsync();
-            TempData["SuccessMessage"] = "Tickets assigned successfully!";
+            SetTempDataMessage(true, "Tickets were successfully assigned!", "");
+
             return RedirectToAction("ReviewAllTickets");
         }
         catch (Exception ex)
         {
-            TempData["ErrorMessage"] = "Error during ticket assignment: " + ex.Message;
+            SetTempDataMessage(false, "", "Error while assigning tickets: " + ex.Message);
+
             return RedirectToAction("Error", "Home");
         }
     }
+
 
     [HttpPost]
     public async Task<IActionResult> ResetTickets()
@@ -136,13 +136,13 @@ public class TicketAssignmentController(
         try
         {
             await serviceService.ResetTicketsAsync();
+            SetTempDataMessage(true, "Tickets successfully reset!", "");
 
-            TempData["SuccessMessage"] = "Tickets reset successfully!";
             return RedirectToAction("ReviewAllTickets");
         }
         catch (Exception ex)
         {
-            TempData["ErrorMessage"] = "Error during ticket reset: " + ex.Message;
+            SetTempDataMessage(false, "", "Error resetting tickets: " + ex.Message);
             return RedirectToAction("Error", "Home");
         }
     }

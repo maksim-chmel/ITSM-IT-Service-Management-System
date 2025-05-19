@@ -1,29 +1,32 @@
-﻿using ITSM.Repositories.Archive;
+﻿using ITSM.DB;
+using ITSM.Services.Archive;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ITSM.Controllers;
 
-public class ArchiveController(IArchiveService archiveService) : Controller
+public class ArchiveController(IArchiveService archiveService,DBaseContext context) : Controller
 {
+    [HttpGet]
     public IActionResult Index()
     {
         return View();
     }
 
-
+    [HttpGet]
     public async Task<IActionResult> DeletedArticles()
     {
         var articles = await archiveService.GetDeletedArticlesAsync();
         return View(articles);
     }
 
-
+    [HttpGet]
     public async Task<IActionResult> DeletedTickets()
     {
         var tickets = await archiveService.GetDeletedTicketsAsync();
         return View(tickets);
     }
 
+    [HttpGet]
     public async Task<IActionResult> DeletedCategories()
     {
         var categories = await archiveService.GetDeletedCategoriesAsync();
@@ -44,7 +47,7 @@ public class ArchiveController(IArchiveService archiveService) : Controller
         if (selectedArticleIds == null || !selectedArticleIds.Any())
             return RedirectToAction("DeletedArticles");
 
-        await archiveService.RestoreArticlesAsync(selectedArticleIds);
+        await archiveService.RestoreEntitiesAsync(context.KnowledgeBaseArticles,selectedArticleIds);
         return RedirectToAction("DeletedArticles");
     }
 
@@ -55,7 +58,7 @@ public class ArchiveController(IArchiveService archiveService) : Controller
         if (selectedTicketIds == null || !selectedTicketIds.Any())
             return RedirectToAction("DeletedTickets");
 
-        await archiveService.RestoreTicketsAsync(selectedTicketIds);
+        await archiveService.RestoreEntitiesAsync(context.Tickets,selectedTicketIds);
         return RedirectToAction("DeletedTickets");
     }
 
@@ -65,7 +68,7 @@ public class ArchiveController(IArchiveService archiveService) : Controller
         if (selectedCategoryIds == null || !selectedCategoryIds.Any())
             return RedirectToAction("DeletedCategories");
 
-        await archiveService.RestoreCategoriesAsync(selectedCategoryIds);
+        await archiveService.RestoreEntitiesAsync(context.TicketCategories,selectedCategoryIds);
         return RedirectToAction("DeletedCategories");
     }
 
@@ -75,7 +78,7 @@ public class ArchiveController(IArchiveService archiveService) : Controller
         if (selectedSubCategoryIds == null || !selectedSubCategoryIds.Any())
             return RedirectToAction("DeletedCategories");
 
-        await archiveService.RestoreSubCategoriesAsync(selectedSubCategoryIds);
+        await archiveService.RestoreEntitiesAsync(context.TicketSubCategories,selectedSubCategoryIds);
         return RedirectToAction("DeletedCategories");
     }
 

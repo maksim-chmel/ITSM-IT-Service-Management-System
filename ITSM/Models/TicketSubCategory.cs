@@ -1,8 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using ITSM.Services.Archive;
 
 namespace ITSM.Models;
 
-public class TicketSubCategory
+public class TicketSubCategory : ISoftDeletableEntity
 {
     public int Id { get; set; }
 

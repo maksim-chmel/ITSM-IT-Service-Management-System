@@ -5,7 +5,7 @@ using ITSM.ViewModels.Manage;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
-namespace ITSM.Repositories.UserManagment;
+namespace ITSM.Services.UserManagment;
 
 public class UserManagementService(DBaseContext dBaseContext, UserManager<User> userManager)
     : IUserManagementService
@@ -15,7 +15,7 @@ public class UserManagementService(DBaseContext dBaseContext, UserManager<User> 
         return await dBaseContext.Users.FindAsync(id);
     }
 
-    public async Task<bool> DeleteUserById(string userId)
+    /*  public async Task<bool> DeleteUserById(string userId)
     {
         await using var transaction = await dBaseContext.Database.BeginTransactionAsync();
         var user = await dBaseContext.Users
@@ -43,6 +43,7 @@ public class UserManagementService(DBaseContext dBaseContext, UserManager<User> 
 
         return true;
     }
+    */
     public async Task<bool> SoftDeleteUserById(string userId)
     {
         await using var transaction = await dBaseContext.Database.BeginTransactionAsync();

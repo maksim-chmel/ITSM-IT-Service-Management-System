@@ -1,9 +1,10 @@
 ﻿using ITSM.DB;
 using ITSM.Models;
+using ITSM.ViewModels.Create;
 using ITSM.ViewModels.Manage;
 using Microsoft.EntityFrameworkCore;
 
-namespace ITSM.Repositories.KnowledgeBase;
+namespace ITSM.Services.KnowledgeBase;
 
 public class KnowledgeBaseService(DBaseContext dBaseContext) : IKnowledgeBaseService
 {

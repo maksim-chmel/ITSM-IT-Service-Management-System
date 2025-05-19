@@ -22,14 +22,13 @@ public class TicketCreateViewModel
 
     [Required(ErrorMessage = "Category is required.")]
     public int CategoryId { get; set; }
+
     public string? AuthorId { get; set; }
     public IEnumerable<SelectListItem> Categories { get; set; }
     public string? AuthorName { get; set; }
     public string? CategoryName { get; set; }
-    [Required(ErrorMessage = "SubCategory is required.")]
-  
-    public int? SubCategoryId { get; set; }
 
-  
+    [Required(ErrorMessage = "SubCategory is required.")]
+    public int? SubCategoryId { get; set; }
     public List<SelectListItem> SubCategories { get; set; } = new();
 }

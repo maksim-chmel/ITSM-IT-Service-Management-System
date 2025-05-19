@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace ITSM.ViewModels.Manage;
+namespace ITSM.ViewModels.Create;
 
 public class CreateKnowArtViewModel
 {

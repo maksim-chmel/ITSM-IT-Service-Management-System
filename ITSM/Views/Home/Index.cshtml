@@ -1,5 +1,5 @@
 ﻿@{
-    ViewData["Title"] = "Головна сторінка";
+    ViewData["Title"] = "Home Page";
 }
 
 <style>
@@ -8,31 +8,38 @@
             transform: translateX(0);
         }
         50% {
-            transform: translateX(15px); 
+            transform: translateX(15px);
         }
     }
 
-    .arrow-down {
+    .arrow-left {
         display: flex;
         justify-content: center;
         align-items: center;
         margin: 40px auto;
         font-size: 80px;
-        animation: bounce-left 1.5s infinite;
         color: #0d6efd;
-        transition: color 0.3s;
+        animation: bounce-left 1.5s infinite ease-in-out;
+        transition: color 0.3s ease;
+        cursor: pointer;
     }
 
-    .arrow-down:hover {
+    .arrow-left:hover {
         color: #0a58ca;
+    }
+
+    .lead-text {
+        font-size: 1.25rem;
+        color: #555;
+        margin-top: 1rem;
     }
 </style>
 
 <div class="container text-center mt-5">
-    <h1 class="display-4">Система оптимізації ІТ-процесів</h1>
-    <p class="lead mt-3">Оберіть розділ, з яким хочете працювати, використовуючи меню зліва</p>
+    <h1 class="display-4 fw-bold">IT Process Optimization System</h1>
+    <p class="lead-text">Select the section you want to work with using the menu on the left.</p>
 
-    <div class="arrow-down">
-        <i class="bi bi-arrow-left-circle-fill"></i> <!-- Изменена иконка на стрелку влево -->
+    <div class="arrow-left" title="Navigate Left">
+        <i class="bi bi-arrow-left-circle-fill"></i>
     </div>
 </div>

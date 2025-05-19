@@ -1,4 +1,4 @@
-﻿namespace ITSM;
+﻿namespace ITSM.Services.Authomatization;
 
 public interface  IAutoServiceService
 {

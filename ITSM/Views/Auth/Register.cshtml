@@ -5,9 +5,8 @@
 }
 
 <form asp-action="Register" method="post" class="p-4 rounded shadow-sm bg-light" novalidate>
-    <h2 class="text-center mb-4">Регистрация</h2>
+    <h2 class="text-center mb-4">Register</h2>
 
-   
     @if (TempData["ErrorMessage"] != null)
     {
         <div class="alert alert-danger text-center" role="alert">
@@ -15,12 +14,11 @@
         </div>
     }
 
-   
     <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
     <div class="form-floating mb-3">
-        <input asp-for="UserName" type="text" class="form-control" id="floatingUserName" placeholder="Имя пользователя" required />
-        <label for="floatingUserName">Имя пользователя</label>
+        <input asp-for="UserName" type="text" class="form-control" id="floatingUserName" placeholder="Username" required />
+        <label for="floatingUserName">Username</label>
         <span asp-validation-for="UserName" class="invalid-feedback d-block"></span>
     </div>
 
@@ -31,28 +29,32 @@
     </div>
 
     <div class="form-floating mb-3">
-        <input asp-for="Password" type="password" class="form-control" id="floatingPassword" placeholder="Пароль" required />
-        <label for="floatingPassword">Пароль</label>
+        <input asp-for="Password" type="password" class="form-control" id="floatingPassword" placeholder="Password" required />
+        <label for="floatingPassword">Password</label>
         <span asp-validation-for="Password" class="invalid-feedback d-block"></span>
         <div class="form-text">
-            Пароль должен содержать 8-20 символов, буквы и цифры, без пробелов и спецсимволов.
+            Password must be 8-20 characters long, contain letters and numbers, no spaces or special characters.
         </div>
     </div>
 
     <div class="form-floating mb-3">
-        <input asp-for="ConfirmPassword" type="password" class="form-control" id="floatingConfirmPassword" placeholder="Повторите пароль" required />
-        <label for="floatingConfirmPassword">Подтверждение пароля</label>
+        <input asp-for="ConfirmPassword" type="password" class="form-control" id="floatingConfirmPassword" placeholder="Confirm password" required />
+        <label for="floatingConfirmPassword">Confirm Password</label>
         <span asp-validation-for="ConfirmPassword" class="invalid-feedback d-block"></span>
     </div>
 
     <div class="form-check mb-3">
         <input type="checkbox" class="form-check-input" id="showPassword" />
-        <label class="form-check-label" for="showPassword">Показать пароль</label>
+        <label class="form-check-label" for="showPassword">Show password</label>
     </div>
 
-    <button type="submit" class="btn btn-outline-primary w-100">
-        Зарегистрироваться <i class="bi bi-person-plus"></i>
+    <button type="submit" class="btn btn-outline-primary w-100 mb-3">
+        Register <i class="bi bi-person-plus"></i>
     </button>
+
+    <a href="/" class="btn btn-outline-secondary w-100">
+        Back
+    </a>
 </form>
 
 @section Scripts {

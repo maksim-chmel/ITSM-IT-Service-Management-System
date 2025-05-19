@@ -1,13 +1,12 @@
 ﻿@model ITSM.ViewModels.Authorization.LoginViewModel
 
 @{
-    ViewData["Title"] = "Вход";
+    ViewData["Title"] = "Login";
 }
 
 <form asp-action="Login" method="post" class="p-4 rounded shadow-sm bg-light" novalidate>
-    <h2 class="text-center mb-4">Вход</h2>
+    <h2 class="text-center mb-4">Login</h2>
 
-  
     @if (TempData["ErrorMessage"] != null)
     {
         <div class="alert alert-danger text-center" role="alert">
@@ -15,7 +14,6 @@
         </div>
     }
 
-   
     <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
     <div class="form-floating mb-3">
@@ -25,24 +23,28 @@
     </div>
 
     <div class="form-floating mb-3">
-        <input asp-for="Password" class="form-control" id="floatingPassword" type="password" placeholder="Пароль" required />
-        <label for="floatingPassword">Пароль</label>
+        <input asp-for="Password" class="form-control" id="floatingPassword" type="password" placeholder="Password" required />
+        <label for="floatingPassword">Password</label>
         <span asp-validation-for="Password" class="invalid-feedback d-block"></span>
     </div>
 
     <div class="form-check mb-3">
         <input type="checkbox" class="form-check-input" id="showPassword" />
-        <label class="form-check-label" for="showPassword">Показать пароль</label>
+        <label class="form-check-label" for="showPassword">Show password</label>
     </div>
 
     <div class="form-check mb-3">
         <input asp-for="RememberMe" class="form-check-input" id="rememberMe" />
-        <label class="form-check-label" for="rememberMe">Запомнить меня</label>
+        <label class="form-check-label" for="rememberMe">Remember me</label>
     </div>
 
-    <button type="submit" class="btn btn-outline-primary w-100">
-        Войти <i class="bi bi-box-arrow-in-right"></i>
+    <button type="submit" class="btn btn-outline-primary w-100 mb-3">
+        Log In <i class="bi bi-box-arrow-in-right"></i>
     </button>
+
+    <a href="/" class="btn btn-outline-secondary w-100">
+        Back
+    </a>
 </form>
 
 @section Scripts {

@@ -1,11 +1,11 @@
 ﻿using ITSM.DB;
 using ITSM.Enums;
-using ITSM.Repositories.Ticket;
-using ITSM.Repositories.UserManagment;
+using ITSM.Services.Ticket;
+using ITSM.Services.UserManagment;
 using ITSM.ViewModels.Manage;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
-namespace ITSM.Repositories.TicketAssignment;
+namespace ITSM.Services.TicketAssignment;
 
 public class TicketAssignmentService(
     ITicketService ticketService,

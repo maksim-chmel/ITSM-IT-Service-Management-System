@@ -1,6 +1,6 @@
 ﻿using ITSM.ViewModels.Manage;
 
-namespace ITSM.Repositories.RoleManager;
+namespace ITSM.Services.RoleManager;
 
 public interface IUserRolesService
 {

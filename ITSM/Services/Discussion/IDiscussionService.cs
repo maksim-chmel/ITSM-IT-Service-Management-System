@@ -1,7 +1,7 @@
 ﻿using ITSM.Enums;
 using ITSM.ViewModels.Create;
 
-namespace ITSM.Repositories.Discussion;
+namespace ITSM.Services.Discussion;
 
 public interface IDiscussionService
 {

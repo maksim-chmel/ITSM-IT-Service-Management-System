@@ -2,7 +2,8 @@
 using ITSM.Enums;
 using ITSM.Models;
 using Microsoft.EntityFrameworkCore;
-namespace ITSM.Repositories.Authomatization;
+
+namespace ITSM.Services.Authomatization;
 public class AutoServiceService(DBaseContext dBaseContext) : IAutoServiceService
 {
     public async Task AssignTicketsByCategoryAndLoadAsync()

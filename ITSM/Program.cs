@@ -1,20 +1,20 @@
-﻿using ITSM;
-using ITSM.DB;
+﻿using ITSM.DB;
 using ITSM.Middleware;
 using ITSM.Models;
-using ITSM.Repositories.Archive;
-using ITSM.Repositories.Authomatization;
-using ITSM.Repositories.Authorisation;
-using ITSM.Repositories.Discussion;
-using ITSM.Repositories.KnowledgeBase;
-using ITSM.Repositories.Qualification;
-using ITSM.Repositories.RoleManager;
-using ITSM.Repositories.Ticket;
-using ITSM.Repositories.TicketAssignment;
-using ITSM.Repositories.TicketCategory;
-using ITSM.Repositories.TicketSort;
-using ITSM.Repositories.UserManagment;
-using ITSM.Repositories.UserProfile;
+using ITSM.Services.Archive;
+using ITSM.Services.Authomatization;
+using ITSM.Services.Authorisation;
+using ITSM.Services.Charts;
+using ITSM.Services.Discussion;
+using ITSM.Services.KnowledgeBase;
+using ITSM.Services.Qualification;
+using ITSM.Services.RoleManager;
+using ITSM.Services.Ticket;
+using ITSM.Services.TicketAssignment;
+using ITSM.Services.TicketCategory;
+using ITSM.Services.TicketSort;
+using ITSM.Services.UserManagment;
+using ITSM.Services.UserProfile;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -46,6 +46,7 @@ builder.Services.AddScoped<IQualificationService, QualificationService>();
 builder.Services.AddScoped<IKnowledgeBaseService, KnowledgeBaseService>();
 builder.Services.AddScoped<IAutoServiceService,AutoServiceService>();
 builder.Services.AddScoped<IArchiveService,ArchiveService>();
+builder.Services.AddScoped<ITicketChartService,TicketChartService>();
 builder.Services.AddLogging();
 
 

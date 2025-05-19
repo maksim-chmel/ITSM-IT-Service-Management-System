@@ -1,7 +1,8 @@
 ﻿using ITSM.Models;
+using ITSM.ViewModels.Create;
 using ITSM.ViewModels.Manage;
 
-namespace ITSM.Repositories.KnowledgeBase;
+namespace ITSM.Services.KnowledgeBase;
 
 public interface IKnowledgeBaseService
 {

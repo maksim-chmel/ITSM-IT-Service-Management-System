@@ -1,5 +1,5 @@
 ﻿using ITSM.Enums;
-using ITSM.Repositories.TicketCategory;
+using ITSM.Services.TicketCategory;
 using ITSM.ViewModels.Create;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -7,20 +7,8 @@ using Microsoft.AspNetCore.Mvc;
 namespace ITSM.Controllers;
 
 [Authorize(Roles = nameof(UserRoles.Admin))]
-public class TicketCategoryController(ITicketCategoryService categoryService) : Controller
+public class TicketCategoryController(ITicketCategoryService categoryService) : BaseController
 {
-    private void SetTempDataMessage(bool isSuccess, string successMessage, string errorMessage)
-    {
-        if (isSuccess)
-        {
-            TempData["SuccessMessage"] = successMessage;
-        }
-        else
-        {
-            TempData["ErrorMessage"] = errorMessage;
-        }
-    }
-
     [HttpGet]
     public async Task<IActionResult> CategoryList()
     {
@@ -33,26 +21,30 @@ public class TicketCategoryController(ITicketCategoryService categoryService) : 
     {
         return View();
     }
-
+    
     [HttpPost]
     public async Task<IActionResult> CreateCategory(string name)
     {
-       
-          var result =  await categoryService.CreateCategory(name);
-          SetTempDataMessage(result, "категория успешно добавлена.",
-              "Ошибка при добавлении категории.");
-         
+        if (!ModelState.IsValid)
+        {
+            SetTempDataMessage(false, "", "Please correct the errors in the form.");
+            return RedirectToAction("CategoryList");
+        }
+
+        var result = await categoryService.CreateCategory(name);
+        SetTempDataMessage(result, "Category successfully added.", "Error adding category.");
         return RedirectToAction("CategoryList");
     }
+
+
 
     [HttpPost]
     public async Task<IActionResult> DeleteCategory(int id)
     {
         var result = await categoryService.SoftDeleteCategory(id);
 
-        SetTempDataMessage(result, "Категория успешно удалена.",
-            "Ошибка при удалении категории. Возможно, она используется в тикетах.");
-
+        SetTempDataMessage(result, "Category successfully deleted.",
+            "Error deleting category. It might be used in tickets.");
         return RedirectToAction("CategoryList");
     }
 
@@ -79,8 +71,9 @@ public class TicketCategoryController(ITicketCategoryService categoryService) : 
     public async Task<IActionResult> DeleteSubCategory(int subCategoryId)
     {
         var result = await categoryService.SoftDeleteSubCategoryAsync(subCategoryId);
-        SetTempDataMessage(result, "Подкатегория успешно удалена.",
-            "Ошибка при удалении подкатегории. Возможно, она используется в тикетах.");
+        SetTempDataMessage(result, "Subcategory successfully deleted.",
+            "Error deleting subcategory. It might be used in tickets.");
+
         return RedirectToAction("CategoryList");
     }
 
@@ -88,14 +81,18 @@ public class TicketCategoryController(ITicketCategoryService categoryService) : 
     [HttpPost]
     public async Task<IActionResult> AddSubCategory(SubCategoryCreateViewModel viewModel)
     {
-       
-          var  result =await categoryService.AddSubCategoryAsync(viewModel);
-          
-          SetTempDataMessage(result, "Подкатегория успешно добавлена.",
-              "Ошибка при добавлении подкатегории.");
-        
-       
+        if (!ModelState.IsValid)
+        {
+            SetTempDataMessage(false, "", "Please correct the errors in the form.");
 
-        return RedirectToAction(nameof(SubCategoryList), new { viewModel.CategoryId });
+            return RedirectToAction(nameof(SubCategoryList), new { categoryId = viewModel.CategoryId });
+        }
+
+        var result = await categoryService.AddSubCategoryAsync(viewModel);
+        SetTempDataMessage(result, "Subcategory added successfully.", "Error adding the subcategory.");
+
+
+        return RedirectToAction(nameof(SubCategoryList), new { categoryId = viewModel.CategoryId });
     }
+
 }

@@ -1,10 +1,9 @@
 ﻿using ITSM.Models;
-using ITSM.Repositories.Authorisation;
 using ITSM.ViewModels.Manage;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
-namespace ITSM.Repositories.RoleManager;
+namespace ITSM.Services.RoleManager;
 
 public class UserRolesService(
     UserManager<User> userManager,

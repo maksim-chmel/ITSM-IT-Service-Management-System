@@ -1,6 +1,6 @@
 ﻿using ITSM.ViewModels.Manage;
 
-namespace ITSM.Repositories.Qualification;
+namespace ITSM.Services.Qualification;
 
 public interface IQualificationService
 {

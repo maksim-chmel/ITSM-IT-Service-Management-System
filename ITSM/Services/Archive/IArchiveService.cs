@@ -1,6 +1,7 @@
 ﻿using ITSM.Models;
+using Microsoft.EntityFrameworkCore;
 
-namespace ITSM.Repositories.Archive;
+namespace ITSM.Services.Archive;
 
 public interface IArchiveService
 {
@@ -8,9 +9,6 @@ public interface IArchiveService
     Task<IEnumerable<Models.Ticket>> GetDeletedTicketsAsync();
     Task<IEnumerable<Models.TicketCategory>> GetDeletedCategoriesAsync();
     Task<IEnumerable<User>> GetDeletedUsersAsync();
-    Task RestoreArticlesAsync(List<int> selectedArticleIds);
-    Task RestoreTicketsAsync(List<int> selectedTicketIds);
-    Task RestoreCategoriesAsync(List<int> selectedCategoryIds);
-    Task RestoreSubCategoriesAsync(List<int> selectedSubCategoryIds);
-    Task RestoreUsersAsync(List<string> selectedUserIds);
+    Task<bool> RestoreUsersAsync(List<string> selectedUserIds);
+    Task<bool> RestoreEntitiesAsync<T>(DbSet<T> dbSet, List<int> selectedIds) where T : class, ISoftDeletableEntity;
 }

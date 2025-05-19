@@ -1,6 +1,6 @@
 ﻿using ITSM.Enums;
-using ITSM.Repositories.Qualification;
-using ITSM.Repositories.UserManagment;
+using ITSM.Services.Qualification;
+using ITSM.Services.UserManagment;
 using ITSM.ViewModels.Manage;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace ITSM.Controllers;
 
 [Authorize(Roles = nameof(UserRoles.Admin))]
-public class UserManagementController(IUserManagementService userService,IQualificationService qualification) : Controller
+public class UserManagementController(IUserManagementService userService,IQualificationService qualification) : BaseController
 {
     [HttpGet]
     public async Task<IActionResult> UsersList(string? search)
@@ -25,8 +25,8 @@ public class UserManagementController(IUserManagementService userService,IQualif
     [HttpPost]
     public async Task<IActionResult> DeleteUser(string id)
     {
-        await userService.SoftDeleteUserById(id);
-
+     var   result =await userService.SoftDeleteUserById(id);
+     SetTempDataMessage(result, "User deleted successfully.", "Error deleting the user.");
         return RedirectToAction("UsersList");
     }
 
@@ -41,12 +41,25 @@ public class UserManagementController(IUserManagementService userService,IQualif
     [HttpPost]
     public async Task<IActionResult> EditUser(string id, EditUserViewModel editModel)
     {
-        if (!ModelState.IsValid) return View(editModel);
+        if (!ModelState.IsValid)
+        {
+            TempData["ErrorMessage"] = "Please correct the errors in the form.";
+            return View(editModel);
+        }
+        try
+        {
+            await userService.EditUser(id, editModel);
+            TempData["SuccessMessage"] = "User updated successfully.";
+            return RedirectToAction("UsersList");
+        }
+        catch (Exception ex)
+        {
+            TempData["ErrorMessage"] = "Error occurred while updating the user.";
+            return View(editModel);
+        }
 
-        await userService.EditUser(id, editModel);
-
-        return RedirectToAction("UsersList");
     }
+
 
     [HttpGet]
     public async Task<IActionResult> AssignCategoryToUser(string userId)
@@ -59,10 +72,8 @@ public class UserManagementController(IUserManagementService userService,IQualif
     [HttpPost]
     public async Task<IActionResult> AssignCategoryToUser(AssignCategoryToUserViewModel model)
     {
-        var success = await qualification.AssignCategoriesToUserAsync(model);
-        if (!success)
-            return NotFound();
-
+        var result = await qualification.AssignCategoriesToUserAsync(model);
+        SetTempDataMessage(result, "User assigned successfully.", "Error assigning the user.");
         return RedirectToAction("UsersList");
     }
 }

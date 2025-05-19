@@ -1,7 +1,7 @@
 ﻿using ITSM.Enums;
-using ITSM.Repositories.Discussion;
-using ITSM.Repositories.TicketCategory;
-using ITSM.Repositories.UserManagment;
+using ITSM.Services.Discussion;
+using ITSM.Services.TicketCategory;
+using ITSM.Services.UserManagment;
 using ITSM.ViewModels.Create;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -12,20 +12,8 @@ namespace ITSM.Controllers;
 public class DiscussionController(
     ITicketCategoryService categoryService,
     IDiscussionService discussionService,
-    IUserManagementService userManagementService) : Controller
+    IUserManagementService userManagementService) : BaseController
 {
-    private void SetTempDataMessage(bool isSuccess, string successMessage, string errorMessage)
-    {
-        if (isSuccess)
-        {
-            TempData["SuccessMessage"] = successMessage;
-        }
-        else
-        {
-            TempData["ErrorMessage"] = errorMessage;
-        }
-    }
-
     [HttpGet]
     public async Task<IActionResult> ListOfDiscussions(string? search)
     {
@@ -42,8 +30,6 @@ public class DiscussionController(
     public async Task<IActionResult> CreateDiscussion()
     {
         var categories = await categoryService.GetCategorySelectListAsync();
-
-
         var model = new DiscussionCreateViewModel
         {
             Categories = categories
@@ -56,20 +42,27 @@ public class DiscussionController(
     [HttpPost]
     public async Task<IActionResult> CreateDiscussion(DiscussionCreateViewModel viewModel)
     {
-        viewModel.Categories = await categoryService.GetCategorySelectListAsync();
-        var userId = await userManagementService.GetCurrentUserAsync(User);
-        if (userId != null)
+        if (!ModelState.IsValid)
         {
-            var result = await discussionService.CreateDiscussion(viewModel, userId.Id);
-            SetTempDataMessage(result, "Обсуждение успешно создан.", "Ошибка при создании обсуждения.");
+            viewModel.Categories = await categoryService.GetCategorySelectListAsync();
+            return View(viewModel);
         }
-        else
+
+        var user = await userManagementService.GetCurrentUserAsync(User);
+        if (user == null)
         {
-            TempData["ErrorMessage"] = "User not found.";
+            SetTempDataMessage(false, "", "Пользователь не найден.");
+            return RedirectToAction("ListOfDiscussions");
         }
+
+        var result = await discussionService.CreateDiscussion(viewModel, user.Id);
+        SetTempDataMessage(result, "Обсуждение успешно создано.", "Ошибка при создании обсуждения.");
 
         return RedirectToAction("ListOfDiscussions");
     }
+
+
+
 
     [HttpGet]
     public async Task<IActionResult> ViewDiscussion(int id)
@@ -82,19 +75,23 @@ public class DiscussionController(
     [HttpPost]
     public async Task<IActionResult> AddMessage(int id, string messageContent)
     {
-        var userId = await userManagementService.GetCurrentUserAsync(User);
-        if (userId != null)
+        if (!ModelState.IsValid)
         {
-            var result = await discussionService.AddMessage(userId.Id, id, messageContent);
-            SetTempDataMessage(result, "Комментарий успешно создан.", "Ошибка при создании комментария.");
+              return RedirectToAction("ViewDiscussion", new { id });
         }
-        else
+        var user = await userManagementService.GetCurrentUserAsync(User);
+        if (user == null)
         {
-            TempData["ErrorMessage"] = "User not found.";
+            SetTempDataMessage(false, "", "Пользователь не найден.");
+            return RedirectToAction("ViewDiscussion", new { id });
         }
+
+        var result = await discussionService.AddMessage(user.Id, id, messageContent);
+        SetTempDataMessage(result, "Комментарий успешно создан.", "Ошибка при создании комментария.");
 
         return RedirectToAction("ViewDiscussion", new { id });
     }
+
 
     [HttpGet]
     public async Task<IActionResult> ManageDiscussions()

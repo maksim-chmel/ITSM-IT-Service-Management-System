@@ -1,13 +1,12 @@
 ﻿using ITSM.DB;
 using ITSM.Enums;
 using ITSM.Models;
-using ITSM.Repositories.TicketCategory;
+using ITSM.Services.TicketCategory;
 using ITSM.ViewModels.Create;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
-using Microsoft.AspNetCore.Mvc.Rendering;
+using ITSM.ViewModels.Manage;
 using Microsoft.EntityFrameworkCore;
 
-namespace ITSM.Repositories.Ticket;
+namespace ITSM.Services.Ticket;
 
 public class TicketService(DBaseContext dBaseContext, ITicketCategoryService category)
     : ITicketService

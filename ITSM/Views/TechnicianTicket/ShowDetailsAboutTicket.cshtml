@@ -1,5 +1,5 @@
 ﻿@using ITSM.Enums
-@model ITSM.ViewModels.Create.TicketDetailsViewModel
+@model ITSM.ViewModels.Manage.TicketDetailsViewModel
 @if (TempData["TicketClosed"] != null)
 {
     <div class="alert alert-success" role="alert">
@@ -97,7 +97,7 @@
                         <input type="hidden" name="ticketId" value="@Model.Ticket.Id"/>
                         <div class="mb-3">
                             <label for="noteDescription" class="form-label">Note:</label>
-                            <textarea class="form-control" id="noteDescription" name="adminComment" rows="3" placeholder="Add a note"></textarea>
+                            <textarea class="form-control" id="noteDescription" name="adminComment" rows="3" placeholder="Add a note" required></textarea>
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>

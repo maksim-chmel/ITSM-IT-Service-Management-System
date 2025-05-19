@@ -1,11 +1,12 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using ITSM.DB;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 
 namespace ITSM.Controllers;
 
 [Authorize]
-public class HomeController : Controller
+public class HomeController(DBaseContext context) : Controller
 {
     public IActionResult Index()
     {
@@ -25,11 +26,8 @@ public class HomeController : Controller
 
         return View();
     }
-    //Test ERROR
-    [HttpGet]
-    public IActionResult ThrowError()
-    {
-        throw new Exception("This is a test error.");
-    }
+   
+
+
 
 }

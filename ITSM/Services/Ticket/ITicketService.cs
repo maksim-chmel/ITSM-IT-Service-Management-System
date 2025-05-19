@@ -1,8 +1,8 @@
 ﻿using ITSM.Enums;
-using ITSM.Models;
 using ITSM.ViewModels.Create;
+using ITSM.ViewModels.Manage;
 
-namespace ITSM.Repositories.Ticket;
+namespace ITSM.Services.Ticket;
 
 public interface ITicketService
 {

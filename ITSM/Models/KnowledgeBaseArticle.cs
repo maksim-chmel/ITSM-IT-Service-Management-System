@@ -1,29 +1,25 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using ITSM.Services.Archive;
 
 namespace ITSM.Models;
-public class KnowledgeBaseArticle
+public class KnowledgeBaseArticle: ISoftDeletableEntity
 {
     public int Id { get; set; }
+    public string Article { get; set; } = string.Empty; 
+    public string Content { get; set; } = string.Empty;  
 
-    [Required(ErrorMessage = "Article title is required.")]
-    [StringLength(100, ErrorMessage = "Article title cannot exceed 100 characters.")]
-    public string Article { get; set; } = string.Empty;  // Присваиваем значение по умолчанию
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow; 
 
-    [Required(ErrorMessage = "Content is required.")]
-    public string Content { get; set; } = string.Empty;  // Присваиваем значение по умолчанию
-
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow; // По умолчанию создаём время в UTC
-
-    [Required]  // Обязательно, так как каждый артикул должен иметь автора
+    [Required]  
     public string AuthorId { get; set; } = string.Empty;
 
-    [Required]  // Обязательно, так как каждый артикул должен иметь привязку к автору
+    [Required] 
     public User Author { get; set; } = null!;
 
-    [Required]  // Обязательно, так как каждый артикул должен быть привязан к категории
+    [Required]  
     public int CategoryId { get; set; }
 
-    [Required]  // Обязательно, так как артикул не может существовать без категории
+    [Required] 
     public TicketCategory Category { get; set; } = null!;
     public bool IsDeleted { get; set; }= false;
 }

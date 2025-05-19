@@ -1,11 +1,11 @@
 ﻿using ITSM.DB;
 using ITSM.Models;
-using ITSM.Repositories.TicketCategory;
-using ITSM.Repositories.UserManagment;
+using ITSM.Services.TicketCategory;
+using ITSM.Services.UserManagment;
 using ITSM.ViewModels.Manage;
 using Microsoft.EntityFrameworkCore;
 
-namespace ITSM.Repositories.Qualification;
+namespace ITSM.Services.Qualification;
 
 public class QualificationService(DBaseContext dBaseContext, IUserManagementService userManagement,ITicketCategoryService categoryService)
     : IQualificationService

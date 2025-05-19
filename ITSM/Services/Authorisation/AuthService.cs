@@ -1,7 +1,7 @@
 ﻿using ITSM.Models;
 using Microsoft.AspNetCore.Identity;
 
-namespace ITSM.Repositories.Authorisation;
+namespace ITSM.Services.Authorisation;
 
 public class AuthService(SignInManager<User> signInManager):IAuthService
 {

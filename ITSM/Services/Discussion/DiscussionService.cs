@@ -4,7 +4,7 @@ using ITSM.Models;
 using ITSM.ViewModels.Create;
 using Microsoft.EntityFrameworkCore;
 
-namespace ITSM.Repositories.Discussion;
+namespace ITSM.Services.Discussion;
 
 public class DiscussionService(DBaseContext context) : IDiscussionService
 {

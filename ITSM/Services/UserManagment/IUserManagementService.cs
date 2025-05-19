@@ -2,12 +2,12 @@
 using ITSM.Models;
 using ITSM.ViewModels.Manage;
 
-namespace ITSM.Repositories.UserManagment;
+namespace ITSM.Services.UserManagment;
 
 public interface IUserManagementService
 {
     Task<User?> GetUserById(string id);
-    Task<bool> DeleteUserById(string userId);
+   // Task<bool> DeleteUserById(string userId);
     Task<UserWithRolesViewModel[]> GetAllUsersToList();
     Task<User?> GetCurrentUserAsync(ClaimsPrincipal principal);
     Task EditUser(string id, EditUserViewModel editmodel);
