@@ -15,10 +15,10 @@ public class DiscussionCreateViewModel
     [StringLength(1000, ErrorMessage = "Description cannot exceed 1000 characters.")]
     public string? Description { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    [Required]
+    
     public string AuthorId { get; set; }
     public User Author { get; set; }
-    [Required(ErrorMessage = "Please select a category.")]
+    
     public int CategoryId { get; set; }
     public TicketCategory Category { get; set; } 
     public List<SelectListItem> Categories { get; set; }

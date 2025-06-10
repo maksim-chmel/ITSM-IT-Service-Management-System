@@ -1,9 +1,11 @@
 ﻿using ITSM.DB;
+using ITSM.Enums;
 using ITSM.Services.Archive;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ITSM.Controllers;
-
+[Authorize(Roles = nameof(UserRoles.Admin))]
 public class ArchiveController(IArchiveService archiveService,DBaseContext context) : Controller
 {
     [HttpGet]

@@ -52,6 +52,7 @@ public class TicketService(DBaseContext dBaseContext, ITicketCategoryService cat
         ticket.Priority = TicketPriority.None;
         ticket.ClosedAt = DateTime.Now;
         ticket.CancelReason = reason;
+        ticket.IsDeleted = true;
         dBaseContext.Tickets.Update(ticket);
         await dBaseContext.SaveChangesAsync();
         return true;

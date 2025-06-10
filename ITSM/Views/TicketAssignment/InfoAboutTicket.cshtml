@@ -88,7 +88,7 @@
         </form>
     </div>
 }
-else if (Model.Ticket.Status == Status.Done)
+else if (Model.Ticket.Status == Status.Done || Model.Ticket.Status == Status.Canceled)
 {
     <div class="d-flex gap-3">
         <form asp-controller="TicketAssignment" asp-action="ReOpenTicket" method="post">

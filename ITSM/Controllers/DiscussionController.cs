@@ -42,11 +42,12 @@ public class DiscussionController(
     [HttpPost]
     public async Task<IActionResult> CreateDiscussion(DiscussionCreateViewModel viewModel)
     {
-        if (!ModelState.IsValid)
+        /* if (!ModelState.IsValid)
         {
             viewModel.Categories = await categoryService.GetCategorySelectListAsync();
             return View(viewModel);
         }
+        */
 
         var user = await userManagementService.GetCurrentUserAsync(User);
         if (user == null)

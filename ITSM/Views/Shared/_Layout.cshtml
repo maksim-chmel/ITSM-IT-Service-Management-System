@@ -67,6 +67,16 @@
                         <i class="bi bi-house"></i> <span>Home</span>
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link" asp-area="" asp-controller="UserProfile" asp-action="EditProfile">
+                        <i class="bi bi-person"></i> <span>Profile</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" asp-area="" asp-controller="KnowledgeBase" asp-action="KnowledgeBaseByCategories">
+                        <i class="bi bi-question-circle"></i> <span>Help Center</span>
+                    </a>
+                </li>
                 @if (User.IsInRole(nameof(UserRoles.User)))
                 {
 
@@ -80,21 +90,7 @@
                             <i class="bi bi-journal-text"></i> <span>My Tickets</span>
                         </a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" asp-area="" asp-controller="UserProfile" asp-action="EditProfile">
-                            <i class="bi bi-person"></i> <span>Profile</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" asp-area="" asp-controller="KnowledgeBase" asp-action="AllAuthorArticles">
-                            <i class="bi bi-book"></i> <span>My Articles</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" asp-area="" asp-controller="KnowledgeBase" asp-action="KnowledgeBaseByCategories">
-                            <i class="bi bi-question-circle"></i> <span>Help Center</span>
-                        </a>
-                    </li>
+                    
                 }
 
                 @if (User.IsInRole(nameof(UserRoles.Technician)))
@@ -104,11 +100,7 @@
                             <i class="bi bi-list-task"></i> <span>My Tasks</span>
                         </a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" asp-area="" asp-controller="Discussion" asp-action="ListOfDiscussions">
-                            <i class="bi bi-chat"></i> <span>Discussions</span>
-                        </a>
-                    </li>
+                   
 
                 }
 
@@ -137,6 +129,21 @@
                     <li class="nav-item">
                         <a class="nav-link" asp-area="" asp-controller="TicketAssignment" asp-action="ReviewAllTickets">
                             <i class="bi bi-journals"></i> <span>Ticket Assignment</span>
+                        </a>
+                    </li>
+                }
+                @if (User.IsInRole(nameof(UserRoles.Admin)) ||
+                     User.IsInRole(nameof(UserRoles.Coordinator)) ||
+                     User.IsInRole(nameof(UserRoles.Technician)))
+                {
+                    <li class="nav-item">
+                        <a class="nav-link" asp-area="" asp-controller="KnowledgeBase" asp-action="AllAuthorArticles">
+                            <i class="bi bi-book"></i> <span>My Articles</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" asp-area="" asp-controller="Discussion" asp-action="ListOfDiscussions">
+                            <i class="bi bi-chat"></i> <span>Discussions</span>
                         </a>
                     </li>
                 }

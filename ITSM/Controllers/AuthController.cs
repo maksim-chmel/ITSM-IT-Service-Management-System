@@ -1,4 +1,5 @@
-﻿using ITSM.Models;
+﻿using ITSM.Enums;
+using ITSM.Models;
 using ITSM.ViewModels.Authorization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -34,6 +35,7 @@ public class AuthController(UserManager<User> userManager, SignInManager<User> s
 
             if (result.Succeeded)
             {
+                await userManager.AddToRoleAsync(user, nameof(UserRoles.User));
                 await signInManager.SignInAsync(user, isPersistent: false);
                 return RedirectToAction("Index", "Home");
             }
