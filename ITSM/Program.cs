@@ -1,8 +1,8 @@
-﻿using ITSM.DB;
+﻿using ITSM.Data;
 using ITSM.Middleware;
 using ITSM.Models;
 using ITSM.Services.Archive;
-using ITSM.Services.Authomatization;
+using ITSM.Services.Automation;
 using ITSM.Services.Authorisation;
 using ITSM.Services.Charts;
 using ITSM.Services.Discussion;
@@ -13,21 +13,17 @@ using ITSM.Services.Ticket;
 using ITSM.Services.TicketAssignment;
 using ITSM.Services.TicketCategory;
 using ITSM.Services.TicketSort;
-using ITSM.Services.UserManagment;
+using ITSM.Services.UserManagement;
 using ITSM.Services.UserProfile;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
-    /*builder.WebHost.ConfigureKestrel(options =>
-{
-    options.ListenAnyIP(5000); 
-});
-*/
+
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<DBaseContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddIdentity<User, IdentityRole>()
     .AddEntityFrameworkStores<DBaseContext>()
@@ -57,13 +53,17 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
+    var dbContext = services.GetRequiredService<DBaseContext>();
+    await dbContext.Database.MigrateAsync();
     await SeedRoles.Initialize(services);
+    await SeedUsers.Initialize(services);
 }
 
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
+app.UseAuthentication();
 app.UseAuthorization();
 app.UseMiddleware<ExceptionMiddleware>();
 

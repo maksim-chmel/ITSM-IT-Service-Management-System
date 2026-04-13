@@ -7,93 +7,76 @@
     </div>
 }
 
-<div class="mt-4">
-    <a asp-controller="TicketAssignment" asp-action="ReviewAllTickets" class="btn btn-outline-secondary">
-        <i class="bi bi-arrow-left"></i>
-    </a>
-</div>
-
-<h1 class="text-center my-4"></h1>
-
-<div class="table-responsive shadow-sm rounded mb-4">
-    <table class="table table-bordered table-hover align-middle">
-        <tbody>
-            <tr>
-                <th>Ticket Number:</th>
-                <td>@Model.Ticket.Id</td>
-            </tr>
-            <tr>
-                <th>Title:</th>
-                <td>@Model.Ticket.Title</td>
-            </tr>
-            <tr>
-                <th>Description:</th>
-                <td>@Model.Ticket.Description</td>
-            </tr>
-            <tr>
-                <th>Created At:</th>
-                <td>@Model.Ticket.CreatedAt</td>
-            </tr>
-            <tr>
-                <th>Author:</th>
-                <td>@Model.Ticket.Author?.UserName</td>
-            </tr>
-            <tr>
-                <th>Assigned To:</th>
-                <td>@Model.Ticket.AssignedUser</td>
-            </tr>
-        <tr>
-            <th>Fix Description:</th>
-            <td>@Model.Ticket.FixDescription</td>
-        </tr>
-        <tr>
-            <th>CancelReason:</th>
-            <td>@Model.Ticket.CancelReason</td>
-        </tr>
-            <tr>
-                <th>Status:</th>
-                <td>@Model.Ticket.Status</td>
-            </tr>
-        </tbody>
-    </table>
-</div>
-
-<h3 class="mb-3">Notes</h3>
-<div class="table-responsive shadow-sm rounded mb-4">
-    <table class="table table-striped table-hover">
-        <thead class="table-light">
-            <tr>
-                <th>Date</th>
-                <th>Note</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var note in Model.TicketHistory)
-            {
-                <tr>
-                    <td>@note.CreatedAt.ToString("dd.MM.yyyy HH:mm")</td>
-                    <td>@note.AdminComment</td>
-                </tr>
-            }
-        </tbody>
-    </table>
-</div>
-
-@if (Model.Ticket.Status == Status.Resolved)
-{
-    <div class="d-flex gap-3">
-        <form asp-controller="TicketAssignment" asp-action="CloseTicket" method="post">
-            <input type="hidden" name="id" value="@Model.Ticket.Id"/>
-            <button type="submit" class="btn btn-outline-success">Close</button>
-        </form>
+<div class="d-grid gap-4">
+    <div class="page-actions">
+        <a asp-controller="TicketAssignment" asp-action="ReviewAllTickets" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Assignment Board
+        </a>
     </div>
-}
-else if (Model.Ticket.Status == Status.Done || Model.Ticket.Status == Status.Canceled)
-{
-    <div class="d-flex gap-3">
-        <form asp-controller="TicketAssignment" asp-action="ReOpenTicket" method="post">
-            <input type="hidden" name="id" value="@Model.Ticket.Id"/>
-            <button type="submit" class="btn btn-outline-success">Reopen</button>
-        </form>
-    </div>
-}
+
+    <section class="surface-card">
+        <div class="page-header">
+            <div>
+                <h2>Ticket #@Model.Ticket.Id</h2>
+                <p class="text-muted mb-0">Coordinator view for lifecycle control and final disposition.</p>
+            </div>
+            <span class="badge bg-primary text-white">@Model.Ticket.Status</span>
+        </div>
+        <div class="info-grid">
+            <div class="info-card"><dl><dt>Title</dt><dd>@Model.Ticket.Title</dd></dl></div>
+            <div class="info-card"><dl><dt>Author</dt><dd>@Model.Ticket.Author?.UserName</dd></dl></div>
+            <div class="info-card"><dl><dt>Created At</dt><dd>@Model.Ticket.CreatedAt.ToString("yyyy-MM-dd HH:mm")</dd></dl></div>
+            <div class="info-card"><dl><dt>Assigned To</dt><dd>@Model.Ticket.AssignedUser</dd></dl></div>
+            <div class="info-card"><dl><dt>Fix Description</dt><dd>@(string.IsNullOrWhiteSpace(Model.Ticket.FixDescription) ? "-" : Model.Ticket.FixDescription)</dd></dl></div>
+            <div class="info-card"><dl><dt>Cancel Reason</dt><dd>@(string.IsNullOrWhiteSpace(Model.Ticket.CancelReason) ? "-" : Model.Ticket.CancelReason)</dd></dl></div>
+            <div class="info-card full-span"><dl><dt>Description</dt><dd>@Model.Ticket.Description</dd></dl></div>
+        </div>
+    </section>
+
+    <section class="surface-card">
+        <div class="page-header">
+            <div>
+                <h3>Notes</h3>
+                <p class="text-muted mb-0">Historical notes recorded during ticket processing.</p>
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>Date</th>
+                        <th>Note</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var note in Model.TicketHistory)
+                    {
+                        <tr>
+                            <td>@note.CreatedAt.ToString("dd.MM.yyyy HH:mm")</td>
+                            <td>@note.AdminComment</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    @if (Model.Ticket.Status == Status.Resolved)
+    {
+        <div class="page-actions">
+            <form asp-controller="TicketAssignment" asp-action="CloseTicket" method="post">
+                <input type="hidden" name="id" value="@Model.Ticket.Id"/>
+                <button type="submit" class="btn btn-outline-success">Close</button>
+            </form>
+        </div>
+    }
+    else if (Model.Ticket.Status == Status.Done || Model.Ticket.Status == Status.Canceled)
+    {
+        <div class="page-actions">
+            <form asp-controller="TicketAssignment" asp-action="ReOpenTicket" method="post">
+                <input type="hidden" name="id" value="@Model.Ticket.Id"/>
+                <button type="submit" class="btn btn-outline-success">Reopen</button>
+            </form>
+        </div>
+    }
+</div>

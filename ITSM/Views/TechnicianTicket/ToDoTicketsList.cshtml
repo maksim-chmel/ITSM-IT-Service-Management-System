@@ -4,130 +4,135 @@
 @{
     ViewData["Title"] = "My Tasks";
 }
-<h2 class="text-center mb-4">@ViewData["Title"]</h2>
 
-<div class="mb-3">
-    <div class="dropdown">
-        <button class="btn btn-outline-primary dropdown-toggle" type="button" id="filterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-            <i class="bi bi-funnel"></i> Filters
-        </button>
+<div class="d-grid gap-4">
+    <section class="page-hero">
+        <div class="eyebrow">Technician Queue</div>
+        <h1 class="section-title">Work the tickets assigned to you with clearer priority signals.</h1>
+        <p class="section-copy">Use filters to narrow the queue and move tickets from open to accepted and resolved states.</p>
+    </section>
 
-       
-        <div class="dropdown-menu p-3" style="min-width: 250px;">
-            <form method="get" class="row g-2">
-               
-                <div class="col-12">
-                    <label class="form-label small mb-1">Category</label>
-                    <select name="CategoryId" class="form-select form-select-sm">
-                        <option value="">All</option>
-                        @foreach (var category in (ViewBag.Categories as List<SelectListItem>)!)
-                        {
-                            <option value="@category.Value">@category.Text</option>
-                        }
-                    </select>
+    <section class="surface-card">
+        <div class="page-header">
+            <div>
+                <h2>@ViewData["Title"]</h2>
+                <p class="text-muted mb-0">Your assigned and available tickets in one action-oriented list.</p>
+            </div>
+            <div class="dropdown">
+                <button class="btn btn-outline-primary dropdown-toggle" type="button" id="filterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-funnel"></i> Filters
+                </button>
+                <div class="dropdown-menu dropdown-panel-sm p-3">
+                    <form method="get" class="row g-2">
+                        <div class="col-12">
+                            <label class="form-label small mb-1">Category</label>
+                            <select name="CategoryId" class="form-select form-select-sm">
+                                <option value="">All</option>
+                                @foreach (var category in (ViewBag.Categories as List<SelectListItem>)!)
+                                {
+                                    <option value="@category.Value">@category.Text</option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label small mb-1">Priority</label>
+                            <select name="Priority" class="form-select form-select-sm">
+                                <option value="">All</option>
+                                @foreach (var p in Enum.GetValues(typeof(ITSM.Enums.TicketPriority)))
+                                {
+                                    <option value="@p">@p</option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label small mb-1">Status</label>
+                            <select name="Status" class="form-select form-select-sm">
+                                <option value="">All</option>
+                                @foreach (var s in Enum.GetValues(typeof(ITSM.Enums.Status)))
+                                {
+                                    <option value="@s">@s</option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="col-12 d-grid">
+                            <button type="submit" class="btn btn-sm btn-outline-success">
+                                <i class="bi bi-search"></i> Apply
+                            </button>
+                        </div>
+                    </form>
                 </div>
-
-               
-                <div class="col-12">
-                    <label class="form-label small mb-1">Priority</label>
-                    <select name="Priority" class="form-select form-select-sm">
-                        <option value="">All</option>
-                        @foreach (var p in Enum.GetValues(typeof(ITSM.Enums.TicketPriority)))
-                        {
-                            <option value="@p">@p</option>
-                        }
-                    </select>
-                </div>
-
-                
-                <div class="col-12">
-                    <label class="form-label small mb-1">Status</label>
-                    <select name="Status" class="form-select form-select-sm">
-                        <option value="">All</option>
-                        @foreach (var s in Enum.GetValues(typeof(ITSM.Enums.Status)))
-                        {
-                            <option value="@s">@s</option>
-                        }
-                    </select>
-                </div>
-
-              
-                <div class="col-12 d-grid">
-                    <button type="submit" class="btn btn-sm btn-outline-success">
-                        <i class="bi bi-search"></i> Apply
-                    </button>
-                </div>
-            </form>
+            </div>
         </div>
-    </div>
-</div>
 
-
-<div class="table-responsive shadow-sm rounded">
-    <table class="table table-hover table-bordered align-middle text-center">
-        <thead class="table-dark text-white">
-        <tr>
-            <th>#</th>
-            <th>Priority</th>
-            <th>Title</th>
-            <th>Category</th>
-            <th>SubCategory</th>
-            <th>Author Name</th>
-            <th>Created At</th>
-            <th>Closed At</th>
-            <th>Status</th>
-            <th>Actions</th>
-        </tr>
-        </thead>
-        <tbody class="table-light">
-        @foreach (var ticket in Model)
-        {
-            <tr>
-                <td><strong>@ticket.Id</strong></td>
-                <td>
-                    <span class="badge 
-                        @(ticket.Priority == TicketPriority.Low ? "bg-secondary" :
-                                                         ticket.Priority == TicketPriority.Medium ? "bg-primary text-white" :
-                                                         ticket.Priority == TicketPriority.High ? "bg-warning text-white" :
-                                                         ticket.Priority == TicketPriority.Critical ? "bg-danger text-white" : "bg-dark")">
-                        @ticket.Priority
-                    </span>
-                </td>
-                <td class="text-truncate" style="max-width: 200px;" title="@ticket.Title">@ticket.Title</td>
-                <td>@ticket.Category?.Name</td>
-                <td>@ticket.TicketSubCategory?.Name</td>
-                <td>@ticket.Author?.UserName</td>
-                <td>@ticket.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
-                <td>@(ticket.ClosedAt?.ToString("yyyy-MM-dd HH:mm") ?? "-")</td>
-                <td>
-                    <span class="badge 
-                        @(ticket.Status == Status.Open ? "bg-primary text-white" :
-                                                         ticket.Status == Status.Progress ? "bg-info text-white" :
-                                                         ticket.Status == Status.Resolved ? "bg-success text-white" :
-                                                         ticket.Status == Status.Reopened ? "bg-warning text-dark" :
-                                                         ticket.Status == Status.Canceled ? "bg-danger text-white" :
-                                                         ticket.Status == Status.Done ? "bg-secondary text-white" : "bg-dark")">
-                        @ticket.Status
-                    </span>
-                </td>
-                <td>
-                    @if (ticket.Status == Status.Progress)
-                    {
-                        <a asp-controller="TechnicianTicket" asp-action="ShowDetailsAboutTicket"
-                           asp-route-id="@ticket.Id"
-                           class="btn btn-outline-primary btn-sm">Details</a>
-                    }
-                    else if (ticket.Status == Status.Open || ticket.Status == Status.Reopened)
-                    {
-                        <form asp-controller="TechnicianTicket" asp-action="AcceptTicketProcessing" method="post"
-                              class="d-inline">
-                            <input type="hidden" name="id" value="@ticket.Id"/>
-                            <button type="submit" class="btn btn-outline-success btn-sm">Accept</button>
-                        </form>
-                    }
-                </td>
-            </tr>
-        }
-        </tbody>
-    </table>
+        <div class="table-responsive">
+            <table class="table table-hover table-bordered align-middle text-center">
+                <thead class="table-dark text-white">
+                <tr>
+                    <th>#</th>
+                    <th>Priority</th>
+                    <th>Title</th>
+                    <th>Category</th>
+                    <th>SubCategory</th>
+                    <th>Author Name</th>
+                    <th>Created At</th>
+                    <th>Closed At</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody class="table-light">
+                @foreach (var ticket in Model)
+                {
+                    <tr>
+                        <td><strong>@ticket.Id</strong></td>
+                        <td>
+                            <span class="badge
+                                @(ticket.Priority == TicketPriority.Low ? "bg-secondary" :
+                                ticket.Priority == TicketPriority.Medium ? "bg-primary text-white" :
+                                ticket.Priority == TicketPriority.High ? "bg-warning text-white" :
+                                ticket.Priority == TicketPriority.Critical ? "bg-danger text-white" : "bg-dark")">
+                                @ticket.Priority
+                            </span>
+                        </td>
+                        <td class="text-truncate truncate-200" title="@ticket.Title">@ticket.Title</td>
+                        <td>@ticket.Category?.Name</td>
+                        <td>@ticket.TicketSubCategory?.Name</td>
+                        <td>@ticket.Author?.UserName</td>
+                        <td>@ticket.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                        <td>@(ticket.ClosedAt?.ToString("yyyy-MM-dd HH:mm") ?? "-")</td>
+                        <td>
+                            <span class="badge
+                                @(ticket.Status == Status.Open ? "bg-primary text-white" :
+                                ticket.Status == Status.Progress ? "bg-info text-white" :
+                                ticket.Status == Status.Resolved ? "bg-success text-white" :
+                                ticket.Status == Status.Reopened ? "bg-warning text-dark" :
+                                ticket.Status == Status.Canceled ? "bg-danger text-white" :
+                                ticket.Status == Status.Done ? "bg-secondary text-white" : "bg-dark")">
+                                @ticket.Status
+                            </span>
+                        </td>
+                        <td>
+                            @if (ticket.Status == Status.Progress)
+                            {
+                                <a asp-controller="TechnicianTicket" asp-action="ShowDetailsAboutTicket"
+                                   asp-route-id="@ticket.Id"
+                                   class="btn btn-outline-primary btn-sm">Details</a>
+                            }
+                            else if (ticket.Status == Status.Open || ticket.Status == Status.Reopened)
+                            {
+                                <form asp-controller="TechnicianTicket" asp-action="AcceptTicketProcessing" method="post" class="d-inline">
+                                    <input type="hidden" name="id" value="@ticket.Id"/>
+                                    <button type="submit" class="btn btn-outline-success btn-sm">Accept</button>
+                                </form>
+                            }
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </section>
 </div>

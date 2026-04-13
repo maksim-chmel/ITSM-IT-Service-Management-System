@@ -13,7 +13,7 @@ public class TicketCreateViewModel
     public string? Title { get; set; }
 
     [Required(ErrorMessage = "Description is required.")]
-    [StringLength(1000, ErrorMessage = "Description cannot exceed 100 characters.")]
+    [StringLength(1000, ErrorMessage = "Description cannot exceed 1000 characters.")]
     public string? Description { get; set; }
 
     [DataType(DataType.DateTime)] public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

@@ -3,88 +3,97 @@
 @{
     ViewData["Title"] = "My Tickets";
 }
-<h2 class="text-center mb-4">@ViewData["Title"]</h2>
 
-<div class="mb-3">
-    <div class="dropdown">
-        <button class="btn btn-outline-primary dropdown-toggle" type="button" id="filterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-            <i class="bi bi-funnel"></i> Filters
-        </button>
+<div class="d-grid gap-4">
+    <section class="page-hero">
+        <div class="eyebrow">Requester Workspace</div>
+        <h1 class="section-title">Track the tickets you opened without losing status visibility.</h1>
+        <p class="section-copy">Filter by category or status to focus on specific requests and their current lifecycle stage.</p>
+    </section>
 
-       
-        <div class="dropdown-menu p-3" style="min-width: 250px;">
-            <form method="get" class="row g-2">
-               
-                <div class="col-12">
-                    <label class="form-label small mb-1">Category</label>
-                    <select name="CategoryId" class="form-select form-select-sm">
-                        <option value="">All</option>
-                        @foreach (var category in (ViewBag.Categories as List<SelectListItem>)!)
-                        {
-                            <option value="@category.Value">@category.Text</option>
-                        }
-                    </select>
-                </div>
-                
-               
-                <div class="col-12">
-                    <label class="form-label small mb-1">Status</label>
-                    <select name="Status" class="form-select form-select-sm">
-                        <option value="">All</option>
-                        @foreach (var s in Enum.GetValues(typeof(ITSM.Enums.Status)))
-                        {
-                            <option value="@s">@s</option>
-                        }
-                    </select>
-                </div>
+    <section class="surface-card">
+        <div class="page-header">
+            <div>
+                <h2>@ViewData["Title"]</h2>
+                <p class="text-muted mb-0">A compact list of your submitted support requests.</p>
+            </div>
+            <div class="dropdown">
+                <button class="btn btn-outline-primary dropdown-toggle" type="button" id="filterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-funnel"></i> Filters
+                </button>
+                <div class="dropdown-menu dropdown-panel-sm p-3">
+                    <form method="get" class="row g-2">
+                        <div class="col-12">
+                            <label class="form-label small mb-1">Category</label>
+                            <select name="CategoryId" class="form-select form-select-sm">
+                                <option value="">All</option>
+                                @foreach (var category in (ViewBag.Categories as List<SelectListItem>)!)
+                                {
+                                    <option value="@category.Value">@category.Text</option>
+                                }
+                            </select>
+                        </div>
 
-                
-                <div class="col-12 d-grid">
-                    <button type="submit" class="btn btn-sm btn-outline-success">
-                        <i class="bi bi-search"></i> Apply
-                    </button>
+                        <div class="col-12">
+                            <label class="form-label small mb-1">Status</label>
+                            <select name="Status" class="form-select form-select-sm">
+                                <option value="">All</option>
+                                @foreach (var s in Enum.GetValues(typeof(ITSM.Enums.Status)))
+                                {
+                                    <option value="@s">@s</option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="col-12 d-grid">
+                            <button type="submit" class="btn btn-sm btn-outline-success">
+                                <i class="bi bi-search"></i> Apply
+                            </button>
+                        </div>
+                    </form>
                 </div>
-            </form>
+            </div>
         </div>
-    </div>
-</div>
-<div class="table-responsive shadow-sm rounded">
-    <table class="table table-hover table-bordered align-middle text-center">
-        <thead class="table-dark text-white">
-        <tr>
-            <th>#</th>
-            <th>Title</th>
-            <th>Category</th>
-            <th>SubCategory</th>
-            <th>Description</th>
-            <th>Status</th>
-            <th>Created At</th>
-        </tr>
-        </thead>
-        <tbody class="table-light">
-        @foreach (var ticket in Model)
-        {
-            <tr>
-                <td><strong>@ticket.Id</strong></td>
-                <td>@ticket.Title</td>
-                <td>@ticket.Category?.Name</td>
-                <td>@ticket.TicketSubCategory?.Name</td>
-                <td class="text-truncate" style="max-width: 250px;" title="@ticket.Description">
-                    @ticket.Description
-                </td>
-                <td>
-                    <span class="badge 
-                        @(ticket.Status == Status.Open ? "bg-primary text-white" :
-                        ticket.Status == Status.Progress ? "bg-info text-white" :
-                        ticket.Status == Status.Resolved ? "bg-success text-white" :
-                        ticket.Status == Status.Canceled ? "bg-danger text-white" :
-                        ticket.Status == Status.Done ? "bg-secondary text-white" : "bg-dark")">
-                        @ticket.Status
-                    </span>
-                </td>
-                <td>@ticket.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
-            </tr>
-        }
-        </tbody>
-    </table>
+
+        <div class="table-responsive">
+            <table class="table table-hover table-bordered align-middle text-center">
+                <thead class="table-dark text-white">
+                <tr>
+                    <th>#</th>
+                    <th>Title</th>
+                    <th>Category</th>
+                    <th>SubCategory</th>
+                    <th>Description</th>
+                    <th>Status</th>
+                    <th>Created At</th>
+                </tr>
+                </thead>
+                <tbody class="table-light">
+                @foreach (var ticket in Model)
+                {
+                    <tr>
+                        <td><strong>@ticket.Id</strong></td>
+                        <td>@ticket.Title</td>
+                        <td>@ticket.Category?.Name</td>
+                        <td>@ticket.TicketSubCategory?.Name</td>
+                        <td class="text-truncate truncate-250" title="@ticket.Description">
+                            @ticket.Description
+                        </td>
+                        <td>
+                            <span class="badge
+                                @(ticket.Status == Status.Open ? "bg-primary text-white" :
+                                ticket.Status == Status.Progress ? "bg-info text-white" :
+                                ticket.Status == Status.Resolved ? "bg-success text-white" :
+                                ticket.Status == Status.Canceled ? "bg-danger text-white" :
+                                ticket.Status == Status.Done ? "bg-secondary text-white" : "bg-dark")">
+                                @ticket.Status
+                            </span>
+                        </td>
+                        <td>@ticket.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </section>
 </div>

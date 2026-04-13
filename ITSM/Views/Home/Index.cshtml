@@ -1,45 +1,46 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Operations Home";
 }
 
-<style>
-    @@keyframes bounce-left {
-        0%, 100% {
-            transform: translateX(0);
-        }
-        50% {
-            transform: translateX(15px);
-        }
-    }
+<div class="d-grid gap-4">
+    <section class="page-hero">
+        <div class="eyebrow">Control Center</div>
+        <h1 class="section-title">Work from the left rail. Everything else should feel secondary.</h1>
+        <p class="section-copy">
+            Your role-specific tools are grouped in the navigation sidebar. Open tickets, knowledge, assignments, or discussions from there and keep the main area focused on the selected task.
+        </p>
 
-    .arrow-left {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        margin: 40px auto;
-        font-size: 80px;
-        color: #0d6efd;
-        animation: bounce-left 1.5s infinite ease-in-out;
-        transition: color 0.3s ease;
-        cursor: pointer;
-    }
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <strong>Tickets</strong>
+                <span>Create, route, and close requests with tracked ownership and status.</span>
+            </div>
+            <div class="metric-card">
+                <strong>Knowledge</strong>
+                <span>Publish repeatable fixes and operational notes for the team.</span>
+            </div>
+            <div class="metric-card">
+                <strong>Discussions</strong>
+                <span>Resolve internal coordination questions without leaving the platform.</span>
+            </div>
+        </div>
+    </section>
 
-    .arrow-left:hover {
-        color: #0a58ca;
-    }
-
-    .lead-text {
-        font-size: 1.25rem;
-        color: #555;
-        margin-top: 1rem;
-    }
-</style>
-
-<div class="container text-center mt-5">
-    <h1 class="display-4 fw-bold">IT Process Optimization System</h1>
-    <p class="lead-text">Select the section you want to work with using the menu on the left.</p>
-
-    <div class="arrow-left" title="Navigate Left">
-        <i class="bi bi-arrow-left-circle-fill"></i>
-    </div>
+    <section class="surface-card">
+        <div class="row g-4 align-items-center">
+            <div class="col-lg-7">
+                <h3 class="mb-3">Recommended next step</h3>
+                <p class="text-muted mb-0">
+                    Open one of the primary workflow areas from the sidebar. Requesters usually start with ticket creation, technicians with assigned work, coordinators with ticket review, and administrators with users and categories.
+                </p>
+            </div>
+            <div class="col-lg-5">
+                <div class="feature-card">
+                    <i class="bi bi-arrow-left-short"></i>
+                    <h5 class="fw-semibold">Use the left navigation</h5>
+                    <p class="mb-0">The sidebar is now the primary control surface and stays available across operational screens.</p>
+                </div>
+            </div>
+        </div>
+    </section>
 </div>

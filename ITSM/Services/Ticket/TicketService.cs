@@ -1,4 +1,4 @@
-﻿using ITSM.DB;
+﻿using ITSM.Data;
 using ITSM.Enums;
 using ITSM.Models;
 using ITSM.Services.TicketCategory;
@@ -18,7 +18,7 @@ public class TicketService(DBaseContext dBaseContext, ITicketCategoryService cat
         {
             Title = model.Title,
             Description = model.Description,
-            CreatedAt = model.CreatedAt,
+            CreatedAt = DateTime.UtcNow,
             Status = Status.New,
             CategoryId = model.CategoryId,
             TicketSubCategoryId = model.SubCategoryId,
@@ -36,7 +36,7 @@ public class TicketService(DBaseContext dBaseContext, ITicketCategoryService cat
         var ticket = await GetTicketById(id);
         if (ticket == null || ticket.Status != Status.Progress) return false;
         ticket.Status = Status.Resolved;
-        ticket.ClosedAt = DateTime.Now;
+        ticket.ClosedAt = DateTime.UtcNow;
         ticket.FixDescription = solution;
         dBaseContext.Tickets.Update(ticket);
         await dBaseContext.SaveChangesAsync();
@@ -50,7 +50,7 @@ public class TicketService(DBaseContext dBaseContext, ITicketCategoryService cat
         if (ticket == null) return false;
         ticket.Status = Status.Canceled;
         ticket.Priority = TicketPriority.None;
-        ticket.ClosedAt = DateTime.Now;
+        ticket.ClosedAt = DateTime.UtcNow;
         ticket.CancelReason = reason;
         ticket.IsDeleted = true;
         dBaseContext.Tickets.Update(ticket);
@@ -140,7 +140,7 @@ public class TicketService(DBaseContext dBaseContext, ITicketCategoryService cat
         {
             TicketId = ticketId,
             AdminComment = adminComment,
-            CreatedAt = DateTime.Now
+            CreatedAt = DateTime.UtcNow
         };
 
         await dBaseContext.TicketHistory.AddAsync(ticketHistory);

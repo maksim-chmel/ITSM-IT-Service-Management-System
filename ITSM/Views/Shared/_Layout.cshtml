@@ -10,57 +10,70 @@
     <link rel="stylesheet" href="~/ITSMSystem.styles.css" asp-append-version="true"/>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 </head>
-<body class="fade-in">
+<body class="@(User.Identity?.IsAuthenticated == true ? "app-shell auth-shell" : "app-shell guest-shell")">
 <header>
     @{
         var successMessage = TempData["SuccessMessage"] as string;
         var errorMessage = TempData["ErrorMessage"] as string;
+        var currentRole =
+            User.IsInRole(nameof(UserRoles.Admin)) ? "Administrator" :
+            User.IsInRole(nameof(UserRoles.Coordinator)) ? "Coordinator" :
+            User.IsInRole(nameof(UserRoles.Technician)) ? "Technician" :
+            User.IsInRole(nameof(UserRoles.User)) ? "Requester" :
+            "Guest";
     }
 
-    @if (!string.IsNullOrEmpty(successMessage))
-    {
-        <div class="alert alert-success fixed-top w-100 text-center" role="alert" id="successMessage">
-            @successMessage
-        </div>
-    }
+    <div class="flash-stack">
+        @if (!string.IsNullOrEmpty(successMessage))
+        {
+            <div class="alert alert-success shadow-sm" role="alert" id="successMessage">
+                @successMessage
+            </div>
+        }
 
-    @if (!string.IsNullOrEmpty(errorMessage))
-    {
-        <div class="alert alert-danger fixed-top w-100 text-center" role="alert" id="errorMessage">
-            @errorMessage
-        </div>
-    }
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="alert alert-danger shadow-sm" role="alert" id="errorMessage">
+                @errorMessage
+            </div>
+        }
+    </div>
 
-  
-
-
-    <nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom box-shadow fixed-top">
-        <div class="container-fluid">
-           
-
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse"
-                    aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-
-            <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                <ul class="navbar-nav flex-grow-1">
-                    @if (User.Identity.IsAuthenticated)
-                    {
-                        <li class="nav-item ms-auto">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Auth" asp-action="Logout">
-                                Logout <i class="bi bi-box-arrow-right"></i>
-                            </a>
-                        </li>
-                    }
-                </ul>
+    <nav class="topbar">
+        <div class="topbar__brand">
+            <a class="brand-mark" asp-controller="@(User.Identity?.IsAuthenticated == true ? "Home" : "Landing")" asp-action="Index">
+                <span class="brand-mark__dot"></span>
+                <span>ITSM</span>
+            </a>
+            <div class="topbar__meta">
+                <span class="topbar__title">Service Operations Console</span>
+                <span class="topbar__subtitle">Tickets, knowledge, routing, and support workflows</span>
             </div>
         </div>
+        @if (User.Identity?.IsAuthenticated == true)
+        {
+            <div class="topbar__actions">
+                <div class="topbar__identity">
+                    <span class="topbar__user">@User.Identity?.Name</span>
+                    <span class="topbar__role">@currentRole</span>
+                </div>
+                <a class="topbar__logout" asp-area="" asp-controller="Auth" asp-action="Logout">
+                    Logout <i class="bi bi-box-arrow-right"></i>
+                </a>
+            </div>
+        }
     </nav>
 
-    @if (User.Identity.IsAuthenticated)
+    @if (User.Identity?.IsAuthenticated == true)
     {
-        <div class="sidebar">
+        <aside class="sidebar">
+            <div class="sidebar__header">
+                <div class="sidebar__avatar">@((User.Identity?.Name ?? "U").Substring(0, 1).ToUpperInvariant())</div>
+                <div class="sidebar__identity">
+                    <strong>@User.Identity?.Name</strong>
+                    <span>@currentRole</span>
+                </div>
+            </div>
             <ul class="nav flex-column">
                 <li class="nav-item">
                     <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">
@@ -148,12 +161,12 @@
                     </li>
                 }
             </ul>
-        </div>
+        </aside>
     }
 </header>
 
 <div class="content-container">
-    <main role="main" class="pb-3">
+    <main role="main" class="page-shell">
         @RenderBody()
     </main>
 </div>
@@ -161,7 +174,6 @@
 <script src="~/lib/jquery/dist/jquery.min.js"></script>
 <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
 <script src="~/js/site.js" asp-append-version="true"></script>
-<script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.3/dist/jquery.validate.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jquery-validation-unobtrusive@3.2.12/dist/jquery.validate.unobtrusive.min.js"></script>
 
@@ -172,19 +184,19 @@
     window.addEventListener('load', function () {
         document.body.classList.add('loaded');
     });
-    
+
     setTimeout(function() {
         var successMessage = document.getElementById('successMessage');
         var errorMessage = document.getElementById('errorMessage');
 
         if (successMessage) {
-            successMessage.style.display = 'none';
+            successMessage.remove();
         }
 
         if (errorMessage) {
-            errorMessage.style.display = 'none';
+            errorMessage.remove();
         }
-    }, 5000); 
+    }, 5000);
 </script>
 </body>
 </html>

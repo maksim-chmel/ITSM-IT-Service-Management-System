@@ -65,13 +65,24 @@
     };
 }
 
-<h2 class="text-center mb-4">@ViewData["Title"]</h2>
+<div class="d-grid gap-4">
+    <section class="page-hero">
+        <div class="eyebrow">Coordinator Desk</div>
+        <h1 class="section-title">Review the full ticket pipeline and rebalance work when needed.</h1>
+        <p class="section-copy">
+            This screen combines ticket inventory, quick actions, and summary charts so coordinators can assign responsibility and clear stalled work without jumping across multiple pages.
+        </p>
+    </section>
 
-<div class="row gx-4">
-
-   
-    <div class="col-lg-8">
-        <div class="table-responsive shadow-sm rounded">
+    <div class="dashboard-grid">
+        <section class="dashboard-panel">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+                <div>
+                    <h2 class="mb-1">@ViewData["Title"]</h2>
+                    <p class="text-muted mb-0">Live view of status, priority, ownership, and ticket lifecycle.</p>
+                </div>
+            </div>
+            <div class="table-responsive">
             <table class="table table-hover table-bordered align-middle text-center">
                 <thead class="table-dark text-white">
                     <tr>
@@ -93,7 +104,7 @@
                     {
                         <tr>
                             <td><strong>@ticket.Id</strong></td>
-                            <td class="text-truncate" style="max-width: 200px;" title="@ticket.Title">@ticket.Title</td>
+                            <td class="text-truncate truncate-200" title="@ticket.Title">@ticket.Title</td>
                             <td><span class="badge @statusBadgeClass(ticket.Status)">@ticket.Status</span></td>
                             <td><span class="badge @priorityBadgeClass(ticket.Priority)">@ticket.Priority</span></td>
                             <td>@ticket.Category?.Name</td>
@@ -186,73 +197,79 @@
                 </tbody>
             </table>
         </div>
-    </div>
+        </section>
 
-   
-    <div class="col-lg-4 d-flex flex-column align-items-center position-sticky" style="top: 70px; align-self: flex-start;">
-
-        <canvas id="statusChart" width="300" height="300"></canvas>
-        <hr class="my-4 w-100" />
-        <canvas id="priorityChart" width="300" height="300"></canvas>
-
-        <div class="d-flex justify-content-between w-100 mt-4" style="gap: 1rem; max-width: 350px;">
-            <form asp-action="AssignTickets" method="post" class="flex-fill">
-                <button type="submit" class="btn btn-outline-success w-100">Assign Tickets</button>
-            </form>
-
-            <form asp-action="ResetTickets" method="post" class="flex-fill">
-                <button type="submit" class="btn btn-outline-danger w-100">Reset Tickets</button>
-            </form>
-
-            <div class="flex-fill">
-                <button class="btn btn-outline-primary w-100" type="button" id="filterBtn"
-                        data-bs-toggle="dropdown" aria-expanded="false">
-                    <i class="bi bi-funnel"></i> Filters
-                </button>
-                <div class="dropdown-menu p-3" style="min-width: 280px; max-width: 350px;">
-                    <form method="get" class="row g-2">
-                        <div class="col-12">
-                            <label class="form-label small mb-1">Category</label>
-                            <select name="CategoryId" class="form-select form-select-sm">
-                                <option value="">All</option>
-                                @foreach (var category in (ViewBag.Categories as List<SelectListItem>)!)
-                                {
-                                    <option value="@category.Value">@category.Text</option>
-                                }
-                            </select>
-                        </div>
-
-                        <div class="col-12">
-                            <label class="form-label small mb-1">Priority</label>
-                            <select name="Priority" class="form-select form-select-sm">
-                                <option value="">All</option>
-                                @foreach (var p in Enum.GetValues(typeof(TicketPriority)))
-                                {
-                                    <option value="@p">@p</option>
-                                }
-                            </select>
-                        </div>
-
-                        <div class="col-12">
-                            <label class="form-label small mb-1">Status</label>
-                            <select name="Status" class="form-select form-select-sm">
-                                <option value="">All</option>
-                                @foreach (var s in Enum.GetValues(typeof(Status)))
-                                {
-                                    <option value="@s">@s</option>
-                                }
-                            </select>
-                        </div>
-
-                        <div class="col-12 d-grid">
-                            <button type="submit" class="btn btn-sm btn-outline-success">
-                                <i class="bi bi-search"></i> Apply
-                            </button>
-                        </div>
+        <aside class="dashboard-sidebar">
+            <div class="chart-card text-center">
+                <h5 class="mb-3">Status Distribution</h5>
+                <canvas id="statusChart" width="300" height="300"></canvas>
+            </div>
+            <div class="chart-card text-center">
+                <h5 class="mb-3">Priority Distribution</h5>
+                <canvas id="priorityChart" width="300" height="300"></canvas>
+            </div>
+            <div class="chart-card">
+                <h5 class="mb-3">Coordinator Actions</h5>
+                <div class="action-grid">
+                    <form asp-action="AssignTickets" method="post" class="d-grid">
+                        <button type="submit" class="btn btn-outline-success w-100">Assign Tickets</button>
                     </form>
+
+                    <form asp-action="ResetTickets" method="post" class="d-grid">
+                        <button type="submit" class="btn btn-outline-danger w-100">Reset Tickets</button>
+                    </form>
+
+                    <div>
+                        <button class="btn btn-outline-primary w-100" type="button" id="filterBtn"
+                        data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-funnel"></i> Filters
+                        </button>
+                        <div class="dropdown-menu dropdown-panel-md p-3">
+                            <form method="get" class="row g-2">
+                                <div class="col-12">
+                                    <label class="form-label small mb-1">Category</label>
+                                    <select name="CategoryId" class="form-select form-select-sm">
+                                        <option value="">All</option>
+                                        @foreach (var category in (ViewBag.Categories as List<SelectListItem>)!)
+                                        {
+                                            <option value="@category.Value">@category.Text</option>
+                                        }
+                                    </select>
+                                </div>
+
+                                <div class="col-12">
+                                    <label class="form-label small mb-1">Priority</label>
+                                    <select name="Priority" class="form-select form-select-sm">
+                                        <option value="">All</option>
+                                        @foreach (var p in Enum.GetValues(typeof(TicketPriority)))
+                                        {
+                                            <option value="@p">@p</option>
+                                        }
+                                    </select>
+                                </div>
+
+                                <div class="col-12">
+                                    <label class="form-label small mb-1">Status</label>
+                                    <select name="Status" class="form-select form-select-sm">
+                                        <option value="">All</option>
+                                        @foreach (var s in Enum.GetValues(typeof(Status)))
+                                        {
+                                            <option value="@s">@s</option>
+                                        }
+                                    </select>
+                                </div>
+
+                                <div class="col-12 d-grid">
+                                    <button type="submit" class="btn btn-sm btn-outline-success">
+                                        <i class="bi bi-search"></i> Apply
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
+        </aside>
     </div>
 </div>
 
@@ -282,17 +299,17 @@
         });
     }
 
-    // Данные для диаграммы статусов
+    // Status chart data
     const statusLabels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(statusLabels));
     const statusData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(statusData));
     const statusColors = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(statusColors));
 
-    // Данные для диаграммы приоритетов
+    // Priority chart data
     const priorityLabels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(priorityLabels));
     const priorityData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(priorityData));
     const priorityColors = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(priorityColors));
 
-    // Создаем диаграммы
+    // Create charts
     createPieChart(document.getElementById('statusChart').getContext('2d'), statusLabels, statusData, statusColors);
     createPieChart(document.getElementById('priorityChart').getContext('2d'), priorityLabels, priorityData, priorityColors);
 </script>

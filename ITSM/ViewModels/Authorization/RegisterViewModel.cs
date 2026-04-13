@@ -4,23 +4,23 @@ namespace ITSM.ViewModels.Authorization;
 
 public class RegisterViewModel
 {
-    [Required(ErrorMessage = "Введите имя пользователя")]
-    [Display(Name = "Имя пользователя")]
+    [Required(ErrorMessage = "Please enter a username.")]
+    [Display(Name = "Username")]
     public string? UserName { get; set; }
 
-    [Required(ErrorMessage = "Введите Email")]
-    [EmailAddress(ErrorMessage = "Некорректный Email")]
+    [Required(ErrorMessage = "Please enter an email address.")]
+    [EmailAddress(ErrorMessage = "Invalid email address.")]
     [Display(Name = "Email")]
     public string? Email { get; set; }
 
-    [Required(ErrorMessage = "Введите пароль")]
+    [Required(ErrorMessage = "Please enter a password.")]
     [DataType(DataType.Password)]
-    [Display(Name = "Пароль")]
+    [Display(Name = "Password")]
     public string? Password { get; set; }
 
-    [Required(ErrorMessage = "Подтвердите пароль")]
+    [Required(ErrorMessage = "Please confirm your password.")]
     [DataType(DataType.Password)]
-    [Display(Name = "Подтверждение пароля")]
-    [Compare("Password", ErrorMessage = "Пароли не совпадают.")]
+    [Display(Name = "Confirm Password")]
+    [Compare("Password", ErrorMessage = "Passwords do not match.")]
     public string? ConfirmPassword { get; set; }
 }

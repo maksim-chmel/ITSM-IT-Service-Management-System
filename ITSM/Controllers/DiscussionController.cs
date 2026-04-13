@@ -1,7 +1,7 @@
 ﻿using ITSM.Enums;
 using ITSM.Services.Discussion;
 using ITSM.Services.TicketCategory;
-using ITSM.Services.UserManagment;
+using ITSM.Services.UserManagement;
 using ITSM.ViewModels.Create;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -42,22 +42,21 @@ public class DiscussionController(
     [HttpPost]
     public async Task<IActionResult> CreateDiscussion(DiscussionCreateViewModel viewModel)
     {
-        /* if (!ModelState.IsValid)
+        if (!ModelState.IsValid)
         {
             viewModel.Categories = await categoryService.GetCategorySelectListAsync();
             return View(viewModel);
         }
-        */
 
         var user = await userManagementService.GetCurrentUserAsync(User);
         if (user == null)
         {
-            SetTempDataMessage(false, "", "Пользователь не найден.");
+            SetTempDataMessage(false, "", "User not found.");
             return RedirectToAction("ListOfDiscussions");
         }
 
         var result = await discussionService.CreateDiscussion(viewModel, user.Id);
-        SetTempDataMessage(result, "Обсуждение успешно создано.", "Ошибка при создании обсуждения.");
+        SetTempDataMessage(result, "Discussion created successfully.", "Error while creating the discussion.");
 
         return RedirectToAction("ListOfDiscussions");
     }
@@ -74,21 +73,23 @@ public class DiscussionController(
 
 
     [HttpPost]
-    public async Task<IActionResult> AddMessage(int id, string messageContent)
+    public async Task<IActionResult> AddMessage(int id, DiscussionMessageCreateViewModel viewModel)
     {
         if (!ModelState.IsValid)
         {
-              return RedirectToAction("ViewDiscussion", new { id });
-        }
-        var user = await userManagementService.GetCurrentUserAsync(User);
-        if (user == null)
-        {
-            SetTempDataMessage(false, "", "Пользователь не найден.");
+            SetTempDataMessage(false, "", "Please enter a valid message.");
             return RedirectToAction("ViewDiscussion", new { id });
         }
 
-        var result = await discussionService.AddMessage(user.Id, id, messageContent);
-        SetTempDataMessage(result, "Комментарий успешно создан.", "Ошибка при создании комментария.");
+        var user = await userManagementService.GetCurrentUserAsync(User);
+        if (user == null)
+        {
+            SetTempDataMessage(false, "", "User not found.");
+            return RedirectToAction("ViewDiscussion", new { id });
+        }
+
+        var result = await discussionService.AddMessage(user.Id, id, viewModel.MessageContent);
+        SetTempDataMessage(result, "Comment created successfully.", "Error while creating the comment.");
 
         return RedirectToAction("ViewDiscussion", new { id });
     }
@@ -109,7 +110,7 @@ public class DiscussionController(
         if (userId != null)
         {
             var result = await discussionService.ResolveDiscussion(id, userId.Id);
-            SetTempDataMessage(result, "Дискуссия успешно решена.", "Ошибка при решении  дискуссии.");
+            SetTempDataMessage(result, "Discussion resolved successfully.", "Error while resolving the discussion.");
         }
         else
         {

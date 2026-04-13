@@ -1,5 +1,5 @@
 ﻿using ITSM.Enums;
-using ITSM.Services.Authomatization;
+using ITSM.Services.Automation;
 using ITSM.Services.Charts;
 using ITSM.Services.Ticket;
 using ITSM.Services.TicketAssignment;

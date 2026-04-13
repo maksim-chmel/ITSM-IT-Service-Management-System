@@ -1,4 +1,4 @@
-﻿using ITSM.DB;
+﻿using ITSM.Data;
 using ITSM.Models;
 using ITSM.ViewModels.Create;
 using ITSM.ViewModels.Manage;
@@ -54,7 +54,7 @@ public class KnowledgeBaseService(DBaseContext dBaseContext) : IKnowledgeBaseSer
             Article = viewModel.Article,
             Content = viewModel.Content,
             AuthorId = userId,
-            CreatedAt = DateTime.Now,
+            CreatedAt = DateTime.UtcNow,
             CategoryId = viewModel.CategoryId
         };
         await dBaseContext.KnowledgeBaseArticles.AddAsync(newArticle);
@@ -80,7 +80,7 @@ public class KnowledgeBaseService(DBaseContext dBaseContext) : IKnowledgeBaseSer
         article.Article = viewModel.Article;
         article.Content = viewModel.Content;
         article.CategoryId = viewModel.CategoryId;
-        article.CreatedAt = DateTime.Now;
+        article.CreatedAt = DateTime.UtcNow;
         dBaseContext.KnowledgeBaseArticles.Update(article);
         await dBaseContext.SaveChangesAsync();
         return true;

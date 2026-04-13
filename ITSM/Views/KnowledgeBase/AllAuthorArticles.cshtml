@@ -4,37 +4,50 @@
     ViewData["Title"] = "My Articles";
 }
 
-<h2 class="text-center mb-4">@ViewData["Title"]</h2>
-<div class="table-responsive shadow-sm rounded">
-    <table class="table table-hover table-bordered align-middle text-center">
-        <thead class="table-dark text-white">
-        <tr>
-            <th>Title</th>
-            <th>Author</th>
-            <th>Category</th>
-            <th>Created At</th>
-            <th>Actions</th>
-        </tr>
-        </thead>
-        <tbody class="table-light">
-        @foreach (var article in Model)
-        {
-            <tr>
-                <td>@article.Article</td>
-                <td>@article.Author?.UserName</td>
-                <td>@article.Category?.Name</td>
-                <td>@article.CreatedAt.ToString("yyyy-MM-dd")</td>
-                <td>
-                    <a asp-action="EditArticle" asp-route-id="@article.Id"
-                       class="btn btn-outline-primary btn-sm">Edit</a>
-                    <form asp-action="DeleteArticle" asp-route-id="@article.Id" method="post" style="display:inline;">
-                        <button type="submit" class="btn btn-outline-danger btn-sm">Delete</button>
-                    </form>
-                </td>
-            </tr>
-        }
-        </tbody>
-    </table>
-</div>
+<div class="d-grid gap-4">
+    <section class="page-hero">
+        <div class="eyebrow">Knowledge Authoring</div>
+        <h1 class="section-title">Manage the articles you published for the support team.</h1>
+        <p class="section-copy">Keep documentation current so repeated incidents can be resolved faster and more consistently.</p>
+    </section>
 
-<a asp-action="CreateArticle" class="btn btn-outline-success btn-sm">Create</a>
+    <section class="surface-card">
+        <div class="page-header">
+            <div>
+                <h2>@ViewData["Title"]</h2>
+                <p class="text-muted mb-0">Review, update, or remove articles you authored.</p>
+            </div>
+            <a asp-action="CreateArticle" class="btn btn-outline-primary btn-sm">Create</a>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover table-bordered align-middle text-center">
+                <thead class="table-dark text-white">
+                <tr>
+                    <th>Title</th>
+                    <th>Author</th>
+                    <th>Category</th>
+                    <th>Created At</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody class="table-light">
+                @foreach (var article in Model)
+                {
+                    <tr>
+                        <td>@article.Article</td>
+                        <td>@article.Author?.UserName</td>
+                        <td>@article.Category?.Name</td>
+                        <td>@article.CreatedAt.ToString("yyyy-MM-dd")</td>
+                        <td>
+                            <a asp-action="EditArticle" asp-route-id="@article.Id" class="btn btn-outline-primary btn-sm">Edit</a>
+                            <form asp-action="DeleteArticle" asp-route-id="@article.Id" method="post" class="d-inline">
+                                <button type="submit" class="btn btn-outline-danger btn-sm">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>

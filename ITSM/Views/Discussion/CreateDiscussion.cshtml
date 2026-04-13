@@ -1,37 +1,42 @@
 ﻿@model ITSM.ViewModels.Create.DiscussionCreateViewModel
 
-<h2 class="text-center mb-4">Create Discussion</h2>
-
-<div class="bg-light p-4 rounded shadow-sm mx-auto" style="max-width: 600px;">
-   
-    <form method="post">
-        <div class="form-floating">
-            <select asp-for="CategoryId" class="form-select">
-                <option value="">Select Category</option>
-                @foreach (var cat in Model.Categories)
-                {
-                    <option value="@cat.Value">@cat.Text</option>
-                }
-
-            </select>
-            <label>Category</label>
-            <span class="text-danger" asp-validation-for="CategoryId"></span>
-        </div>
- 
-        <div class="form-floating mb-3">
-            <input asp-for="Title" class="form-control" placeholder="Title" required />
-            <label asp-for="Title">Title</label>
-            <span class="text-danger" asp-validation-for="Title"></span>
+<div class="d-grid gap-4">
+    <section class="surface-card surface-card--form">
+        <div class="page-header">
+            <div>
+                <h2>Create Discussion</h2>
+                <p class="text-muted mb-0">Start a focused thread in the right support category.</p>
+            </div>
         </div>
 
-        <div class="form-floating mb-3">
-            <textarea asp-for="Description" class="form-control" placeholder="Description" style="height: 100px;" required></textarea>
-            <label asp-for="Description">Description</label>
-            <span class="text-danger" asp-validation-for="Description"></span>
-        </div>
+        <form method="post">
+            <div class="form-floating mb-3">
+                <select asp-for="CategoryId" class="form-select">
+                    <option value="">Select Category</option>
+                    @foreach (var cat in Model.Categories)
+                    {
+                        <option value="@cat.Value">@cat.Text</option>
+                    }
+                </select>
+                <label>Category</label>
+                <span class="text-danger" asp-validation-for="CategoryId"></span>
+            </div>
 
-        <button type="submit" class="btn btn-outline-primary w-100">Create</button>
-    </form>
+            <div class="form-floating mb-3">
+                <input asp-for="Title" class="form-control" placeholder="Title" required />
+                <label asp-for="Title">Title</label>
+                <span class="text-danger" asp-validation-for="Title"></span>
+            </div>
+
+            <div class="form-floating mb-3">
+                <textarea asp-for="Description" class="form-control textarea-sm" placeholder="Description" required></textarea>
+                <label asp-for="Description">Description</label>
+                <span class="text-danger" asp-validation-for="Description"></span>
+            </div>
+
+            <button type="submit" class="btn btn-outline-primary w-100">Create</button>
+        </form>
+    </section>
 </div>
 
 <script>

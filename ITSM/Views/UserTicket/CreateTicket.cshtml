@@ -1,55 +1,64 @@
 ﻿@model ITSM.ViewModels.Create.TicketCreateViewModel
 
-<h2 class="text-center mb-4">Create Ticket</h2>
+<div class="d-grid gap-4">
+    <section class="page-hero">
+        <div class="eyebrow">New Request</div>
+        <h1 class="section-title">Create a support ticket with enough context to route it correctly.</h1>
+        <p class="section-copy">
+            Choose the right category first, then describe the issue clearly. Better classification means faster assignment and fewer clarification loops.
+        </p>
+    </section>
 
-<div class="bg-light p-4 rounded shadow-sm mx-auto" style="max-width: 600px;">
-   
-    <form method="get" asp-action="CreateTicket" asp-controller="UserTicket" class="mb-3">
-        <div class="form-floating">
-            <select name="categoryId" class="form-select" onchange="this.form.submit()">
-                <option value="">Select Category</option>
-                @foreach (var cat in Model.Categories)
-                {
-                    <option value="@cat.Value" selected="@(cat.Value == Model.CategoryId.ToString() ? "selected" : null)">
-                        @cat.Text
-                    </option>
-                }
-            </select>
-            <label>Category</label>
-            <span class="text-danger" asp-validation-for="CategoryId"></span>
-        </div>
-    </form>
+    <div class="surface-card surface-card--narrow">
+        <form method="get" asp-action="CreateTicket" asp-controller="UserTicket" class="mb-4">
+            <div class="form-floating">
+                <select name="categoryId" class="form-select" onchange="this.form.submit()">
+                    <option value="">Select Category</option>
+                    @foreach (var cat in Model.Categories)
+                    {
+                        <option value="@cat.Value" selected="@(cat.Value == Model.CategoryId.ToString() ? "selected" : null)">
+                            @cat.Text
+                        </option>
+                    }
+                </select>
+                <label>Category</label>
+                <span class="text-danger" asp-validation-for="CategoryId"></span>
+            </div>
+        </form>
 
-   
-    <form asp-action="CreateTicket" method="post">
-        <input type="hidden" asp-for="CategoryId"/>
-        <div class="form-floating mb-4">
-            <select asp-for="SubCategoryId" class="form-select">
-                <option value="">Select Subcategory</option>
-                @foreach (var sub in Model.SubCategories)
-                {
-                    <option value="@sub.Value">@sub.Text</option>
-                }
-            </select>
-            <label asp-for="SubCategoryId">Subcategory</label>
-            <span class="text-danger" asp-validation-for="SubCategoryId"></span>
-        </div>
-        <div class="form-floating mb-3">
-            <input asp-for="Title" class="form-control" placeholder="Title"/>
-            <label asp-for="Title">Title</label>
-            <span class="text-danger" asp-validation-for="Title"></span> 
-        </div>
+        <form asp-action="CreateTicket" method="post">
+            <input type="hidden" asp-for="CategoryId"/>
+            <div class="form-floating mb-4">
+                <select asp-for="SubCategoryId" class="form-select">
+                    <option value="">Select Subcategory</option>
+                    @foreach (var sub in Model.SubCategories)
+                    {
+                        <option value="@sub.Value">@sub.Text</option>
+                    }
+                </select>
+                <label asp-for="SubCategoryId">Subcategory</label>
+                <span class="text-danger" asp-validation-for="SubCategoryId"></span>
+            </div>
+            <div class="form-floating mb-3">
+                <input asp-for="Title" class="form-control" placeholder="Title"/>
+                <label asp-for="Title">Title</label>
+                <span class="text-danger" asp-validation-for="Title"></span>
+            </div>
 
-
-        <div class="form-floating mb-3">
-            <textarea asp-for="Description" class="form-control" placeholder="Description" style="height: 100px;"></textarea>
-            <label asp-for="Description">Description</label>
-            <span class="text-danger" asp-validation-for="Description"></span> 
-        </div>
-        <button type="submit" class="btn btn-outline-primary w-100"><i class="bi bi-patch-plus"></i> Create</button>
-    </form>
+            <div class="form-floating mb-4">
+                <textarea asp-for="Description" class="form-control textarea-lg" placeholder="Description"></textarea>
+                <label asp-for="Description">Description</label>
+                <span class="text-danger" asp-validation-for="Description"></span>
+            </div>
+            <div class="d-flex flex-wrap gap-3">
+                <button type="submit" class="btn btn-outline-primary">
+                    <i class="bi bi-patch-plus"></i> Submit Ticket
+                </button>
+                <span class="text-muted align-self-center">Be specific about symptoms, impact, and what you already tried.</span>
+            </div>
+        </form>
+    </div>
 </div>
-
 
 <script>
     document.addEventListener("DOMContentLoaded", function () {

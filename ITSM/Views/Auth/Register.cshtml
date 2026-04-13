@@ -1,61 +1,66 @@
 ﻿@model ITSM.ViewModels.Authorization.RegisterViewModel
 
 @{
-    ViewData["Title"] = "Регистрация";
+    ViewData["Title"] = "Register";
 }
 
-<form asp-action="Register" method="post" class="p-4 rounded shadow-sm bg-light" novalidate>
-    <h2 class="text-center mb-4">Register</h2>
+<div class="auth-wrap">
+    <form asp-action="Register" method="post" class="auth-panel" novalidate>
+        <div class="eyebrow">Onboarding</div>
+        <h2 class="mb-3">Create an account</h2>
+        <p class="text-muted mb-4">Register as a requester to submit and track your own tickets.</p>
 
-    @if (TempData["ErrorMessage"] != null)
-    {
-        <div class="alert alert-danger text-center" role="alert">
-            @TempData["ErrorMessage"]
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger text-center" role="alert">
+                @TempData["ErrorMessage"]
+            </div>
+        }
+
+        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+        <div class="form-floating mb-3">
+            <input asp-for="UserName" type="text" class="form-control" id="floatingUserName" placeholder="Username" required />
+            <label for="floatingUserName">Username</label>
+            <span asp-validation-for="UserName" class="invalid-feedback d-block"></span>
         </div>
-    }
 
-    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
-
-    <div class="form-floating mb-3">
-        <input asp-for="UserName" type="text" class="form-control" id="floatingUserName" placeholder="Username" required />
-        <label for="floatingUserName">Username</label>
-        <span asp-validation-for="UserName" class="invalid-feedback d-block"></span>
-    </div>
-
-    <div class="form-floating mb-3">
-        <input asp-for="Email" type="email" class="form-control" id="floatingEmail" placeholder="name@example.com" required />
-        <label for="floatingEmail">Email</label>
-        <span asp-validation-for="Email" class="invalid-feedback d-block"></span>
-    </div>
-
-    <div class="form-floating mb-3">
-        <input asp-for="Password" type="password" class="form-control" id="floatingPassword" placeholder="Password" required />
-        <label for="floatingPassword">Password</label>
-        <span asp-validation-for="Password" class="invalid-feedback d-block"></span>
-        <div class="form-text">
-            Password must be 8-20 characters long, contain letters and numbers, no spaces or special characters.
+        <div class="form-floating mb-3">
+            <input asp-for="Email" type="email" class="form-control" id="floatingEmail" placeholder="name@example.com" required />
+            <label for="floatingEmail">Email</label>
+            <span asp-validation-for="Email" class="invalid-feedback d-block"></span>
         </div>
-    </div>
 
-    <div class="form-floating mb-3">
-        <input asp-for="ConfirmPassword" type="password" class="form-control" id="floatingConfirmPassword" placeholder="Confirm password" required />
-        <label for="floatingConfirmPassword">Confirm Password</label>
-        <span asp-validation-for="ConfirmPassword" class="invalid-feedback d-block"></span>
-    </div>
+        <div class="form-floating mb-3">
+            <input asp-for="Password" type="password" class="form-control" id="floatingPassword" placeholder="Password" required />
+            <label for="floatingPassword">Password</label>
+            <span asp-validation-for="Password" class="invalid-feedback d-block"></span>
+            <div class="form-text">
+                Password must be 8-20 characters long, contain letters and numbers, no spaces or special characters.
+            </div>
+        </div>
 
-    <div class="form-check mb-3">
-        <input type="checkbox" class="form-check-input" id="showPassword" />
-        <label class="form-check-label" for="showPassword">Show password</label>
-    </div>
+        <div class="form-floating mb-3">
+            <input asp-for="ConfirmPassword" type="password" class="form-control" id="floatingConfirmPassword" placeholder="Confirm password" required />
+            <label for="floatingConfirmPassword">Confirm Password</label>
+            <span asp-validation-for="ConfirmPassword" class="invalid-feedback d-block"></span>
+        </div>
 
-    <button type="submit" class="btn btn-outline-primary w-100 mb-3">
-        Register <i class="bi bi-person-plus"></i>
-    </button>
+        <div class="form-check mb-4">
+            <input type="checkbox" class="form-check-input" id="showPassword" />
+            <label class="form-check-label" for="showPassword">Show password</label>
+        </div>
 
-    <a href="/" class="btn btn-outline-secondary w-100">
-        Back
-    </a>
-</form>
+        <div class="d-grid gap-2">
+            <button type="submit" class="btn btn-outline-primary">
+                Register <i class="bi bi-person-plus"></i>
+            </button>
+            <a href="/" class="btn btn-outline-secondary">
+                Back
+            </a>
+        </div>
+    </form>
+</div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />

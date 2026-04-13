@@ -7,20 +7,19 @@ public class DiscussionMessage
 
     [Required(ErrorMessage = "Message content is required.")]
     [StringLength(1000, ErrorMessage = "Message content cannot exceed 1000 characters.")]
-    public string Content { get; set; } = string.Empty;  // Присваиваем значение по умолчанию
+    public string Content { get; set; } = string.Empty;
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-    [Required]  // Обсуждение обязательно для каждого сообщения
+    [Required]
     public int DiscussionId { get; set; }
 
-    [Required]  // Каждое сообщение обязательно должно быть привязано к обсуждению
+    [Required]
     public Discussion Discussion { get; set; } = null!;
 
-    [Required]  // Автор обязательно для каждого сообщения
+    [Required]
     public string AuthorId { get; set; } = string.Empty;
 
-    [Required]  // Автор обязательно для каждого сообщения
+    [Required]
     public User Author { get; set; } = null!;
 }
-

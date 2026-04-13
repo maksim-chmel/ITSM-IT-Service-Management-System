@@ -1,7 +1,7 @@
-﻿using ITSM.DB;
+﻿using ITSM.Data;
 using ITSM.Enums;
 using ITSM.Services.Ticket;
-using ITSM.Services.UserManagment;
+using ITSM.Services.UserManagement;
 using ITSM.ViewModels.Manage;
 using Microsoft.AspNetCore.Mvc.Rendering;
 

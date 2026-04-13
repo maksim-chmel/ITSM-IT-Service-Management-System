@@ -4,98 +4,41 @@
     ViewData["Title"] = "Archive";
 }
 
-<h2 class="mb-4 text-center">Archive Discussion Topics</h2>
+<div class="d-grid gap-4">
+    <section class="surface-card">
+        <div class="page-header">
+            <div>
+                <h2>Archive Discussion Topics</h2>
+                <p class="text-muted mb-0">Browse resolved discussions and open full history.</p>
+            </div>
+            <a asp-controller="Discussion" asp-action="ListOfDiscussions" class="btn btn-outline-secondary btn-sm">Active Discussions</a>
+        </div>
 
-<form method="get" class="mb-4 d-flex justify-content-center">
-    <input type="text" name="search" class="form-control w-25 me-2" placeholder="Search by title..." value="@Context.Request.Query["search"]" />
-    <button type="submit" class="btn btn-outline-primary"><i class="bi bi-search"></i></button>
-</form>
-<div class="btn-toolbar justify-content-center mb-4" role="toolbar">
-    <div class="btn-group" role="group">
-        <a asp-controller="Discussion" asp-action="ListOfDiscussions" class="btn btn-outline-secondary"><i class="bi bi-chat"></i> Actual Discussion</a>
-    </div>
-</div>
-@if (!Model.Any())
-{
-    <p class="text-center">No available discussion topics.</p>
-}
-else
-{
-    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-        @foreach (var thread in Model)
+        <form method="get" class="compact-search mb-4">
+            <input type="text" name="search" class="form-control" placeholder="Search by title..." value="@Context.Request.Query["search"]" />
+            <button type="submit" class="btn btn-outline-primary"><i class="bi bi-search"></i></button>
+        </form>
+
+        @if (!Model.Any())
         {
-            <div class="col">
-                <div class="card discussion-card h-100 shadow-lg rounded-lg transition-card">
-                    <div class="card-body">
-                        <h5 class="card-title text-truncate">@thread.Title</h5>
-                        <p class="card-text">
+            <p class="text-center mb-0">No available discussion topics.</p>
+        }
+        else
+        {
+            <div class="discussion-grid">
+                @foreach (var thread in Model)
+                {
+                    <article class="tile-card">
+                        <h5 class="text-truncate">@thread.Title</h5>
+                        <p class="small text-muted">
                             <strong>Author:</strong> @thread.Author?.UserName <br />
                             <strong>Created:</strong> @thread.CreatedAt.ToLocalTime().ToString("g") <br />
-                            <strong>Closed:</strong> @thread.ClosedAt <br />
+                            <strong>Closed:</strong> @thread.ClosedAt
                         </p>
                         <a asp-action="ArchiveViewDiscussion" asp-route-id="@thread.Id" class="btn btn-outline-primary btn-sm w-100">View Discussion</a>
-                    </div>
-                </div>
+                    </article>
+                }
             </div>
         }
-    </div>
-}
-
-<style>
-    .transition-card {
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-        border-radius: 12px;
-    }
-
-    .transition-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 15px 30px rgba(0,0,0,0.2);
-    }
-
-    .discussion-card {
-        background-color: #ffffff;
-        border: none;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-
-    .card-title {
-        font-size: 1.1rem;
-        font-weight: bold;
-        color: #333;
-    }
-
-    .card-text {
-        color: #555;
-        font-size: 0.9rem;
-    }
-
-    .btn-outline-primary {
-        border: 2px solid #007bff;
-        color: #007bff;
-    }
-
-    .btn-outline-primary:hover {
-        background-color: #007bff;
-        color: white;
-    }
-
-    .btn-outline-secondary {
-        border: 2px solid #6c757d;
-        color: #6c757d;
-    }
-
-    .btn-outline-secondary:hover {
-        background-color: #6c757d;
-        color: white;
-    }
-
-    .text-truncate {
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-    .mt-4 {
-        margin-top: 2rem;
-    }
-</style>
+    </section>
+</div>

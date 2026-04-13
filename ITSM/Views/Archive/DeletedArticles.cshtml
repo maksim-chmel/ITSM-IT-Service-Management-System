@@ -3,44 +3,53 @@
     ViewData["Title"] = "Archived Articles";
 }
 
-<h2 class="text-center mb-4">@ViewData["Title"]</h2>
-<form asp-action="RestoreArticles" method="post">
-    <div class="mb-3 d-flex justify-content-end">
-        <button type="submit" class="btn btn-outline-success">
-            <i class="bi bi-arrow-counterclockwise"></i> Restore Selected
-        </button>
-    </div>
+<div class="d-grid gap-4">
+    <section class="surface-card">
+        <div class="page-header">
+            <div>
+                <h2>@ViewData["Title"]</h2>
+                <p class="text-muted mb-0">Restore archived knowledge articles back to active library.</p>
+            </div>
+        </div>
+        <form asp-action="RestoreArticles" method="post">
+            <div class="page-actions mb-3">
+                <button type="submit" class="btn btn-outline-primary">
+                    <i class="bi bi-arrow-counterclockwise"></i> Restore Selected
+                </button>
+            </div>
 
-    <div class="table-responsive shadow-sm rounded">
-        <table class="table table-hover table-bordered align-middle text-center">
-            <thead class="table-dark text-white">
-            <tr>
-                <th><input type="checkbox" id="selectAll" /></th>
-                <th>#</th>
-                <th>Title</th>
-                <th>Category</th>
-                <th>Author</th>
-                <th>Created At</th>
-            </tr>
-            </thead>
-            <tbody class="table-light">
-            @foreach (var article in Model)
-            {
-                <tr>
-                    <td>
-                        <input type="checkbox" name="selectedArticleIds" value="@article.Id" class="form-check-input" />
-                    </td>
-                    <td><strong>@article.Id</strong></td>
-                    <td>@article.Article</td>
-                    <td>@article.Category?.Name</td>
-                    <td>@article.Author?.UserName</td>
-                    <td>@article.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
-                </tr>
-            }
-            </tbody>
-        </table>
-    </div>
-</form>
+            <div class="table-responsive">
+                <table class="table table-hover table-bordered align-middle text-center">
+                    <thead class="table-dark text-white">
+                    <tr>
+                        <th><input type="checkbox" id="selectAll" /></th>
+                        <th>#</th>
+                        <th>Title</th>
+                        <th>Category</th>
+                        <th>Author</th>
+                        <th>Created At</th>
+                    </tr>
+                    </thead>
+                    <tbody class="table-light">
+                    @foreach (var article in Model)
+                    {
+                        <tr>
+                            <td>
+                                <input type="checkbox" name="selectedArticleIds" value="@article.Id" class="form-check-input" />
+                            </td>
+                            <td><strong>@article.Id</strong></td>
+                            <td>@article.Article</td>
+                            <td>@article.Category?.Name</td>
+                            <td>@article.Author?.UserName</td>
+                            <td>@article.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </form>
+    </section>
+</div>
 
 @section Scripts {
     <script>

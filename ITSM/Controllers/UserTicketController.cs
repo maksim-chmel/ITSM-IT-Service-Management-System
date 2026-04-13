@@ -1,7 +1,7 @@
 ﻿using ITSM.Enums;
 using ITSM.Services.Ticket;
 using ITSM.Services.TicketSort;
-using ITSM.Services.UserManagment;
+using ITSM.Services.UserManagement;
 using ITSM.ViewModels.Create;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

@@ -1,69 +1,85 @@
 ﻿@using ITSM.Enums
 @model ITSM.ViewModels.Manage.AssignCategoryToUserViewModel
 
-<h2>Assign Categories and Skill Level to: @Model.UserName</h2>
+<div class="d-grid gap-4">
+    <section class="page-hero">
+        <div class="eyebrow">User Targeting</div>
+        <h1 class="section-title">Assign categories and skill level for @Model.UserName.</h1>
+        <p class="section-copy">Use this screen to define which request types a user can receive and their relative qualification level.</p>
+    </section>
 
-<form asp-controller="UserManagement" asp-action="AssignCategoryToUser" method="post">
-    <input type="hidden" asp-for="UserId" />
+    <form asp-controller="UserManagement" asp-action="AssignCategoryToUser" method="post" class="stack-grid">
+        <input type="hidden" asp-for="UserId" />
 
-    <div class="table-responsive shadow-sm rounded">
-        <table class="table table-hover table-bordered align-middle text-center">
-            <thead class="table-dark text-white">
-                <tr>
-                    <th>Skill Level</th>
-                    <th>Selected</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var level in Enum.GetValues(typeof(SkillLevel)).Cast<SkillLevel>())
-                {
-                    var isChecked = Model.SkillLevel == level; // Check if this level is selected
-                    <tr>
-                        <td>@level</td>
-                        <td>
-                            <div class="form-check form-switch d-flex justify-content-center">
-                                <input class="form-check-input" type="radio"
-                                       name="SkillLevel"
-                                       value="@level"
-                                       @(isChecked ? "checked" : "") />
-                            </div>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    </div>
+        <section class="surface-card">
+            <div class="page-header">
+                <div>
+                    <h3>Skill Level</h3>
+                    <p class="text-muted mb-0">Choose one operational qualification level.</p>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover table-bordered align-middle text-center">
+                    <thead class="table-dark text-white">
+                        <tr>
+                            <th>Skill Level</th>
+                            <th>Selected</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var level in Enum.GetValues(typeof(SkillLevel)).Cast<SkillLevel>())
+                        {
+                            var isChecked = Model.SkillLevel == level;
+                            <tr>
+                                <td>@level</td>
+                                <td>
+                                    <div class="form-check form-switch d-flex justify-content-center">
+                                        <input class="form-check-input" type="radio" name="SkillLevel" value="@level" @(isChecked ? "checked" : "") />
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </section>
 
-    <div class="table-responsive shadow-sm rounded">
-        <table class="table table-hover table-bordered align-middle text-center">
-            <thead class="table-dark text-white">
-                <tr>
-                    <th>Category</th>
-                    <th>Selected</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var category in Model.Categories)
-                {
-                    var isChecked = Model.SelectedCategoryIds.Contains(category.Value);
-                    <tr>
-                        <td>@category.Text</td>
-                        <td>
-                            <div class="form-check form-switch d-flex justify-content-center">
-                                <input class="form-check-input" type="checkbox"
-                                       name="SelectedCategoryIds"
-                                       value="@category.Value"
-                                       @(isChecked ? "checked" : "") />
-                            </div>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    </div>
+        <section class="surface-card">
+            <div class="page-header">
+                <div>
+                    <h3>Categories</h3>
+                    <p class="text-muted mb-0">Select all categories this user can handle.</p>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover table-bordered align-middle text-center">
+                    <thead class="table-dark text-white">
+                        <tr>
+                            <th>Category</th>
+                            <th>Selected</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var category in Model.Categories)
+                        {
+                            var isChecked = Model.SelectedCategoryIds.Contains(category.Value);
+                            <tr>
+                                <td>@category.Text</td>
+                                <td>
+                                    <div class="form-check form-switch d-flex justify-content-center">
+                                        <input class="form-check-input" type="checkbox" name="SelectedCategoryIds" value="@category.Value" @(isChecked ? "checked" : "") />
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </section>
 
-    <div class="d-flex justify-content-between">
-        <button type="submit" class="btn btn-outline-primary">Save</button>
-        <a asp-controller="UserManagement" asp-action="UsersList" class="btn btn-outline-secondary">Back</a>
-    </div>
-</form>
+        <div class="page-actions">
+            <button type="submit" class="btn btn-outline-primary">Save</button>
+            <a asp-controller="UserManagement" asp-action="UsersList" class="btn btn-outline-secondary">Back</a>
+        </div>
+    </form>
+</div>

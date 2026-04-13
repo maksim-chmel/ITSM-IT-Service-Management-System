@@ -2,23 +2,36 @@
     ViewData["Title"] = "Archive";
 }
 
-<h2 class="text-center my-4 display-5 text-secondary">Deleted Items Archive</h2>
+<div class="d-grid gap-4">
+    <section class="page-hero">
+        <div class="eyebrow">Recovery Zone</div>
+        <h1 class="section-title">Review deleted entities and restore them when the workflow requires it.</h1>
+        <p class="section-copy">Use the archive hub to inspect soft-deleted content across articles, tickets, categories, and users.</p>
+    </section>
 
-<div class="d-flex justify-content-center flex-wrap gap-4">
+    <section class="archive-grid">
+        <a asp-controller="Archive" asp-action="DeletedArticles" class="archive-link">
+            <i class="bi bi-journal-text"></i>
+            <strong>Articles Archive</strong>
+            <span class="text-muted">Review removed knowledge base entries.</span>
+        </a>
 
-    <a asp-controller="Archive" asp-action="DeletedArticles" class="btn btn-outline-primary btn-lg shadow-sm px-4 py-2">
-        <i class="bi bi-journal-text me-2"></i> Articles Archive
-    </a>
+        <a asp-controller="Archive" asp-action="DeletedTickets" class="archive-link">
+            <i class="bi bi-ticket-perforated"></i>
+            <strong>Tickets Archive</strong>
+            <span class="text-muted">Inspect and restore canceled or archived ticket records.</span>
+        </a>
 
-    <a asp-controller="Archive" asp-action="DeletedTickets" class="btn btn-outline-success btn-lg shadow-sm px-4 py-2">
-        <i class="bi bi-ticket-perforated me-2"></i> Tickets Archive
-    </a>
+        <a asp-controller="Archive" asp-action="DeletedCategories" class="archive-link">
+            <i class="bi bi-tags"></i>
+            <strong>Categories Archive</strong>
+            <span class="text-muted">Recover removed taxonomies and supporting structure.</span>
+        </a>
 
-    <a asp-controller="Archive" asp-action="DeletedCategories" class="btn btn-outline-secondary btn-lg shadow-sm px-4 py-2">
-        <i class="bi bi-tags me-2"></i> Categories Archive
-    </a>
-
-    <a asp-controller="Archive" asp-action="DeletedUsers" class="btn btn-outline-danger btn-lg shadow-sm px-4 py-2">
-        <i class="bi bi-person-x me-2"></i> Users Archive
-    </a>
+        <a asp-controller="Archive" asp-action="DeletedUsers" class="archive-link">
+            <i class="bi bi-person-x"></i>
+            <strong>Users Archive</strong>
+            <span class="text-muted">Restore soft-deleted accounts when access needs to be recovered.</span>
+        </a>
+    </section>
 </div>

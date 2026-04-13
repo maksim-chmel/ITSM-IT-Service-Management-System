@@ -4,16 +4,16 @@ namespace ITSM.ViewModels.Authorization;
 
 public class LoginViewModel
 {
-    [Required(ErrorMessage = "Введите Email")]
-    [EmailAddress(ErrorMessage = "Некорректный Email")]
+    [Required(ErrorMessage = "Please enter an email address.")]
+    [EmailAddress(ErrorMessage = "Invalid email address.")]
     [Display(Name = "Email")]
     public string? Email { get; set; }
 
-    [Required(ErrorMessage = "Введите пароль")]
+    [Required(ErrorMessage = "Please enter a password.")]
     [DataType(DataType.Password)]
-    [Display(Name = "Пароль")]
+    [Display(Name = "Password")]
     public string? Password { get; set; }
 
-    [Display(Name = "Запомнить меня")]
+    [Display(Name = "Remember me")]
     public bool RememberMe { get; set; }
 }

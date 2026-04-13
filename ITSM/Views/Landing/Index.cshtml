@@ -1,41 +1,57 @@
-﻿<div class="container mt-5">
-    <div class="text-center mb-5">
-        <h1 class="display-4 fw-bold">IT Process Optimization System</h1>
-        <p class="lead text-secondary mx-auto" style="max-width: 600px;">
-            A lightweight and efficient tool for managing tickets, communication, and IT process control in your company.
+﻿<div class="d-grid gap-4">
+    <section class="page-hero">
+        <div class="eyebrow">IT Service Management</div>
+        <h1 class="section-title">Run support operations from one structured workspace.</h1>
+        <p class="section-copy">
+            Manage incoming requests, knowledge articles, staff coordination, and internal discussions through one compact ASP.NET workflow.
         </p>
-    </div>
 
-    <div class="row text-center">
-        <div class="col-md-4 mb-4">
-            <i class="bi bi-speedometer2 display-1 text-primary mb-3"></i>
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <strong>4</strong>
+                <span>built-in roles for requesters, technicians, coordinators, and admins</span>
+            </div>
+            <div class="metric-card">
+                <strong>1</strong>
+                <span>shared operational surface for tickets, knowledge, archives, and discussions</span>
+            </div>
+            <div class="metric-card">
+                <strong>.NET 8</strong>
+                <span>ASP.NET MVC, Identity, PostgreSQL, and role-based workflow orchestration</span>
+            </div>
+        </div>
+    </section>
+
+    <section class="feature-grid">
+        <article class="feature-card">
+            <i class="bi bi-lightning-charge"></i>
             <h4 class="fw-semibold">Fast Ticket Handling</h4>
-            <p class="text-muted px-3">
-                Automated distribution and monitoring of user requests.
-            </p>
-        </div>
-        <div class="col-md-4 mb-4">
-            <i class="bi bi-shield-lock display-1 text-success mb-3"></i>
-            <h4 class="fw-semibold">Secure Access</h4>
-            <p class="text-muted px-3">
-                Reliable authentication and role-based access control.
-            </p>
-        </div>
-        <div class="col-md-4 mb-4">
-            <i class="bi bi-bar-chart-line display-1 text-warning mb-3"></i>
-            <h4 class="fw-semibold">Analytics & Reporting</h4>
-            <p class="text-muted px-3">
-                Insights and statistics to improve your service processes.
-            </p>
-        </div>
-    </div>
-    <div class="text-center mt-5 d-flex justify-content-center gap-3">
-        <a href="/Auth/Login" class="btn btn-outline-primary btn-lg px-5 shadow-sm">
-            Log In to the System
-        </a>
-        <a href="/Auth/Register" class="btn btn-outline-secondary btn-lg px-5 shadow-sm">
-            No account? Create one
-        </a>
-    </div>
+            <p>Route requests, assign owners, and track status changes without leaving the same interface.</p>
+        </article>
+        <article class="feature-card">
+            <i class="bi bi-shield-check"></i>
+            <h4 class="fw-semibold">Role-Based Access</h4>
+            <p>Different teams see focused workflows instead of a single overloaded dashboard.</p>
+        </article>
+        <article class="feature-card">
+            <i class="bi bi-diagram-3"></i>
+            <h4 class="fw-semibold">Operational Context</h4>
+            <p>Combine tickets, knowledge base content, and discussion threads in one support flow.</p>
+        </article>
+    </section>
 
+    <section class="surface-card text-center">
+        <h3 class="mb-3">Access the workspace</h3>
+        <p class="text-muted mx-auto mb-4 maxw-640">
+            Sign in with one of the seeded demo accounts or create a requester account to test the ticket submission flow.
+        </p>
+        <div class="d-flex flex-wrap justify-content-center gap-3">
+            <a href="/Auth/Login" class="btn btn-outline-primary btn-lg px-5">
+                Log In
+            </a>
+            <a href="/Auth/Register" class="btn btn-outline-secondary btn-lg px-5">
+                Create Account
+            </a>
+        </div>
+    </section>
 </div>

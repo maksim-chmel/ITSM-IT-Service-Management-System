@@ -1,42 +1,51 @@
 ﻿@model IEnumerable<ITSM.Models.User>
 
-<h2 class="text-center mb-4">Restore Deleted Users</h2>
+<div class="d-grid gap-4">
+    <section class="surface-card">
+        <div class="page-header">
+            <div>
+                <h2>Restore Deleted Users</h2>
+                <p class="text-muted mb-0">Select users to restore access and profile visibility.</p>
+            </div>
+        </div>
 
-<form asp-action="RestoreUsers" method="post">
-    <div class="mb-3 d-flex justify-content-end">
-        <button type="submit" class="btn btn-outline-success">
-            <i class="bi bi-arrow-counterclockwise"></i> Restore Selected
-        </button>
-    </div>
+        <form asp-action="RestoreUsers" method="post">
+            <div class="page-actions mb-3">
+                <button type="submit" class="btn btn-outline-primary">
+                    <i class="bi bi-arrow-counterclockwise"></i> Restore Selected
+                </button>
+            </div>
 
-    <div class="table-responsive shadow-sm rounded">
-        <table class="table table-hover table-bordered align-middle text-center">
-            <thead class="table-dark text-white">
-            <tr>
-                <th><input type="checkbox" id="selectAll" /></th>
-                <th>#</th>
-                <th>Username</th>
-                <th>Email</th>
-                <th>Is Deleted</th>
-            </tr>
-            </thead>
-            <tbody class="table-light">
-            @foreach (var user in Model)
-            {
-                <tr>
-                    <td>
-                        <input type="checkbox" name="selectedUserIds" value="@user.Id" class="form-check-input" />
-                    </td>
-                    <td><strong>@user.Id</strong></td>
-                    <td>@user.UserName</td>
-                    <td>@user.Email</td>
-                    <td>@user.IsDeleted</td>
-                </tr>
-            }
-            </tbody>
-        </table>
-    </div>
-</form>
+            <div class="table-responsive">
+                <table class="table table-hover table-bordered align-middle text-center">
+                    <thead class="table-dark text-white">
+                    <tr>
+                        <th><input type="checkbox" id="selectAll" /></th>
+                        <th>#</th>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>Is Deleted</th>
+                    </tr>
+                    </thead>
+                    <tbody class="table-light">
+                    @foreach (var user in Model)
+                    {
+                        <tr>
+                            <td>
+                                <input type="checkbox" name="selectedUserIds" value="@user.Id" class="form-check-input" />
+                            </td>
+                            <td><strong>@user.Id</strong></td>
+                            <td>@user.UserName</td>
+                            <td>@user.Email</td>
+                            <td>@user.IsDeleted</td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </form>
+    </section>
+</div>
 
 @section Scripts {
     <script>

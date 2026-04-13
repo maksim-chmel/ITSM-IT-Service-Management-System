@@ -3,49 +3,53 @@
 @{
     ViewData["Title"] = "My Discussions";
 }
-<h2 class="text-center mb-4">@ViewData["Title"]</h2>
 
-<div class="table-responsive shadow-sm rounded">
-    <table class="table table-hover table-bordered align-middle text-center">
-        <thead class="table-dark text-white">
-        <tr>
-            <th>#</th>
-            <th>Title</th>
-            <th>Category</th>
-            <th>Status</th>
-            <th>Created At</th>
-            <th>Action</th>
-        </tr>
-        </thead>
-        <tbody class="table-light">
-        @foreach (var discussion in Model)
-        {
-            <tr>
-                <td><strong>@discussion.Id</strong></td>
-                <td>@discussion.Title</td>
-                <td>@discussion.Category?.Name</td>
-
-                <td>
-                    <span class="badge 
-                        @(discussion.Status == Status.Open ? "bg-primary text-white" :
-                         discussion.Status == Status.Resolved ? "bg-success text-white" :
-                         "bg-secondary text-white")">
-                        @discussion.Status
-                    </span>
-                </td>
-
-                <td>@discussion.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
-                <td> @if (discussion.Status == Status.Open)
-                    {
-                        <form asp-controller="Discussion" asp-action="ResolveDiscussion" method="post"
-                              class="d-inline">
-                            <input type="hidden" name="id" value="@discussion.Id"/>
-                            <button type="submit" class="btn btn-outline-success btn-sm">Resolve</button>
-                        </form>
-                    }
-                    
-            </tr>
-        }
-        </tbody>
-    </table>
+<div class="d-grid gap-4">
+    <section class="surface-card">
+        <div class="page-header">
+            <div>
+                <h2>@ViewData["Title"]</h2>
+                <p class="text-muted mb-0">Track and resolve discussions started by you.</p>
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover table-bordered align-middle text-center">
+                <thead class="table-dark text-white">
+                <tr>
+                    <th>#</th>
+                    <th>Title</th>
+                    <th>Category</th>
+                    <th>Status</th>
+                    <th>Created At</th>
+                    <th>Action</th>
+                </tr>
+                </thead>
+                <tbody class="table-light">
+                @foreach (var discussion in Model)
+                {
+                    <tr>
+                        <td><strong>@discussion.Id</strong></td>
+                        <td>@discussion.Title</td>
+                        <td>@discussion.Category?.Name</td>
+                        <td>
+                            <span class="badge @(discussion.Status == Status.Open ? "bg-primary text-white" : discussion.Status == Status.Resolved ? "bg-success text-white" : "bg-secondary text-white")">
+                                @discussion.Status
+                            </span>
+                        </td>
+                        <td>@discussion.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                        <td>
+                            @if (discussion.Status == Status.Open)
+                            {
+                                <form asp-controller="Discussion" asp-action="ResolveDiscussion" method="post" class="d-inline">
+                                    <input type="hidden" name="id" value="@discussion.Id"/>
+                                    <button type="submit" class="btn btn-outline-primary btn-sm">Resolve</button>
+                                </form>
+                            }
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </section>
 </div>

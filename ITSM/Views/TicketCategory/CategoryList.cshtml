@@ -3,44 +3,58 @@
     ViewData["Title"] = "Category Management";
 }
 
-<h2 class="text-center mb-4">@ViewData["Title"]</h2>
+<div class="d-grid gap-4">
+    <section class="page-hero">
+        <div class="eyebrow">Taxonomy</div>
+        <h1 class="section-title">Manage the ticket categories that drive routing and reporting.</h1>
+        <p class="section-copy">Categories define how requests are classified and which specialist groups can pick them up.</p>
+    </section>
 
-<div class="table-responsive shadow-sm rounded">
-    <table class="table table-hover table-bordered align-middle text-center">
-        <thead class="table-dark text-white">
-        <tr>
-            <th>Title</th>
-            <th>Actions</th>
-        </tr>
-        </thead>
-        <tbody class="table-light">
-        @foreach (var category in Model)
-        {
-            <tr>
-                <td>@category.Name</td>
-                <td>
-                    <div class="dropdown">
-                        <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
-                            Actions
-                        </button>
-                        <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                            <li>
-                                <a class="dropdown-item" asp-controller="TicketCategory" asp-action="SubCategoryList" asp-route-categoryId="@category.Id">Add Subcategory</a>
-                            </li>
-                            <li>
-                                <form asp-controller="TicketCategory" asp-action="DeleteCategory" asp-route-id="@category.Id" method="post" onsubmit="return confirm('Are you sure you want to delete this category? Tickets in this category will lose it.');">
-                                    <button type="submit" class="dropdown-item text-danger">Delete</button>
-                                </form>
-                            </li>
-                            
-                        </ul>
-                    </div>
-                </td>
-            </tr>
-        }
-        </tbody>
-    </table>
-    <div class="text-center mt-3">
-        <a asp-controller="TicketCategory" asp-action="CreateCategory" class="btn btn-outline-primary w-100"><i class="bi bi-plus-circle"></i> Add New</a>
-    </div>
+    <section class="surface-card">
+        <div class="page-header">
+            <div>
+                <h2>@ViewData["Title"]</h2>
+                <p class="text-muted mb-0">Maintain the main category structure used across the system.</p>
+            </div>
+            <a asp-controller="TicketCategory" asp-action="CreateCategory" class="btn btn-outline-primary">
+                <i class="bi bi-plus-circle"></i> Add New
+            </a>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover table-bordered align-middle text-center">
+                <thead class="table-dark text-white">
+                <tr>
+                    <th>Title</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody class="table-light">
+                @foreach (var category in Model)
+                {
+                    <tr>
+                        <td>@category.Name</td>
+                        <td>
+                            <div class="dropdown">
+                                <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="dropdownMenuButton-@category.Id" data-bs-toggle="dropdown" aria-expanded="false">
+                                    Actions
+                                </button>
+                                <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton-@category.Id">
+                                    <li>
+                                        <a class="dropdown-item" asp-controller="TicketCategory" asp-action="SubCategoryList" asp-route-categoryId="@category.Id">Add Subcategory</a>
+                                    </li>
+                                    <li>
+                                        <form asp-controller="TicketCategory" asp-action="DeleteCategory" asp-route-id="@category.Id" method="post" onsubmit="return confirm('Are you sure you want to delete this category? Tickets in this category will lose it.');">
+                                            <button type="submit" class="dropdown-item text-danger">Delete</button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </div>
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </section>
 </div>

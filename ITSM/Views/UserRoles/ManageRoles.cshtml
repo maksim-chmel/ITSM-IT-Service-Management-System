@@ -1,37 +1,51 @@
 ﻿@model ITSM.ViewModels.Manage.ManageUserRolesViewModel
 
-<h2>Manage Roles: @Model.UserName</h2>
+<div class="d-grid gap-4">
+    <section class="page-hero">
+        <div class="eyebrow">Role Control</div>
+        <h1 class="section-title">Manage roles for @Model.UserName.</h1>
+        <p class="section-copy">Toggle the permission set that defines what this user can access in the platform.</p>
+    </section>
 
-<form asp-controller="UserRoles" asp-action="ManageRoles" method="post">
-    <input type="hidden" asp-for="UserId" />
+    <form asp-controller="UserRoles" asp-action="ManageRoles" method="post" class="stack-grid">
+        <input type="hidden" asp-for="UserId" />
 
-    <div class="table-responsive shadow-sm rounded">
-    <table class="table table-hover table-bordered align-middle text-center">
-            <thead class="table-dark text-white">
-            <tr>
-                <th>Role</th>
-                <th>Selected</th>
-            </tr>
-            </thead>
-            <tbody>
-            @for (var i = 0; i < Model.Roles.Count; i++)
-            {
-                <tr>
-                    <td>@Model.Roles[i].RoleName</td>
-                    <td>
-                        <div class="form-check form-switch d-flex justify-content-center">
-                            <input class="form-check-input" type="checkbox" asp-for="Roles[i].IsSelected" role="switch">
-                            <input type="hidden" asp-for="Roles[i].RoleName" />
-                        </div>
-                    </td>
-                </tr>
-            }
-            </tbody>
-        </table>
-    </div>
+        <section class="surface-card">
+            <div class="page-header">
+                <div>
+                    <h3>Available Roles</h3>
+                    <p class="text-muted mb-0">Enable or disable access scopes for this user.</p>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover table-bordered align-middle text-center">
+                    <thead class="table-dark text-white">
+                        <tr>
+                            <th>Role</th>
+                            <th>Selected</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (var i = 0; i < Model.Roles.Count; i++)
+                        {
+                            <tr>
+                                <td>@Model.Roles[i].RoleName</td>
+                                <td>
+                                    <div class="form-check form-switch d-flex justify-content-center">
+                                        <input class="form-check-input" type="checkbox" asp-for="Roles[i].IsSelected" role="switch">
+                                        <input type="hidden" asp-for="Roles[i].RoleName" />
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </section>
 
-    <div class="d-flex justify-content-between">
-        <button type="submit" class="btn btn-outline-primary">Save</button>
-        <a asp-controller="UserManagement" asp-action="UsersList" class="btn btn-outline-secondary">Back</a>
-    </div>
-</form>
+        <div class="page-actions">
+            <button type="submit" class="btn btn-outline-primary">Save</button>
+            <a asp-controller="UserManagement" asp-action="UsersList" class="btn btn-outline-secondary">Back</a>
+        </div>
+    </form>
+</div>

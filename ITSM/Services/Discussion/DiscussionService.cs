@@ -1,4 +1,4 @@
-﻿using ITSM.DB;
+﻿using ITSM.Data;
 using ITSM.Enums;
 using ITSM.Models;
 using ITSM.ViewModels.Create;
@@ -10,14 +10,14 @@ public class DiscussionService(DBaseContext context) : IDiscussionService
 {
     public async Task<bool> CreateDiscussion(DiscussionCreateViewModel viewModel, string userId)
     {
-        if (string.IsNullOrWhiteSpace(viewModel.Title) && string.IsNullOrWhiteSpace(viewModel.Description))
+        if (string.IsNullOrWhiteSpace(viewModel.Title) || string.IsNullOrWhiteSpace(viewModel.Description))
             return false;
 
         var newDiscussion = new Models.Discussion
         {
             Title = viewModel.Title,
             Description = viewModel.Description,
-            CreatedAt = DateTime.Now,
+            CreatedAt = DateTime.UtcNow,
             AuthorId = userId,
             CategoryId = viewModel.CategoryId
         };
@@ -34,7 +34,7 @@ public class DiscussionService(DBaseContext context) : IDiscussionService
 
         if (discussion == null || discussion.AuthorId != userId) return false;
         discussion.Status = Status.Resolved;
-        discussion.ClosedAt = DateTime.Now;
+        discussion.ClosedAt = DateTime.UtcNow;
         discussion.IsDeleted = true;
         context.Discussions.Update(discussion);
         await context.SaveChangesAsync();
@@ -69,7 +69,7 @@ public class DiscussionService(DBaseContext context) : IDiscussionService
         var message = new DiscussionMessage
         {
             AuthorId = userId,
-            CreatedAt = DateTime.Now,
+            CreatedAt = DateTime.UtcNow,
             DiscussionId = discusId,
             Content = messageContent
         };

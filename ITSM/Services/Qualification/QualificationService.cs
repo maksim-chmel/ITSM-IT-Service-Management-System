@@ -1,7 +1,7 @@
-﻿using ITSM.DB;
+﻿using ITSM.Data;
 using ITSM.Models;
 using ITSM.Services.TicketCategory;
-using ITSM.Services.UserManagment;
+using ITSM.Services.UserManagement;
 using ITSM.ViewModels.Manage;
 using Microsoft.EntityFrameworkCore;
 
