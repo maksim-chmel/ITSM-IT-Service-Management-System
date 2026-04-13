@@ -1,0 +1,35 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: itsm-postgres
+    environment:
+      POSTGRES_DB: itsm
+      POSTGRES_USER: itsm
+      POSTGRES_PASSWORD: itsm_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U itsm -d itsm"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build:
+      context: .
+      dockerfile: ITSM/Dockerfile
+    container_name: itsm-web
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      AUTO_MIGRATE: "true"
+      ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=itsm;Username=itsm;Password=itsm_password
+    ports:
+      - "8080:8080"
+
+volumes:
+  postgres_data:
