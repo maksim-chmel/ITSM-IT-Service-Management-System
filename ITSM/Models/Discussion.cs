@@ -3,7 +3,7 @@ using ITSM.Enums;
 using ITSM.Services.Archive;
 
 namespace ITSM.Models;
-public class Discussion : ISoftDeletableEntity
+public class Discussion : ISoftDeletable
 {
     public int Id { get; set; }
     
@@ -28,6 +28,9 @@ public class Discussion : ISoftDeletableEntity
 
     [Required]
     public TicketCategory Category { get; set; } = null!;
+
+    public int? TicketId { get; set; }
+    public Ticket? Ticket { get; set; }
 
     public bool IsDeleted { get; set; }= false;
 }

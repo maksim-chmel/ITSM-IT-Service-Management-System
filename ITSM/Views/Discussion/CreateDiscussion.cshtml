@@ -9,7 +9,8 @@
             </div>
         </div>
 
-        <form method="post">
+        <form asp-action="CreateDiscussion" method="post">
+            <input type="hidden" asp-for="TicketId" />
             <div class="form-floating mb-3">
                 <select asp-for="CategoryId" class="form-select">
                     <option value="">Select Category</option>

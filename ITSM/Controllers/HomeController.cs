@@ -1,4 +1,4 @@
-﻿using ITSM.Data;
+using ITSM.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace ITSM.Controllers;
 
 [Authorize]
-public class HomeController(DBaseContext context) : Controller
+public class HomeController(DBaseContext context) : BaseController
 {
     public IActionResult Index()
     {
@@ -26,8 +26,4 @@ public class HomeController(DBaseContext context) : Controller
 
         return View();
     }
-   
-
-
-
 }

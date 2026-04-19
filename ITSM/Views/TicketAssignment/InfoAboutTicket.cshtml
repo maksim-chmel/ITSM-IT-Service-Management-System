@@ -1,10 +1,21 @@
 ﻿@using ITSM.Enums
 @model ITSM.ViewModels.Manage.TicketDetailsViewModel
-@if (TempData["TicketClosed"] != null)
-{
-    <div class="alert alert-success" role="alert">
-        Ticket successfully closed.
-    </div>
+@{
+    // Helper to determine badge color based on status
+    Func<Status, string> getBadgeClass = status =>
+    {
+        return status switch
+        {
+            Status.New => "bg-primary",
+            Status.Open => "bg-info",
+            Status.Progress => "bg-warning text-dark",
+            Status.OnHold => "bg-secondary",
+            Status.Reopened => "bg-danger",
+            Status.Resolved => "bg-success",
+            Status.Canceled => "bg-dark",
+            _ => "bg-light text-dark"
+        };
+    };
 }
 
 <div class="d-grid gap-4">
@@ -20,7 +31,7 @@
                 <h2>Ticket #@Model.Ticket.Id</h2>
                 <p class="text-muted mb-0">Coordinator view for lifecycle control and final disposition.</p>
             </div>
-            <span class="badge bg-primary text-white">@Model.Ticket.Status</span>
+            <span class="badge @getBadgeClass(Model.Ticket.Status)">@Model.Ticket.Status</span>
         </div>
         <div class="info-grid">
             <div class="info-card"><dl><dt>Title</dt><dd>@Model.Ticket.Title</dd></dl></div>
@@ -60,23 +71,4 @@
             </table>
         </div>
     </section>
-
-    @if (Model.Ticket.Status == Status.Resolved)
-    {
-        <div class="page-actions">
-            <form asp-controller="TicketAssignment" asp-action="CloseTicket" method="post">
-                <input type="hidden" name="id" value="@Model.Ticket.Id"/>
-                <button type="submit" class="btn btn-outline-success">Close</button>
-            </form>
-        </div>
-    }
-    else if (Model.Ticket.Status == Status.Done || Model.Ticket.Status == Status.Canceled)
-    {
-        <div class="page-actions">
-            <form asp-controller="TicketAssignment" asp-action="ReOpenTicket" method="post">
-                <input type="hidden" name="id" value="@Model.Ticket.Id"/>
-                <button type="submit" class="btn btn-outline-success">Reopen</button>
-            </form>
-        </div>
-    }
 </div>

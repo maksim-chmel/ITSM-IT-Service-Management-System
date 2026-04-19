@@ -1,4 +1,4 @@
-﻿@using ITSM.Enums
+@using ITSM.Enums
 @model IEnumerable<ITSM.Models.Ticket>
 
 @{
@@ -18,7 +18,7 @@
         "#3498db", // Open
         "#2980b9", // Progress
         "#27ae60", // Resolved
-        "#2ecc71", // Done
+        "#bdc3c7", // OnHold
         "#95a5a6", // Canceled
         "#e74c3c"  // Reopened
     };
@@ -42,16 +42,19 @@
     };
 
    
-    Func<Status, string> statusBadgeClass = status => status switch
+    Func<Status, string> getBadgeClass = status =>
     {
-        Status.New => "bg-warning text-dark",
-        Status.Open => "bg-primary text-white",
-        Status.Progress => "bg-info text-white",
-        Status.Resolved => "bg-success text-white",
-        Status.Done => "bg-secondary text-white",
-        Status.Canceled => "bg-danger text-white",
-        Status.Reopened => "bg-warning text-dark",
-        _ => "bg-dark text-white"
+        return status switch
+        {
+            Status.New => "bg-primary",
+            Status.Open => "bg-info",
+            Status.Progress => "bg-warning text-dark",
+            Status.OnHold => "bg-secondary",
+            Status.Reopened => "bg-danger",
+            Status.Resolved => "bg-success",
+            Status.Canceled => "bg-dark",
+            _ => "bg-light text-dark"
+        };
     };
 
   
@@ -105,7 +108,7 @@
                         <tr>
                             <td><strong>@ticket.Id</strong></td>
                             <td class="text-truncate truncate-200" title="@ticket.Title">@ticket.Title</td>
-                            <td><span class="badge @statusBadgeClass(ticket.Status)">@ticket.Status</span></td>
+                            <td><span class="badge @getBadgeClass(ticket.Status)">@ticket.Status</span></td>
                             <td><span class="badge @priorityBadgeClass(ticket.Priority)">@ticket.Priority</span></td>
                             <td>@ticket.Category?.Name</td>
                             <td>@ticket.TicketSubCategory?.Name</td>
@@ -129,7 +132,7 @@
                                                 Information
                                             </a>
                                         </li>
-                                        @if (ticket.Status != Status.Canceled && ticket.Status != Status.Done)
+                                        @if (ticket.Status != Status.Canceled && ticket.Status != Status.Resolved)
                                         {
                                             <li>
                                                 <a class="dropdown-item"

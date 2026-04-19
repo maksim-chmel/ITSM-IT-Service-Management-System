@@ -44,77 +44,62 @@ public class UserManagementService(DBaseContext dBaseContext, UserManager<User> 
         return true;
     }
     */
-    public async Task<bool> SoftDeleteUserById(string userId)
+    public async Task<OperationResult> SoftDeleteUserById(string userId)
     {
-        await using var transaction = await dBaseContext.Database.BeginTransactionAsync();
         var user = await dBaseContext.Users
             .Include(u => u.CreatedTickets)
             .Include(u => u.AssignedTickets)
             .FirstOrDefaultAsync(u => u.Id == userId);
 
         if (user == null)
-            return false;
+            return OperationResult.Failure("User not found.");
+
         user.IsDeleted = true;
         user.LockoutEnabled = true;
+        user.LockoutEnd = DateTimeOffset.MaxValue;
 
-        dBaseContext.Users.Update(user);
-        await dBaseContext.SaveChangesAsync();
-
-        await transaction.CommitAsync();
-
-        return true;
+        // Invalidate current sessions
+        await userManager.UpdateSecurityStampAsync(user);
+        
+        var result = await userManager.UpdateAsync(user);
+        if (result.Succeeded)
+            return OperationResult.Success("User archived and sessions invalidated.");
+            
+        return OperationResult.Failure(string.Join(", ", result.Errors.Select(e => e.Description)));
     }
 
 
     public async Task<UserWithRolesViewModel[]> GetAllUsersToList()
     {
-        var users = await dBaseContext.Users
-            .Where(c => !c.IsDeleted)
+        return await dBaseContext.Users
             .AsNoTracking()
-            .ToListAsync();
-        var userWithRolesList = new List<UserWithRolesViewModel>();
-
-        foreach (var user in users)
-        {
-            var userWithRoles = await GetUserWithRoles(user);
-            userWithRolesList.Add(userWithRoles);
-        }
-
-        return userWithRolesList.ToArray();
+            .Select(user => new UserWithRolesViewModel
+            {
+                Id = user.Id,
+                UserName = user.UserName,
+                Email = user.Email,
+                PhoneNumber = user.PhoneNumber,
+                IsDeleted = user.IsDeleted,
+                Roles = dBaseContext.UserRoles
+                    .Where(ur => ur.UserId == user.Id)
+                    .Join(dBaseContext.Roles, ur => ur.RoleId, r => r.Id, (ur, r) => r.Name!)
+                    .ToList(),
+                AssignedCategories = user.UserCategoryAssignments
+                    .Select(uca => uca.TicketCategory.Name)
+                    .ToList()
+            })
+            .ToArrayAsync();
     }
-
-    private async Task<UserWithRolesViewModel> GetUserWithRoles(User user)
-    {
-        var roles = await userManager.GetRolesAsync(user);
-        var assignedCategories = await dBaseContext.UserCategoryAssignments
-            .Where(uca => uca.UserId == user.Id)
-            .Join(dBaseContext.TicketCategories,
-                uca => uca.CategoryId,
-                cat => cat.Id,
-                (uca, cat) => cat.Name)
-            .ToListAsync();
-
-        return new UserWithRolesViewModel
-        {
-            Id = user.Id,
-            UserName = user.UserName,
-            Email = user.Email,
-            PhoneNumber = user.PhoneNumber,
-            Roles = roles.ToList(),
-            AssignedCategories = assignedCategories,
-            IsDeleted = user.IsDeleted
-        };
-    }
-
 
     public async Task<User?> GetCurrentUserAsync(ClaimsPrincipal principal)
     {
         return await userManager.GetUserAsync(principal);
     }
 
-    public async Task EditUser(string id, EditUserViewModel editmodel)
+    public async Task<OperationResult> EditUser(string id, EditUserViewModel editmodel)
     {
-        var user = await GetUserById(id) ?? throw new ArgumentException("User not found.");
+        var user = await GetUserById(id);
+        if (user == null) return OperationResult.Failure("User not found.");
 
        
         user.UserName = editmodel.UserName;
@@ -128,7 +113,7 @@ public class UserManagementService(DBaseContext dBaseContext, UserManager<User> 
           
             if (editmodel.NewPassword != editmodel.ConfirmPassword)
             {
-                throw new ArgumentException("The new password and confirmation password do not match.");
+                return OperationResult.Failure("The new password and confirmation password do not match.");
             }
 
            
@@ -138,19 +123,18 @@ public class UserManagementService(DBaseContext dBaseContext, UserManager<User> 
                 var addPasswordResult = await userManager.AddPasswordAsync(user, editmodel.NewPassword);
                 if (!addPasswordResult.Succeeded)
                 {
-                   
                     var errors = string.Join(", ", addPasswordResult.Errors.Select(e => e.Description));
-                    throw new Exception($"Failed to change password: {errors}");
+                    return OperationResult.Failure($"Failed to change password: {errors}");
                 }
             }
             else
             {
-               
                 var errors = string.Join(", ", removePasswordResult.Errors.Select(e => e.Description));
-                throw new Exception($"Failed to remove the old password: {errors}");
+                return OperationResult.Failure($"Failed to remove the old password: {errors}");
             }
         }
         await dBaseContext.SaveChangesAsync();
+        return OperationResult.Success("User profile updated successfully.");
     }
 
     public async Task<EditUserViewModel> CreateEditUserViewModel(string userId)
@@ -164,21 +148,36 @@ public class UserManagementService(DBaseContext dBaseContext, UserManager<User> 
             PhoneNumber = user.PhoneNumber,
         };
     }
+
     public async Task<UserWithRolesViewModel[]> SearchUser(string? search)
     {
-        var allUsers = await GetAllUsersToList();
+        var query = dBaseContext.Users
+            .AsNoTracking();
 
-        if (string.IsNullOrWhiteSpace(search))
-            return allUsers.ToArray();
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            search = search.ToLower();
+            query = query.Where(u =>
+                (u.UserName != null && u.UserName.ToLower().Contains(search)) ||
+                (u.Email != null && u.Email.ToLower().Contains(search)));
+        }
 
-        search = search.ToLower();
-
-        var filtered = allUsers
-            .Where(u =>
-                (!string.IsNullOrEmpty(u.UserName) && u.UserName.Contains(search, StringComparison.CurrentCultureIgnoreCase)) ||
-                (!string.IsNullOrEmpty(u.Email) && u.Email.Contains(search, StringComparison.CurrentCultureIgnoreCase)))
-            .ToArray();
-
-        return filtered;
+        return await query
+            .Select(user => new UserWithRolesViewModel
+            {
+                Id = user.Id,
+                UserName = user.UserName,
+                Email = user.Email,
+                PhoneNumber = user.PhoneNumber,
+                IsDeleted = user.IsDeleted,
+                Roles = dBaseContext.UserRoles
+                    .Where(ur => ur.UserId == user.Id)
+                    .Join(dBaseContext.Roles, ur => ur.RoleId, r => r.Id, (ur, r) => r.Name!)
+                    .ToList(),
+                AssignedCategories = user.UserCategoryAssignments
+                    .Select(uca => uca.TicketCategory.Name)
+                    .ToList()
+            })
+            .ToArrayAsync();
     }
 }

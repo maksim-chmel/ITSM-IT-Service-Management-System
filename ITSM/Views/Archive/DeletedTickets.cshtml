@@ -1,6 +1,23 @@
-﻿@model IEnumerable<ITSM.Models.Ticket>
+﻿@using ITSM.Enums
+@model IEnumerable<ITSM.Models.Ticket>
 @{
     ViewData["Title"] = "Archived Tickets";
+    
+    // Helper to determine badge color based on status
+    Func<Status, string> getBadgeClass = status =>
+    {
+        return status switch
+        {
+            Status.New => "bg-primary",
+            Status.Open => "bg-info",
+            Status.Progress => "bg-warning text-dark",
+            Status.OnHold => "bg-secondary",
+            Status.Reopened => "bg-danger",
+            Status.Resolved => "bg-success",
+            Status.Canceled => "bg-dark",
+            _ => "bg-light text-dark"
+        };
+    };
 }
 
 <div class="d-grid gap-4">
@@ -49,12 +66,7 @@
                                 @ticket.Description
                             </td>
                             <td>
-                                <span class="badge 
-                            @(ticket.Status == ITSM.Enums.Status.Open ? "bg-primary text-white" :
-                            ticket.Status == ITSM.Enums.Status.Progress ? "bg-info text-white" :
-                            ticket.Status == ITSM.Enums.Status.Resolved ? "bg-success text-white" :
-                            ticket.Status == ITSM.Enums.Status.Canceled ? "bg-danger text-white" :
-                            ticket.Status == ITSM.Enums.Status.Done ? "bg-secondary text-white" : "bg-dark")">
+                                <span class="badge @getBadgeClass(ticket.Status)">
                                     @ticket.Status
                                 </span>
                             </td>

@@ -16,83 +16,54 @@ public class TicketCategoryController(ITicketCategoryService categoryService) : 
         return View(list);
     }
 
-    [HttpGet]
-    public IActionResult CreateCategory()
-    {
-        return View();
-    }
-    
     [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> CreateCategory(string name)
     {
-        if (!ModelState.IsValid)
+        if (string.IsNullOrWhiteSpace(name))
         {
-            SetTempDataMessage(false, "", "Please correct the errors in the form.");
+            NotifyError("Category name is required.");
             return RedirectToAction("CategoryList");
         }
 
         var result = await categoryService.CreateCategory(name);
-        SetTempDataMessage(result, "Category successfully added.", "Error adding category.");
+        SetNotification(result);
         return RedirectToAction("CategoryList");
     }
 
-
-
     [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteCategory(int id)
     {
         var result = await categoryService.SoftDeleteCategory(id);
-
-        SetTempDataMessage(result, "Category successfully deleted.",
-            "Error deleting category. It might be used in tickets.");
+        SetNotification(result);
         return RedirectToAction("CategoryList");
     }
 
-    [HttpGet]
-    public async Task<IActionResult> SubCategoryList(int categoryId)
-    {
-        var category = await categoryService.GetSubCategoryListAsync(categoryId);
-
-
-        ViewData["Category"] = category;
-
-
-        var viewModel = new SubCategoryCreateViewModel
-        {
-            CategoryId = category.Id,
-            Name = string.Empty
-        };
-
-        return View(viewModel);
-    }
-
-
     [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteSubCategory(int subCategoryId)
     {
         var result = await categoryService.SoftDeleteSubCategoryAsync(subCategoryId);
-        SetTempDataMessage(result, "Subcategory successfully deleted.",
-            "Error deleting subcategory. It might be used in tickets.");
-
+        SetNotification(result);
         return RedirectToAction("CategoryList");
     }
 
 
     [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> AddSubCategory(SubCategoryCreateViewModel viewModel)
     {
         if (!ModelState.IsValid)
         {
-            SetTempDataMessage(false, "", "Please correct the errors in the form.");
-
-            return RedirectToAction(nameof(SubCategoryList), new { categoryId = viewModel.CategoryId });
+            NotifyError("Please correct the errors in the form.");
+            return RedirectToAction("CategoryList");
         }
 
         var result = await categoryService.AddSubCategoryAsync(viewModel);
-        SetTempDataMessage(result, "Subcategory added successfully.", "Error adding the subcategory.");
+        SetNotification(result);
 
-
-        return RedirectToAction(nameof(SubCategoryList), new { categoryId = viewModel.CategoryId });
+        return RedirectToAction("CategoryList");
     }
 
 }

@@ -10,6 +10,7 @@ public class ArchiveService(DBaseContext context, UserManager<User> userManager)
     public async Task<IEnumerable<KnowledgeBaseArticle>> GetDeletedArticlesAsync()
     {
         return await context.KnowledgeBaseArticles
+            .IgnoreQueryFilters()
             .Where(a => a.IsDeleted)
             .Include(a=>a.Category)
             .Include(a => a.Author)
@@ -19,6 +20,7 @@ public class ArchiveService(DBaseContext context, UserManager<User> userManager)
     public async Task<IEnumerable<Models.Ticket>> GetDeletedTicketsAsync()
     {
         return await context.Tickets
+            .IgnoreQueryFilters()
             .Where(t => t.IsDeleted)
             .Include(t => t.Author)
             .Include(t => t.Category)
@@ -29,6 +31,7 @@ public class ArchiveService(DBaseContext context, UserManager<User> userManager)
     public async Task<IEnumerable<Models.TicketCategory>> GetDeletedCategoriesAsync()
     {
         return await context.TicketCategories
+            .IgnoreQueryFilters()
             .Include(c => c.SubCategories)
             .Where(c => c.IsDeleted || c.SubCategories.Any(sc => sc.IsDeleted))
             .ToListAsync();
@@ -37,37 +40,65 @@ public class ArchiveService(DBaseContext context, UserManager<User> userManager)
     public async Task<IEnumerable<User>> GetDeletedUsersAsync()
     {
         return await context.Users
+            .IgnoreQueryFilters()
             .Where(u => u.IsDeleted)
             .ToListAsync();
     }
+
+    public async Task<IEnumerable<Models.Discussion>> GetArchivedDiscussionsAsync(string? search = null)
+    {
+        var query = context.Discussions
+            .IgnoreQueryFilters()
+            .Where(d => d.IsDeleted)
+            .Include(d => d.Author)
+            .Include(d => d.Category)
+            .AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            search = search.ToLower();
+            query = query.Where(d => d.Title.ToLower().Contains(search));
+        }
+
+        return await query.ToListAsync();
+    }
     
-    public async Task<bool> RestoreUsersAsync(List<string> selectedUserIds)
+    public async Task<OperationResult> RestoreUsersAsync(List<string> selectedUserIds)
     {
         if (selectedUserIds == null || selectedUserIds.Count == 0)
-            return false;
+            return OperationResult.Failure("No users selected for restoration.");
+
+        int count = 0;
         foreach (var userId in selectedUserIds)
         {
-            var user = await userManager.FindByIdAsync(userId);
+            var user = await userManager.Users
+                .IgnoreQueryFilters()
+                .FirstOrDefaultAsync(u => u.Id == userId);
+            
             if (user == null || !user.IsDeleted) continue;
 
             user.IsDeleted = false;
             user.LockoutEnabled = false;
+            user.LockoutEnd = null;
             await userManager.UpdateAsync(user);
+            count++;
         }
 
-        return true;
+        return OperationResult.Success($"{count} users restored successfully.");
     }
-    public async Task<bool> RestoreEntitiesAsync<T>(DbSet<T> dbSet, List<int> selectedIds) where T : class, ISoftDeletableEntity
+
+    public async Task<OperationResult> RestoreEntitiesAsync<T>(DbSet<T> dbSet, List<int> selectedIds) where T : class, ISoftDeletable
     {
         if (selectedIds == null || selectedIds.Count == 0)
-            return false;
+            return OperationResult.Failure("No items selected for restoration.");
 
         var entities = await dbSet
-            .Where(e => selectedIds.Contains(e.Id) && e.IsDeleted)
+            .IgnoreQueryFilters()
+            .Where(e => selectedIds.Contains(Microsoft.EntityFrameworkCore.EF.Property<int>(e, "Id")) && e.IsDeleted)
             .ToListAsync();
 
         if (entities.Count == 0)
-            return false;
+            return OperationResult.Failure("No deleted items found to restore.");
 
         foreach (var entity in entities)
         {
@@ -75,7 +106,7 @@ public class ArchiveService(DBaseContext context, UserManager<User> userManager)
         }
 
         await context.SaveChangesAsync();
-        return true;
+        return OperationResult.Success($"{entities.Count} items restored successfully.");
     }
 
 }

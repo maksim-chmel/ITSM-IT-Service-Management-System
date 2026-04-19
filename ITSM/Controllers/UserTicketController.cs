@@ -5,6 +5,7 @@ using ITSM.Services.UserManagement;
 using ITSM.ViewModels.Create;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace ITSM.Controllers;
 
@@ -23,6 +24,7 @@ public class UserTicketController(
     }
 
     [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> CreateTicket(TicketCreateViewModel model)
     {
         var currentUser = await userService.GetCurrentUserAsync(User);
@@ -31,7 +33,7 @@ public class UserTicketController(
 
         var result = await ticketService.CreateNewTicket(model, currentUser.Id);
 
-        SetTempDataMessage(result, "Ticket created successfully.", "Error while creating the ticket.");
+        SetNotification(result);
         return RedirectToAction("CreateTicket");
     }
 
@@ -42,12 +44,14 @@ public class UserTicketController(
 
         if (currentUser == null)
         {
-            TempData["ErrorMessage"] = "User not found.";
+            NotifyError("User not found.");
             return RedirectToAction("Error", "Home");
         }
 
-        var list = await ticketService.GetUserTickets(currentUser.Id);
-        var filteredTickets = ticketSortService.GetFilteredTickets(list, categoryId, null, status);
+        var query = ticketService.GetUserTicketsQuery(currentUser.Id);
+        var filteredQuery = ticketSortService.GetFilteredTickets(query, categoryId, null, status);
+        var filteredTickets = await filteredQuery.ToListAsync();
+        
         ViewBag.Categories = ticketSortService.GetCategorySelectList();
         return View(filteredTickets);
     }

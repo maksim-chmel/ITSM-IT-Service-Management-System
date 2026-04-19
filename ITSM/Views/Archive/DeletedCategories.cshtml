@@ -1,6 +1,6 @@
 ﻿@model IEnumerable<ITSM.Models.TicketCategory>
 @{
-    ViewData["Title"] = "Deleted Categories and Subcategories";
+    ViewData["Title"] = "Archived Categories";
 }
 
 <div class="d-grid gap-4">
@@ -8,91 +8,85 @@
         <div class="page-header">
             <div>
                 <h2>@ViewData["Title"]</h2>
-                <p class="text-muted mb-0">Restore deleted categories and nested subcategories.</p>
+                <p class="text-muted mb-0">Restore archived categories and their subcategories from a unified list.</p>
             </div>
         </div>
 
-        <div class="page-actions mb-3">
-            <form asp-action="RestoreCategories" method="post" id="restoreCategoriesForm">
+        <form asp-action="RestoreTaxonomy" method="post" id="restoreForm">
+            <div class="page-actions mb-3 d-flex justify-content-between">
                 <button type="submit" class="btn btn-outline-primary">
-                    <i class="bi bi-arrow-counterclockwise"></i> Restore Selected Categories
+                    <i class="bi bi-arrow-counterclockwise"></i> Restore Selected
                 </button>
-            </form>
-
-            <form asp-action="RestoreSubCategories" method="post" id="restoreSubForm">
-                <button type="submit" class="btn btn-outline-secondary">
-                    <i class="bi bi-arrow-counterclockwise"></i> Restore Selected Subcategories
-                </button>
-            </form>
-        </div>
-
-        <div class="split-grid">
-            <div class="table-responsive">
-                <table class="table table-hover table-bordered align-middle text-center">
-                    <thead class="table-dark text-white">
-                        <tr>
-                            <th><input type="checkbox" id="selectAllCategories" /></th>
-                            <th>Name</th>
-                            <th>Type</th>
-                        </tr>
-                    </thead>
-                    <tbody class="table-light">
-                        @foreach (var category in Model.Where(c => c.IsDeleted))
-                        {
-                            <tr>
-                                <td>
-                                    <input type="checkbox" name="selectedCategoryIds" value="@category.Id" form="restoreCategoriesForm" class="form-check-input" />
-                                </td>
-                                <td><strong>@category.Name</strong></td>
-                                <td>Category</td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="selectAll" />
+                    <label class="form-check-label" for="selectAll">Select All</label>
+                </div>
             </div>
 
-            <div class="table-responsive">
-                <table class="table table-hover table-bordered align-middle text-center">
-                    <thead class="table-dark text-white">
-                        <tr>
-                            <th><input type="checkbox" id="selectAllSubCategories" /></th>
-                            <th>Name</th>
-                            <th>Type</th>
-                        </tr>
-                    </thead>
-                    <tbody class="table-light">
-                        @foreach (var category in Model)
-                        {
-                            foreach (var sub in category.SubCategories.Where(s => s.IsDeleted))
+            <ul class="list-group">
+                @foreach (var category in Model)
+                {
+                    if (category.IsDeleted || category.SubCategories.Any(s => s.IsDeleted))
+                    {
+                        <li class="list-group-item">
+                            <div class="d-flex align-items-center">
+                                @if (category.IsDeleted)
+                                {
+                                    <input type="checkbox" name="selectedCategoryIds" value="@category.Id" class="form-check-input me-3" data-id="cat-@category.Id"/>
+                                }
+                                <strong class="flex-grow-1">@category.Name</strong>
+                                <span class="badge bg-dark">Category</span>
+                            </div>
+
+                            @if (category.SubCategories.Any(s => s.IsDeleted))
                             {
-                                <tr>
-                                    <td>
-                                        <input type="checkbox" name="selectedSubCategoryIds" value="@sub.Id" form="restoreSubForm" class="form-check-input" />
-                                    </td>
-                                    <td class="ps-4">@sub.Name</td>
-                                    <td>Subcategory</td>
-                                </tr>
+                                <ul class="list-group mt-2 ms-4">
+                                    @foreach (var sub in category.SubCategories.Where(s => s.IsDeleted))
+                                    {
+                                        <li class="list-group-item list-group-item-light">
+                                            <div class="d-flex align-items-center">
+                                                <input type="checkbox" name="selectedSubCategoryIds" value="@sub.Id" class="form-check-input me-3" data-parent="cat-@category.Id"/>
+                                                <span class="flex-grow-1">@sub.Name</span>
+                                                <span class="badge bg-secondary">Subcategory</span>
+                                            </div>
+                                        </li>
+                                    }
+                                </ul>
                             }
-                        }
-                    </tbody>
-                </table>
-            </div>
-        </div>
+                        </li>
+                    }
+                }
+            </ul>
+        </form>
     </section>
 </div>
 
 @section Scripts {
     <script>
-       
-        document.getElementById("selectAllCategories").addEventListener("change", function () {
-            const checkboxes = document.querySelectorAll('input[name="selectedCategoryIds"]');
-            checkboxes.forEach(cb => cb.checked = this.checked);
-        });
+        document.addEventListener("DOMContentLoaded", function() {
+            const selectAll = document.getElementById("selectAll");
+            const allCheckboxes = document.querySelectorAll('#restoreForm input[type="checkbox"]');
 
-       
-        document.getElementById("selectAllSubCategories").addEventListener("change", function () {
-            const checkboxes = document.querySelectorAll('input[name="selectedSubCategoryIds"]');
-            checkboxes.forEach(cb => cb.checked = this.checked);
+            selectAll.addEventListener("change", function () {
+                allCheckboxes.forEach(cb => cb.checked = this.checked);
+            });
+            
+            allCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    if (!this.checked) {
+                        selectAll.checked = false;
+                    } else {
+                        // Check if all are checked
+                        let allChecked = true;
+                        allCheckboxes.forEach(cb => {
+                            if (!cb.checked) {
+                                allChecked = false;
+                            }
+                        });
+                        selectAll.checked = allChecked;
+                    }
+                });
+            });
         });
     </script>
 }

@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
 namespace ITSM.Models;
-public class DiscussionMessage
+public class DiscussionMessage : ISoftDeletable
 {
     public int Id { get; set; }
 
@@ -22,4 +22,6 @@ public class DiscussionMessage
 
     [Required]
     public User Author { get; set; } = null!;
+    
+    public bool IsDeleted { get; set; }
 }

@@ -9,7 +9,7 @@ public interface IUserProfileService
 {
     Task<User?> GetUserAsync(ClaimsPrincipal userPrincipal);
     Task<EditUserViewModel> GetUserProfileAsync(User user);
-    Task<IdentityResult> UpdateUserProfileAsync(User user, EditUserViewModel model);
-    Task<IdentityResult> ChangeUserPasswordAsync(User user, string currentPassword, string newPassword);
+    Task<OperationResult> UpdateUserProfileAsync(User user, EditUserViewModel model);
+    Task<OperationResult> ChangeUserPasswordAsync(User user, string currentPassword, string newPassword);
     Task RefreshUserSignInAsync(User user);
 }

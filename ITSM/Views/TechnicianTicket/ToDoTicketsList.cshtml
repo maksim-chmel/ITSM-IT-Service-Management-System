@@ -1,8 +1,24 @@
-﻿@using ITSM.Enums
+@using ITSM.Enums
 @model IEnumerable<ITSM.Models.Ticket>
 
 @{
     ViewData["Title"] = "My Tasks";
+    
+    // Helper to determine badge color based on status
+    Func<Status, string> getBadgeClass = status =>
+    {
+        return status switch
+        {
+            Status.New => "bg-primary",
+            Status.Open => "bg-info",
+            Status.Progress => "bg-warning text-dark",
+            Status.OnHold => "bg-secondary",
+            Status.Reopened => "bg-danger",
+            Status.Resolved => "bg-success",
+            Status.Canceled => "bg-dark",
+            _ => "bg-light text-dark"
+        };
+    };
 }
 
 <div class="d-grid gap-4">
@@ -78,7 +94,6 @@
                     <th>SubCategory</th>
                     <th>Author Name</th>
                     <th>Created At</th>
-                    <th>Closed At</th>
                     <th>Status</th>
                     <th>Actions</th>
                 </tr>
@@ -89,11 +104,13 @@
                     <tr>
                         <td><strong>@ticket.Id</strong></td>
                         <td>
-                            <span class="badge
-                                @(ticket.Priority == TicketPriority.Low ? "bg-secondary" :
-                                ticket.Priority == TicketPriority.Medium ? "bg-primary text-white" :
-                                ticket.Priority == TicketPriority.High ? "bg-warning text-white" :
-                                ticket.Priority == TicketPriority.Critical ? "bg-danger text-white" : "bg-dark")">
+                            <span class="badge @(ticket.Priority switch {
+                                      TicketPriority.Low => "bg-secondary",
+                                      TicketPriority.Medium => "bg-primary",
+                                      TicketPriority.High => "bg-warning text-dark",
+                                      TicketPriority.Critical => "bg-danger",
+                                      _ => "bg-dark"
+                                  })">
                                 @ticket.Priority
                             </span>
                         </td>
@@ -102,32 +119,17 @@
                         <td>@ticket.TicketSubCategory?.Name</td>
                         <td>@ticket.Author?.UserName</td>
                         <td>@ticket.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
-                        <td>@(ticket.ClosedAt?.ToString("yyyy-MM-dd HH:mm") ?? "-")</td>
                         <td>
-                            <span class="badge
-                                @(ticket.Status == Status.Open ? "bg-primary text-white" :
-                                ticket.Status == Status.Progress ? "bg-info text-white" :
-                                ticket.Status == Status.Resolved ? "bg-success text-white" :
-                                ticket.Status == Status.Reopened ? "bg-warning text-dark" :
-                                ticket.Status == Status.Canceled ? "bg-danger text-white" :
-                                ticket.Status == Status.Done ? "bg-secondary text-white" : "bg-dark")">
+                            <span class="badge @getBadgeClass(ticket.Status)">
                                 @ticket.Status
                             </span>
                         </td>
                         <td>
-                            @if (ticket.Status == Status.Progress)
-                            {
-                                <a asp-controller="TechnicianTicket" asp-action="ShowDetailsAboutTicket"
-                                   asp-route-id="@ticket.Id"
-                                   class="btn btn-outline-primary btn-sm">Details</a>
-                            }
-                            else if (ticket.Status == Status.Open || ticket.Status == Status.Reopened)
-                            {
-                                <form asp-controller="TechnicianTicket" asp-action="AcceptTicketProcessing" method="post" class="d-inline">
-                                    <input type="hidden" name="id" value="@ticket.Id"/>
-                                    <button type="submit" class="btn btn-outline-success btn-sm">Accept</button>
-                                </form>
-                            }
+                             <a asp-controller="TechnicianTicket" asp-action="ShowDetailsAboutTicket"
+                               asp-route-id="@ticket.Id"
+                               class="btn btn-outline-primary btn-sm">
+                                 <i class="bi bi-pencil-square"></i> Manage
+                             </a>
                         </td>
                     </tr>
                 }

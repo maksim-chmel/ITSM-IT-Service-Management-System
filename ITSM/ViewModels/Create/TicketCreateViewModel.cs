@@ -24,7 +24,7 @@ public class TicketCreateViewModel
     public int CategoryId { get; set; }
 
     public string? AuthorId { get; set; }
-    public IEnumerable<SelectListItem> Categories { get; set; }
+    public IEnumerable<SelectListItem> Categories { get; set; } = new List<SelectListItem>();
     public string? AuthorName { get; set; }
     public string? CategoryName { get; set; }
 

@@ -8,12 +8,12 @@ namespace ITSM.Services.TicketCategory;
 
 public class TicketCategoryService(DBaseContext context) : ITicketCategoryService
 {
-    public async Task<bool> CreateCategory(string name)
+    public async Task<OperationResult> CreateCategory(string name)
     {
         var categoryExists = await context.TicketCategories
             .AnyAsync(c => c.Name.ToLower() == name.ToLower());
 
-        if (categoryExists) return false;
+        if (categoryExists) return OperationResult.Failure("Category already exists.");
 
         var category = new Models.TicketCategory
         {
@@ -21,19 +21,19 @@ public class TicketCategoryService(DBaseContext context) : ITicketCategoryServic
         };
         context.TicketCategories.Add(category);
         await context.SaveChangesAsync();
-        return true;
+        return OperationResult.Success("Category created successfully.");
     }
 
 
     public async Task<List<Models.TicketCategory>> GetAllCategoriesToList()
     {
         return await context.TicketCategories
-            .Where(c => !c.IsDeleted)
+            .Include(c => c.SubCategories)
             .ToListAsync();
     }
 
 
-    public async Task<bool> DeleteCategory(int id)
+    public async Task<OperationResult> DeleteCategory(int id)
     {
         await using var transaction = await context.Database.BeginTransactionAsync();
 
@@ -43,7 +43,7 @@ public class TicketCategoryService(DBaseContext context) : ITicketCategoryServic
             .FirstOrDefaultAsync(c => c.Id == id);
 
         if (category == null)
-            return false;
+            return OperationResult.Failure("Category not found.");
 
 
         foreach (var subCategory in category.SubCategories)
@@ -58,26 +58,27 @@ public class TicketCategoryService(DBaseContext context) : ITicketCategoryServic
         {
             await context.SaveChangesAsync();
             await transaction.CommitAsync();
-            return true;
+            return OperationResult.Success("Category deleted permanently.");
         }
-        catch
+        catch (Exception ex)
         {
             await transaction.RollbackAsync();
-            return false;
+            return OperationResult.Failure($"Error deleting category: {ex.Message}");
         }
     }
 
-    public async Task<bool> SoftDeleteCategory(int id)
+    public async Task<OperationResult> SoftDeleteCategory(int id)
     {
         await using var transaction = await context.Database.BeginTransactionAsync();
 
         var category = await context.TicketCategories
             .Include(c => c.Tickets)
             .Include(c => c.SubCategories)
+            .Include(c => c.UserCategoryAssignments) // Eagerly load assignments
             .FirstOrDefaultAsync(c => c.Id == id);
 
         if (category == null)
-            return false;
+            return OperationResult.Failure("Category not found.");
 
 
         category.IsDeleted = true;
@@ -90,16 +91,22 @@ public class TicketCategoryService(DBaseContext context) : ITicketCategoryServic
             context.TicketSubCategories.Update(subCategory);
         }
 
+        foreach (var assignment in category.UserCategoryAssignments)
+        {
+            assignment.IsDeleted = true;
+            context.UserCategoryAssignments.Update(assignment);
+        }
+
         try
         {
             await context.SaveChangesAsync();
             await transaction.CommitAsync();
-            return true;
+            return OperationResult.Success("Category, its subcategories, and related user assignments have been archived.");
         }
-        catch
+        catch (Exception ex)
         {
             await transaction.RollbackAsync();
-            return false;
+            return OperationResult.Failure($"Error archiving category: {ex.Message}");
         }
     }
 
@@ -108,13 +115,10 @@ public class TicketCategoryService(DBaseContext context) : ITicketCategoryServic
     {
         if (categories == null)
         {
-            categories = await context.TicketCategories
-                .Where(c => !c.IsDeleted)
-                .ToListAsync();
+            categories = await context.TicketCategories.ToListAsync();
         }
 
         return categories
-            .Where(c => !c.IsDeleted)
             .Select(c => new SelectListItem
             {
                 Value = c.Id.ToString(),
@@ -127,42 +131,41 @@ public class TicketCategoryService(DBaseContext context) : ITicketCategoryServic
     public async Task<Models.TicketCategory> GetSubCategoryListAsync(int categoryId)
     {
         return await context.TicketCategories
-            .Where(c => !c.IsDeleted)
             .Include(c => c.SubCategories)
             .FirstOrDefaultAsync(c => c.Id == categoryId);
     }
 
 
-    public async Task<bool> DeleteSubCategoryAsync(int subCategoryId)
+    public async Task<OperationResult> DeleteSubCategoryAsync(int subCategoryId)
     {
         var subCategory = await context.TicketSubCategories.FindAsync(subCategoryId);
-        if (subCategory == null) return false;
+        if (subCategory == null) return OperationResult.Failure("Subcategory not found.");
         context.TicketSubCategories.Remove(subCategory);
         await context.SaveChangesAsync();
-        return true;
+        return OperationResult.Success("Subcategory permanently deleted.");
     }
 
-    public async Task<bool> SoftDeleteSubCategoryAsync(int subCategoryId)
+    public async Task<OperationResult> SoftDeleteSubCategoryAsync(int subCategoryId)
     {
         var subCategory = await context.TicketSubCategories.FindAsync(subCategoryId);
-        if (subCategory == null) return false;
+        if (subCategory == null) return OperationResult.Failure("Subcategory not found.");
 
         subCategory.IsDeleted = true;
         context.TicketSubCategories.Update(subCategory);
 
         await context.SaveChangesAsync();
-        return true;
+        return OperationResult.Success("Subcategory archived.");
     }
 
 
-    public async Task<bool> AddSubCategoryAsync(SubCategoryCreateViewModel viewModel)
+    public async Task<OperationResult> AddSubCategoryAsync(SubCategoryCreateViewModel viewModel)
     {
         var categoryExists = await context.TicketCategories
             .AnyAsync(c => c.Id == viewModel.CategoryId);
 
         if (!categoryExists)
         {
-            return false;
+            return OperationResult.Failure("Parent category not found.");
         }
 
         var subCategory = new TicketSubCategory()
@@ -173,7 +176,7 @@ public class TicketCategoryService(DBaseContext context) : ITicketCategoryServic
 
         context.TicketSubCategories.Add(subCategory);
         await context.SaveChangesAsync();
-        return true;
+        return OperationResult.Success("Subcategory added successfully.");
     }
 
     private async Task<List<TicketSubCategory>> GetSubCategories(int categoryId)

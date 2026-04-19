@@ -7,10 +7,10 @@ namespace ITSM.ViewModels.Manage;
 public class AssignCategoryToUserViewModel
 {
     [Required(ErrorMessage = "UserId is required.")]
-    public string UserId { get; set; }
+    public string UserId { get; set; } = string.Empty;
 
     [Display(Name = "User Name")]
-    public string UserName { get; set; }
+    public string UserName { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "Please select at least one category.")]
     [MinLength(1, ErrorMessage = "Please select at least one category.")]

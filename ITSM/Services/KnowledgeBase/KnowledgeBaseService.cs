@@ -11,20 +11,10 @@ public class KnowledgeBaseService(DBaseContext dBaseContext) : IKnowledgeBaseSer
     
     public async Task<List<Models.TicketCategory>> GetAllArticlesByCategory()
     {
-        var categories = await dBaseContext.TicketCategories
-            .Where(c => !c.IsDeleted)
+        return await dBaseContext.TicketCategories
             .Include(c => c.Articles)
             .ThenInclude(a => a.Author)
             .ToListAsync();
-        
-        foreach (var category in categories)
-        {
-            category.Articles = category.Articles
-                .Where(a => !a.IsDeleted)
-                .ToList();
-        }
-
-        return categories;
     }
 
 
@@ -40,15 +30,16 @@ public class KnowledgeBaseService(DBaseContext dBaseContext) : IKnowledgeBaseSer
     {
         return await dBaseContext.KnowledgeBaseArticles
             .Where(a => a.AuthorId == authorId)
-            .Where(c => !c.IsDeleted)
             .Include(a => a.Author)
             .Include(a => a.Category)
             .ToListAsync();
     }
 
-    public async Task<bool> CreateArticle(string userId,CreateKnowArtViewModel viewModel)
+    public async Task<OperationResult> CreateArticle(string userId,CreateKnowArtViewModel viewModel)
     {
-        if (string.IsNullOrWhiteSpace(viewModel.Article) || string.IsNullOrWhiteSpace(viewModel.Content)) return false;
+        if (string.IsNullOrWhiteSpace(viewModel.Article) || string.IsNullOrWhiteSpace(viewModel.Content)) 
+            return OperationResult.Failure("Article title and content are required.");
+            
         var newArticle = new KnowledgeBaseArticle
         {
             Article = viewModel.Article,
@@ -59,31 +50,34 @@ public class KnowledgeBaseService(DBaseContext dBaseContext) : IKnowledgeBaseSer
         };
         await dBaseContext.KnowledgeBaseArticles.AddAsync(newArticle);
         await dBaseContext.SaveChangesAsync();
-        return true;
+        return OperationResult.Success("Knowledge base article created successfully.");
     }
 
-    public async Task<bool> DeleteArticle(int articleId, string authorId)
+    public async Task<OperationResult> DeleteArticle(int articleId, string authorId)
     {
         var article = await dBaseContext.KnowledgeBaseArticles.FindAsync(articleId);
-        if (article == null || article.AuthorId != authorId) return false;
+        if (article == null) return OperationResult.Failure("Article not found.");
+        if (article.AuthorId != authorId) return OperationResult.Failure("You are not the author of this article.");
 
         article.IsDeleted = true;
         await dBaseContext.SaveChangesAsync();
-        return true;
+        return OperationResult.Success("Article deleted successfully.");
     }
 
 
-    public async Task<bool> UpdateArticle(string authorId, EditKnowBaseViewModel viewModel)
+    public async Task<OperationResult> UpdateArticle(string authorId, EditKnowBaseViewModel viewModel)
     {
         var article = await dBaseContext.KnowledgeBaseArticles.FindAsync(viewModel.Id);
-        if (article == null || article.AuthorId != authorId) return false;
+        if (article == null) return OperationResult.Failure("Article not found.");
+        if (article.AuthorId != authorId) return OperationResult.Failure("You are not the author of this article.");
+        
         article.Article = viewModel.Article;
         article.Content = viewModel.Content;
         article.CategoryId = viewModel.CategoryId;
         article.CreatedAt = DateTime.UtcNow;
         dBaseContext.KnowledgeBaseArticles.Update(article);
         await dBaseContext.SaveChangesAsync();
-        return true;
+        return OperationResult.Success("Article updated successfully.");
 
     }
 }

@@ -1,17 +1,34 @@
 ﻿using ITSM.Data;
 using ITSM.Enums;
 using ITSM.Services.Archive;
+using ITSM.Services.Discussion;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace ITSM.Controllers;
-[Authorize(Roles = nameof(UserRoles.Admin))]
-public class ArchiveController(IArchiveService archiveService,DBaseContext context) : Controller
+[Authorize(Roles = "Admin,Coordinator,Technician")]
+public class ArchiveController(IArchiveService archiveService, IDiscussionService discussionService, DBaseContext context) : BaseController
 {
     [HttpGet]
     public IActionResult Index()
     {
         return View();
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> ArchivedDiscussions(string? search)
+    {
+        var discussions = await archiveService.GetArchivedDiscussionsAsync(search);
+        return View("ArchivedDiscussions", discussions);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> ViewArchivedDiscussion(int id)
+    {
+        var discussion = await discussionService.GetDiscussionByIdWithMessages(id);
+        if (discussion == null) return NotFound();
+        return View("ViewArchivedDiscussion", discussion);
     }
 
     [HttpGet]
@@ -44,53 +61,78 @@ public class ArchiveController(IArchiveService archiveService,DBaseContext conte
 
 
     [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> RestoreArticles(List<int> selectedArticleIds)
     {
         if (selectedArticleIds == null || !selectedArticleIds.Any())
             return RedirectToAction("DeletedArticles");
 
-        await archiveService.RestoreEntitiesAsync(context.KnowledgeBaseArticles,selectedArticleIds);
+        var result = await archiveService.RestoreEntitiesAsync(context.KnowledgeBaseArticles,selectedArticleIds);
+        SetNotification(result);
         return RedirectToAction("DeletedArticles");
     }
 
 
     [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> RestoreTickets(List<int> selectedTicketIds)
     {
         if (selectedTicketIds == null || !selectedTicketIds.Any())
             return RedirectToAction("DeletedTickets");
 
-        await archiveService.RestoreEntitiesAsync(context.Tickets,selectedTicketIds);
+        var result = await archiveService.RestoreEntitiesAsync(context.Tickets,selectedTicketIds);
+        SetNotification(result);
         return RedirectToAction("DeletedTickets");
     }
 
     [HttpPost]
-    public async Task<IActionResult> RestoreCategories(List<int> selectedCategoryIds)
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> RestoreTaxonomy(List<int> selectedCategoryIds, List<int> selectedSubCategoryIds)
     {
-        if (selectedCategoryIds == null || !selectedCategoryIds.Any())
+        if ((selectedCategoryIds == null || !selectedCategoryIds.Any()) && (selectedSubCategoryIds == null || !selectedSubCategoryIds.Any()))
+        {
+            NotifyError("No items selected for restoration.");
             return RedirectToAction("DeletedCategories");
+        }
 
-        await archiveService.RestoreEntitiesAsync(context.TicketCategories,selectedCategoryIds);
+        if (selectedCategoryIds != null && selectedCategoryIds.Any())
+        {
+            var categoriesToRestore = await context.TicketCategories
+                .IgnoreQueryFilters()
+                .Include(c => c.SubCategories)
+                .Where(c => selectedCategoryIds.Contains(c.Id))
+                .ToListAsync();
+
+            foreach(var category in categoriesToRestore)
+            {
+                category.IsDeleted = false;
+                foreach(var subCategory in category.SubCategories)
+                {
+                    subCategory.IsDeleted = false;
+                }
+            }
+            await context.SaveChangesAsync();
+            NotifySuccess($"{categoriesToRestore.Count} categories and their subcategories restored.");
+        }
+
+        if (selectedSubCategoryIds != null && selectedSubCategoryIds.Any())
+        {
+            var subCategoryResult = await archiveService.RestoreEntitiesAsync(context.TicketSubCategories, selectedSubCategoryIds);
+            SetNotification(subCategoryResult);
+        }
+
         return RedirectToAction("DeletedCategories");
     }
 
     [HttpPost]
-    public async Task<IActionResult> RestoreSubCategories(List<int> selectedSubCategoryIds)
-    {
-        if (selectedSubCategoryIds == null || !selectedSubCategoryIds.Any())
-            return RedirectToAction("DeletedCategories");
-
-        await archiveService.RestoreEntitiesAsync(context.TicketSubCategories,selectedSubCategoryIds);
-        return RedirectToAction("DeletedCategories");
-    }
-
-    [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> RestoreUsers(List<string> selectedUserIds)
     {
         if (selectedUserIds == null || !selectedUserIds.Any())
             return RedirectToAction("DeletedUsers");
 
-        await archiveService.RestoreUsersAsync(selectedUserIds);
+        var result = await archiveService.RestoreUsersAsync(selectedUserIds);
+        SetNotification(result);
         return RedirectToAction("DeletedUsers");
     }
 }

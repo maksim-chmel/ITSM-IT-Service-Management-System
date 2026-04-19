@@ -22,18 +22,24 @@ public class UserProfileService(UserManager<User> userManager, SignInManager<Use
         };
     }
 
-    public async Task<IdentityResult> UpdateUserProfileAsync(User user, EditUserViewModel model)
+    public async Task<OperationResult> UpdateUserProfileAsync(User user, EditUserViewModel model)
     {
         user.UserName = model.UserName;
         user.Email = model.Email;
         user.PhoneNumber = model.PhoneNumber;
 
-        return await userManager.UpdateAsync(user);
+        var result = await userManager.UpdateAsync(user);
+        if (result.Succeeded) return OperationResult.Success("Profile updated successfully.");
+        
+        return OperationResult.Failure(string.Join(", ", result.Errors.Select(e => e.Description)));
     }
 
-    public async Task<IdentityResult> ChangeUserPasswordAsync(User user, string currentPassword, string newPassword)
+    public async Task<OperationResult> ChangeUserPasswordAsync(User user, string currentPassword, string newPassword)
     {
-        return await userManager.ChangePasswordAsync(user, currentPassword, newPassword);
+        var result = await userManager.ChangePasswordAsync(user, currentPassword, newPassword);
+        if (result.Succeeded) return OperationResult.Success("Password changed successfully.");
+        
+        return OperationResult.Failure(string.Join(", ", result.Errors.Select(e => e.Description)));
     }
 
     public async Task RefreshUserSignInAsync(User user)

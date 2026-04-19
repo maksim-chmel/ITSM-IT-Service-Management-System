@@ -2,7 +2,7 @@
 using ITSM.Services.Archive;
 
 namespace ITSM.Models;
-public class KnowledgeBaseArticle: ISoftDeletableEntity
+public class KnowledgeBaseArticle: ISoftDeletable
 {
     public int Id { get; set; }
     public string Article { get; set; } = string.Empty; 

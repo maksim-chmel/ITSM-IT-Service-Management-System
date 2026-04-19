@@ -97,8 +97,8 @@
                                         <li>
                                             <form asp-controller="UserManagement" asp-action="DeleteUser"
                                                   asp-route-id="@user.Id" method="post"
-                                                  onsubmit="return confirm('Are you sure you want to delete this user?');">
-                                                <button type="submit" class="dropdown-item text-danger">Delete</button>
+                                                  onsubmit="return confirm('Are you sure you want to archive this user? Account will be locked.');">
+                                                <button type="submit" class="dropdown-item text-danger">Archive User</button>
                                             </form>
                                         </li>
                                     </ul>

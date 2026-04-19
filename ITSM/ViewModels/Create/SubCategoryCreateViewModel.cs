@@ -5,7 +5,7 @@ namespace ITSM.ViewModels.Create;
 public class SubCategoryCreateViewModel
 {
     [Required(ErrorMessage = "Subcategory name is required.")]
-    public string Name { get; set; }
+    public string Name { get; set; } = string.Empty;
 
     [Required]
     public int CategoryId { get; set; }

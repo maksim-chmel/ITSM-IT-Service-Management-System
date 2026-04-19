@@ -2,7 +2,7 @@
 
 namespace ITSM.Models;
 
-public class TicketHistory
+public class TicketHistory : ISoftDeletable
 {
     public int Id { get; set; }
 
@@ -13,5 +13,7 @@ public class TicketHistory
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-    public Ticket Ticket { get; set; }
+    public Ticket Ticket { get; set; } = null!;
+
+    public bool IsDeleted { get; set; }
 }

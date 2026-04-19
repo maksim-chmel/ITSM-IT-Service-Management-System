@@ -10,9 +10,9 @@ public interface IUserManagementService
    // Task<bool> DeleteUserById(string userId);
     Task<UserWithRolesViewModel[]> GetAllUsersToList();
     Task<User?> GetCurrentUserAsync(ClaimsPrincipal principal);
-    Task EditUser(string id, EditUserViewModel editmodel);
+    Task<OperationResult> EditUser(string id, EditUserViewModel editmodel);
     Task<EditUserViewModel> CreateEditUserViewModel(string userId);
     Task<UserWithRolesViewModel[]> SearchUser(string? search);
-    Task<bool> SoftDeleteUserById(string userId);
+    Task<OperationResult> SoftDeleteUserById(string userId);
 
 }

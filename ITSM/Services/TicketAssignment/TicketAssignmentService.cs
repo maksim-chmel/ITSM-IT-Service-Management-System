@@ -1,5 +1,6 @@
 ﻿using ITSM.Data;
 using ITSM.Enums;
+using ITSM.Models;
 using ITSM.Services.Ticket;
 using ITSM.Services.UserManagement;
 using ITSM.ViewModels.Manage;
@@ -56,27 +57,25 @@ public class TicketAssignmentService(
     }
 
     
-    public async Task<bool> AssignTicketToTechnician(int ticketId, string userId)
+    public async Task<OperationResult> AssignTicketToTechnician(int ticketId, string userId)
     {
         var ticket = await ticketService.GetTicketById(ticketId);
 
-        if (ticket == null) return false;
+        if (ticket == null) return OperationResult.Failure("Ticket not found.");
         ticket.Status = Status.Open;
         ticket.AssignedUserId = userId;
         await context.SaveChangesAsync();
-        return true;
-
+        return OperationResult.Success("Ticket assigned to technician.");
     }
 
    
-    public async Task<bool> UpdateTicketPriority(int ticketId, TicketPriority priority)
+    public async Task<OperationResult> UpdateTicketPriority(int ticketId, TicketPriority priority)
     {
         var ticket = await ticketService.GetTicketById(ticketId);
 
-        if (ticket == null) return false;
+        if (ticket == null) return OperationResult.Failure("Ticket not found.");
         ticket.Priority = priority;
         await context.SaveChangesAsync();
-        return true;
-
+        return OperationResult.Success("Ticket priority updated.");
     }
 }

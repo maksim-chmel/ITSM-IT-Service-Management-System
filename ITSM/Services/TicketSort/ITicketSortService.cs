@@ -5,7 +5,7 @@ namespace ITSM.Services.TicketSort;
 
 public interface ITicketSortService
 {
-    IEnumerable<Models.Ticket> GetFilteredTickets(IEnumerable<Models.Ticket> tickets, int? categoryId, TicketPriority? priority,
+    IQueryable<Models.Ticket> GetFilteredTickets(IQueryable<Models.Ticket> tickets, int? categoryId, TicketPriority? priority,
         Status? status);
     IEnumerable<SelectListItem> GetCategorySelectList();
 }

@@ -7,9 +7,9 @@ namespace ITSM.ViewModels.Manage;
 
 public class AssignTicketPriorityViewModel
 {
-    public Ticket Ticket { get; set; }
+    public Ticket Ticket { get; set; } = new();
     [Required(ErrorMessage = "Please select a priority.")]
     [EnumDataType(typeof(TicketPriority), ErrorMessage = "Invalid priority selected.")]
     public TicketPriority SelectedPriority { get; set; }  
-    public List<SelectListItem> Priorities { get; set; } 
+    public List<SelectListItem> Priorities { get; set; } = new();
 }

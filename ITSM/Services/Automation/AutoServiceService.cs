@@ -1,66 +1,103 @@
 ﻿using ITSM.Data;
 using ITSM.Enums;
 using ITSM.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace ITSM.Services.Automation;
-public class AutoServiceService(DBaseContext dBaseContext) : IAutoServiceService
+
+public class AutoServiceService(
+    DBaseContext dBaseContext,
+    UserManager<User> userManager,
+    ILogger<AutoServiceService> logger) : IAutoServiceService
 {
     public async Task AssignTicketsByCategoryAndLoadAsync()
     {
         var ticketsToAssign = await dBaseContext.Tickets
-            .Where(t => (t.Status == Status.New || t.Status == Status.Open) && t.CategoryId != null)
+            .Where(t => (t.Status == Status.New || t.Status == Status.Open))
             .OrderByDescending(t => t.Priority)
             .ToListAsync();
+
+        var technicianIds = (await userManager.GetUsersInRoleAsync(nameof(UserRoles.Technician)))
+            .Select(u => u.Id)
+            .ToList();
 
         var users = await dBaseContext.Users
             .Include(u => u.UserCategoryAssignments)
             .Include(u => u.AssignedTickets)
-            .Where(u => u.UserCategoryAssignments.Any(uca => uca.CategoryId != null))
+            .Where(u => technicianIds.Contains(u.Id))
             .ToListAsync();
 
-        var tasks = ticketsToAssign.Select(async ticket =>
-        {
-            Console.WriteLine($"Processing ticket ID: {ticket.Id}, priority: {ticket.Priority}, category: {ticket.CategoryId}");
+        // Dictionary to track temporary load during this batch run
+        var currentLoad = users.ToDictionary(
+            u => u.Id, 
+            u => u.AssignedTickets.Count(t => t.Status != Status.Resolved && t.Status != Status.Canceled)
+        );
 
-            var availableUsers = users
+        foreach (var ticket in ticketsToAssign)
+        {
+            var bestUser = users
                 .Where(u => u.UserCategoryAssignments.Any(uca => uca.CategoryId == ticket.CategoryId))
                 .Select(u => new
                 {
                     User = u,
-                    ActiveTicketCount = u.AssignedTickets.Count(t => t.Status != Status.Resolved && t.Status != Status.Canceled),
-                    SkillLevel = (int)u.SkillLevel
+                    Score = ((int)ticket.Priority * (int)u.SkillLevel) - currentLoad[u.Id]
                 })
-                .ToList();
+                .OrderByDescending(x => x.Score)
+                .FirstOrDefault();
 
-            if (availableUsers.Any())
+            if (bestUser != null)
             {
-                var selected = availableUsers
-                    .OrderByDescending(u => ((int)ticket.Priority * u.SkillLevel) - u.ActiveTicketCount)
-                    .First();
-
-
-                await AssignTicketToUserAsync(ticket, selected.User);
+                AssignTicketToUser(ticket, bestUser.User);
+                currentLoad[bestUser.User.Id]++; // Update load for next ticket in loop
             }
-            else
-            {
-                Console.WriteLine($"No available users for ticket ID: {ticket.Id}, category: {ticket.CategoryId}");
-            }
-        });
+        }
 
-        await Task.WhenAll(tasks);
         await dBaseContext.SaveChangesAsync();
-        Console.WriteLine("All tickets were assigned successfully.");
+        logger.LogInformation("Batch ticket assignment completed.");
     }
 
-    private async Task AssignTicketToUserAsync(Models.Ticket ticket, User selectedUser)
+    public async Task<OperationResult> AssignTicketToAvailableUserAsync(int ticketId)
+    {
+        var ticket = await dBaseContext.Tickets.FindAsync(ticketId);
+        if (ticket == null) return OperationResult.Failure("Ticket not found.");
+
+        var technicianIds = (await userManager.GetUsersInRoleAsync(nameof(UserRoles.Technician)))
+            .Select(u => u.Id)
+            .ToList();
+
+        var potentialUsers = await dBaseContext.Users
+            .Include(u => u.UserCategoryAssignments)
+            .Include(u => u.AssignedTickets)
+            .Where(u => technicianIds.Contains(u.Id))
+            .Where(u => u.UserCategoryAssignments.Any(uca => uca.CategoryId == ticket.CategoryId))
+            .ToListAsync();
+
+        var bestUser = potentialUsers
+            .Select(u => new
+            {
+                User = u,
+                Score = ((int)ticket.Priority * (int)u.SkillLevel) -
+                        u.AssignedTickets.Count(t => t.Status != Status.Resolved && t.Status != Status.Canceled)
+            })
+            .OrderByDescending(x => x.Score)
+            .FirstOrDefault();
+
+        if (bestUser != null)
+        {
+            AssignTicketToUser(ticket, bestUser.User);
+            await dBaseContext.SaveChangesAsync();
+            return OperationResult.Success($"Ticket auto-assigned to {bestUser.User.UserName}.");
+        }
+
+        return OperationResult.Failure("No available technician found for this category.");
+    }
+
+    private void AssignTicketToUser(Models.Ticket ticket, User selectedUser)
     {
         ticket.AssignedUserId = selectedUser.Id;
         ticket.Status = Status.Progress;
-
-        Console.WriteLine($"Ticket {ticket.Id} was assigned to user {selectedUser.UserName}.");
-
-        selectedUser.AssignedTickets.Add(ticket);
+        logger.LogInformation($"Ticket {ticket.Id} ({ticket.Title}) assigned to {selectedUser.UserName}.");
     }
 
     public async Task ResetTicketsAsync()
@@ -78,11 +115,11 @@ public class AutoServiceService(DBaseContext dBaseContext) : IAutoServiceService
         try
         {
             await dBaseContext.SaveChangesAsync();
-            Console.WriteLine("Tickets were reset successfully.");
+            logger.LogInformation("Tickets were reset successfully.");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error while resetting tickets: {ex.Message}");
+            logger.LogInformation($"Error while resetting tickets: {ex.Message}");
         }
     }
 }

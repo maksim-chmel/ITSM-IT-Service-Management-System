@@ -1,4 +1,4 @@
-﻿@model ITSM.Models.Discussion
+@model ITSM.Models.Discussion
 <div class="d-grid gap-4">
     <section class="surface-card">
         <div class="page-header">
@@ -6,13 +6,13 @@
                 <h3 class="mb-1">@Model.Title</h3>
                 <p class="text-muted mb-0">@Model.Description</p>
             </div>
-            <a asp-action="ArchiveOfDiscussions" class="btn btn-outline-secondary btn-sm">Close</a>
+            <a asp-controller="Archive" asp-action="ResolvedDiscussions" class="btn btn-outline-secondary btn-sm">Back to List</a>
         </div>
 
         <p class="small text-muted mb-3">
             <strong>Author:</strong> @Model.Author.UserName |
             <strong>Created:</strong> @Model.CreatedAt.ToLocalTime().ToString("g") |
-            <strong>Closed:</strong> @Model.ClosedAt
+            <strong>Closed:</strong> @(Model.ClosedAt?.ToLocalTime().ToString("g") ?? "N/A")
         </p>
 
         <div class="chat-box mb-3">
@@ -38,7 +38,7 @@
         </div>
 
         <div class="text-center text-muted small py-2">
-            This discussion is archived. Messaging is no longer available.
+            <i class="bi bi-lock-fill"></i> This discussion is archived. Messaging is no longer available.
         </div>
     </section>
 </div>

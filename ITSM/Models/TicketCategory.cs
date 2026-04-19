@@ -2,7 +2,7 @@
 using ITSM.Services.Archive;
 
 namespace ITSM.Models;
-public class TicketCategory : ISoftDeletableEntity
+public class TicketCategory : ISoftDeletable
 {
     public int Id { get; set; }
 

@@ -6,7 +6,7 @@ public enum Status
     Open,
     Progress,
     Resolved,
-    Done,
+    OnHold,
     Canceled,
     Reopened,
 }

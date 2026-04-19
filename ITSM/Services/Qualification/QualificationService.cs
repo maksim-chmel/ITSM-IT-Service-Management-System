@@ -30,21 +30,20 @@ public class QualificationService(DBaseContext dBaseContext, IUserManagementServ
     }
 
 
-    public async Task<bool> AssignCategoriesToUserAsync(AssignCategoryToUserViewModel model)
+    public async Task<OperationResult> AssignCategoriesToUserAsync(AssignCategoryToUserViewModel model)
     {
         var user = await userManagement.GetUserById(model.UserId);
         if (user == null)
-            return false;
+            return OperationResult.Failure("User not found.");
+            
         user.SkillLevel = model.SkillLevel;
         model.SelectedCategoryIds ??= new List<string>();
         await RemoveExistingAssignmentsAsync(model.UserId);
 
-
         await AddNewAssignmentsAsync(model.UserId, model.SelectedCategoryIds);
 
-
         await dBaseContext.SaveChangesAsync();
-        return true;
+        return OperationResult.Success("User qualifications and categories updated.");
     }
 
     private async Task<List<string>> GetAssignedCategoryIdsAsync(string userId)

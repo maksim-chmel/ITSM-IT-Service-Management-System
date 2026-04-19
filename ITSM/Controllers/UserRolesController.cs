@@ -1,4 +1,4 @@
-﻿using ITSM.Enums;
+using ITSM.Enums;
 using ITSM.Services.RoleManager;
 using ITSM.ViewModels.Manage;
 using Microsoft.AspNetCore.Authorization;
@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace ITSM.Controllers;
 
 [Authorize(Roles = nameof(UserRoles.Admin))]
-public class UserRolesController(IUserRolesService userRolesService) : Controller
+public class UserRolesController(IUserRolesService userRolesService) : BaseController
 {
     [HttpGet]
     public async Task<IActionResult> ManageRoles(string userId)
@@ -20,13 +20,11 @@ public class UserRolesController(IUserRolesService userRolesService) : Controlle
     }
 
     [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> ManageRoles(ManageUserRolesViewModel model)
     {
         var result = await userRolesService.UpdateUserRolesAsync(model.UserId, model.Roles);
-        if (!result)
-            return NotFound("User not found");
-
+        SetNotification(result);
         return RedirectToAction("UsersList", "UserManagement");
     }
 }
-

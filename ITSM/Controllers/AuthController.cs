@@ -1,4 +1,4 @@
-﻿using ITSM.Enums;
+using ITSM.Enums;
 using ITSM.Models;
 using ITSM.ViewModels.Authorization;
 using Microsoft.AspNetCore.Authorization;
@@ -9,7 +9,7 @@ namespace ITSM.Controllers;
 
 [AllowAnonymous]
 public class AuthController(UserManager<User> userManager, SignInManager<User> signInManager)
-    : Controller
+    : BaseController
 {
     [HttpGet]
     public IActionResult Register()
@@ -18,6 +18,7 @@ public class AuthController(UserManager<User> userManager, SignInManager<User> s
     }
     
     [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> Register(RegisterViewModel model)
     {
         if (ModelState.IsValid)
@@ -25,9 +26,8 @@ public class AuthController(UserManager<User> userManager, SignInManager<User> s
             var existingUserByEmail = await userManager.FindByEmailAsync(model.Email);
             if (existingUserByEmail != null)
             {
-                TempData["ErrorMessage"] = "A user with this email already exists.";
-
-                return RedirectToAction("Register");
+                NotifyError("A user with this email already exists.");
+                return View(model);
             }
 
             var user = new User { UserName = model.UserName, Email = model.Email };
@@ -37,13 +37,15 @@ public class AuthController(UserManager<User> userManager, SignInManager<User> s
             {
                 await userManager.AddToRoleAsync(user, nameof(UserRoles.User));
                 await signInManager.SignInAsync(user, isPersistent: false);
+                NotifySuccess("Registration successful!");
                 return RedirectToAction("Index", "Home");
             }
 
             foreach (var error in result.Errors)
             {
-                TempData["ErrorMessage"] = error.Description;
+                ModelState.AddModelError(string.Empty, error.Description);
             }
+            NotifyError("Registration failed.");
         }
 
         return View(model);
@@ -57,6 +59,7 @@ public class AuthController(UserManager<User> userManager, SignInManager<User> s
     }
 
     [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> Login(LoginViewModel model)
     {
         if (ModelState.IsValid)
@@ -71,16 +74,16 @@ public class AuthController(UserManager<User> userManager, SignInManager<User> s
                     return RedirectToAction("Index", "Home");
                 }
 
-                TempData["ErrorMessage"] = "Invalid username or password.";
+                NotifyError("Invalid email or password.");
             }
             else
             {
-                TempData["ErrorMessage"] = "User not found.";
+                NotifyError("User not found or account is disabled.");
             }
         }
         else
         {
-            TempData["ErrorMessage"] = "Please fill in all fields correctly.";
+            NotifyError("Please fill in all fields correctly.");
         }
 
         return View(model);

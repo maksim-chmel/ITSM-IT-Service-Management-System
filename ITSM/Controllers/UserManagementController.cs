@@ -23,10 +23,11 @@ public class UserManagementController(IUserManagementService userService,IQualif
     }
 
     [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteUser(string id)
     {
      var   result =await userService.SoftDeleteUserById(id);
-     SetTempDataMessage(result, "User deleted successfully.", "Error deleting the user.");
+     SetNotification(result);
         return RedirectToAction("UsersList");
     }
 
@@ -39,25 +40,22 @@ public class UserManagementController(IUserManagementService userService,IQualif
     }
 
     [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> EditUser(string id, EditUserViewModel editModel)
     {
         if (!ModelState.IsValid)
         {
-            TempData["ErrorMessage"] = "Please correct the errors in the form.";
+            NotifyError("Please correct the errors in the form.");
             return View(editModel);
         }
-        try
-        {
-            await userService.EditUser(id, editModel);
-            TempData["SuccessMessage"] = "User updated successfully.";
+        
+        var result = await userService.EditUser(id, editModel);
+        SetNotification(result);
+        
+        if (result.IsSuccess)
             return RedirectToAction("UsersList");
-        }
-        catch (Exception ex)
-        {
-            TempData["ErrorMessage"] = "Error occurred while updating the user.";
-            return View(editModel);
-        }
-
+            
+        return View(editModel);
     }
 
 
@@ -70,10 +68,11 @@ public class UserManagementController(IUserManagementService userService,IQualif
     }
 
     [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> AssignCategoryToUser(AssignCategoryToUserViewModel model)
     {
         var result = await qualification.AssignCategoriesToUserAsync(model);
-        SetTempDataMessage(result, "User assigned successfully.", "Error assigning the user.");
+        SetNotification(result);
         return RedirectToAction("UsersList");
     }
 }

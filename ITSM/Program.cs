@@ -17,13 +17,25 @@ using ITSM.Services.UserManagement;
 using ITSM.Services.UserProfile;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.DataProtection;
+using System.IO;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Configure Data Protection to persist keys in a volume-mapped directory
+var keysPath = Path.Combine(builder.Environment.ContentRootPath, "keys");
+if (!Directory.Exists(keysPath))
+{
+    Directory.CreateDirectory(keysPath);
+}
+
+builder.Services.AddDataProtection()
+    .PersistKeysToFileSystem(new DirectoryInfo(keysPath))
+    .SetApplicationName("ITSM_Application");
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<DBaseContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(builder.Configuration["CONNECTION_STRING"]));
 
 builder.Services.AddIdentity<User, IdentityRole>()
     .AddEntityFrameworkStores<DBaseContext>()

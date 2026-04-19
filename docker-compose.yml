@@ -4,14 +4,14 @@ services:
     container_name: itsm-postgres
     environment:
       POSTGRES_DB: itsm
-      POSTGRES_USER: itsm
-      POSTGRES_PASSWORD: itsm_password
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U itsm -d itsm"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d itsm"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -27,9 +27,12 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       AUTO_MIGRATE: "true"
-      ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=itsm;Username=itsm;Password=itsm_password
+      CONNECTION_STRING: "Host=postgres;Port=5432;Database=itsm;Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
     ports:
       - "8080:8080"
+    volumes:
+      - keys_data:/src/ITSM/keys
 
 volumes:
   postgres_data:
+  keys_data:

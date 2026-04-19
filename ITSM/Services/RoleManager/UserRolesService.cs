@@ -31,20 +31,22 @@ public class UserRolesService(
     }
 
 
-    public async Task<bool> UpdateUserRolesAsync(string userId, IEnumerable<RoleSelectionViewModel> selectedRoles)
+    public async Task<OperationResult> UpdateUserRolesAsync(string userId, IEnumerable<RoleSelectionViewModel> selectedRoles)
     {
         var user = await userManager.FindByIdAsync(userId);
-        if (user == null) return false;
+        if (user == null) return OperationResult.Failure("User not found.");
 
         var currentRoles = await userManager.GetRolesAsync(user);
         var rolesToAdd = selectedRoles.Where(r => r.IsSelected)
             .Select(r => r.RoleName).ToList();
 
-        await userManager.RemoveFromRolesAsync(user, currentRoles);
-        await userManager.AddToRolesAsync(user, rolesToAdd);
-       
+        var removeResult = await userManager.RemoveFromRolesAsync(user, currentRoles);
+        if (!removeResult.Succeeded) return OperationResult.Failure("Failed to remove current roles.");
 
-        return true;
+        var addResult = await userManager.AddToRolesAsync(user, rolesToAdd);
+        if (!addResult.Succeeded) return OperationResult.Failure("Failed to add new roles.");
+
+        return OperationResult.Success("User roles updated successfully.");
     }
   
 

@@ -34,7 +34,7 @@ public class KnowledgeBaseController(
         var currentUser = await userService.GetCurrentUserAsync(User);
         if (currentUser == null)
         {
-            TempData["ErrorMessage"] = "User not found.";
+            NotifyError("User not found.");
             return RedirectToAction("Login", "Auth");
         }
 
@@ -50,6 +50,7 @@ public class KnowledgeBaseController(
     }
 
     [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> CreateArticle(CreateKnowArtViewModel viewModel)
     {
         if (!ModelState.IsValid)
@@ -59,29 +60,32 @@ public class KnowledgeBaseController(
         }
 
         var currentUser = await userService.GetCurrentUserAsync(User);
-        var result = currentUser != null && await knowledgeBaseService.CreateArticle(currentUser.Id, viewModel);
+        if (currentUser == null)
+        {
+            NotifyError("User not found.");
+            return RedirectToAction("AllAuthorArticles");
+        }
 
-        SetTempDataMessage(result, "Article created successfully.", currentUser == null
-            ? "User not found."
-            : "Error while creating the article.");
+        var result = await knowledgeBaseService.CreateArticle(currentUser.Id, viewModel);
+        SetNotification(result);
 
         return RedirectToAction("AllAuthorArticles");
     }
 
 
     [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteArticle(int id)
     {
         var currentUser = await userService.GetCurrentUserAsync(User);
         if (currentUser != null)
         {
             var result = await knowledgeBaseService.DeleteArticle(id, currentUser.Id);
-            SetTempDataMessage(result, "Article deleted successfully.",
-                "Error while deleting the article.");
+            SetNotification(result);
         }
         else
         {
-            TempData["ErrorMessage"] = "User not found.";
+            NotifyError("User not found.");
         }
 
         return RedirectToAction("AllAuthorArticles");
@@ -91,6 +95,8 @@ public class KnowledgeBaseController(
     public async Task<IActionResult> EditArticle(int id)
     {
         var article = await knowledgeBaseService.GetArticleById(id);
+        if (article == null) return NotFound();
+
         var viewmodel = new EditKnowBaseViewModel
         {
             Id = article.Id,
@@ -103,6 +109,7 @@ public class KnowledgeBaseController(
     }
 
     [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> EditArticle(EditKnowBaseViewModel viewModel)
     {
         if (!ModelState.IsValid)
@@ -112,11 +119,14 @@ public class KnowledgeBaseController(
         }
 
         var currentUser = await userService.GetCurrentUserAsync(User);
-        var result = currentUser != null && await knowledgeBaseService.UpdateArticle(currentUser.Id, viewModel);
+        if (currentUser == null)
+        {
+            NotifyError("User not found.");
+            return RedirectToAction("AllAuthorArticles");
+        }
 
-        SetTempDataMessage(result, "Article updated successfully.", currentUser == null
-            ? "User not found."
-            : "Error while updating the article.");
+        var result = await knowledgeBaseService.UpdateArticle(currentUser.Id, viewModel);
+        SetNotification(result);
 
         return RedirectToAction("AllAuthorArticles");
     }

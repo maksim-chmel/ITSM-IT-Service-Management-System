@@ -56,14 +56,14 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
     // KnowledgeBaseArticle → Author
     modelBuilder.Entity<KnowledgeBaseArticle>()
         .HasOne(a => a.Author)
-        .WithMany()
+        .WithMany(u => u.AuthoredArticles)
         .HasForeignKey(a => a.AuthorId)
         .OnDelete(DeleteBehavior.Restrict);
 
     // Discussion → Author
     modelBuilder.Entity<Discussion>()
         .HasOne(d => d.Author)
-        .WithMany()
+        .WithMany(u => u.AuthoredDiscussions)
         .HasForeignKey(d => d.AuthorId)
         .OnDelete(DeleteBehavior.Restrict);
 
@@ -79,6 +79,7 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
         .HasOne(m => m.Discussion)
         .WithMany(d => d.Messages)
         .HasForeignKey(m => m.DiscussionId)
+        .IsRequired()
         .OnDelete(DeleteBehavior.Restrict);
 
     // DiscussionMessage → Author
@@ -86,9 +87,34 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
         .HasOne(m => m.Author)
         .WithMany()
         .HasForeignKey(m => m.AuthorId)
+        .IsRequired(false) // Allow loading message even if author is soft-deleted
         .OnDelete(DeleteBehavior.Restrict);
 
-    // UserCategoryAssignment → User / TicketCategory
+    // Ticket -> KB Article
+    modelBuilder.Entity<Ticket>()
+        .HasOne(t => t.KnowledgeBaseArticle)
+        .WithMany()
+        .HasForeignKey(t => t.KnowledgeBaseArticleId)
+        .IsRequired(false)
+        .OnDelete(DeleteBehavior.Restrict);
+        
+    // Discussion -> Ticket
+    modelBuilder.Entity<Discussion>()
+        .HasOne(d => d.Ticket)
+        .WithMany(t => t.Discussions)
+        .HasForeignKey(d => d.TicketId)
+        .IsRequired(false) // Discussion can exist without a ticket or with an archived one
+        .OnDelete(DeleteBehavior.Restrict);
+
+    // TicketHistory -> Ticket
+    modelBuilder.Entity<TicketHistory>()
+        .HasOne(th => th.Ticket)
+        .WithMany(t => t.TicketHistory)
+        .HasForeignKey(th => th.TicketId)
+        .IsRequired()
+        .OnDelete(DeleteBehavior.Restrict);
+
+    // UserCategoryAssignment -> User
     modelBuilder.Entity<UserCategoryAssignment>()
         .HasKey(uca => new { uca.UserId, uca.CategoryId });
 
@@ -96,6 +122,7 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
         .HasOne(uca => uca.User)
         .WithMany(u => u.UserCategoryAssignments)
         .HasForeignKey(uca => uca.UserId)
+        .IsRequired()
         .OnDelete(DeleteBehavior.Restrict);
 
     modelBuilder.Entity<UserCategoryAssignment>()
@@ -113,7 +140,16 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
         new TicketCategory { Id = 5, Name = "Unknown" }
     );
 
-  
+    // Global Query Filters for Soft Delete
+    modelBuilder.Entity<Ticket>().HasQueryFilter(t => !t.IsDeleted);
+    modelBuilder.Entity<KnowledgeBaseArticle>().HasQueryFilter(a => !a.IsDeleted);
+    modelBuilder.Entity<User>().HasQueryFilter(u => !u.IsDeleted);
+    modelBuilder.Entity<Discussion>().HasQueryFilter(d => !d.IsDeleted);
+    modelBuilder.Entity<UserCategoryAssignment>().HasQueryFilter(uca => !uca.IsDeleted);
+    modelBuilder.Entity<DiscussionMessage>().HasQueryFilter(dm => !dm.IsDeleted);
+    modelBuilder.Entity<TicketHistory>().HasQueryFilter(th => !th.IsDeleted);
+    modelBuilder.Entity<TicketCategory>().HasQueryFilter(tc => !tc.IsDeleted);
+    modelBuilder.Entity<TicketSubCategory>().HasQueryFilter(tsc => !tsc.IsDeleted);
 }
 
 

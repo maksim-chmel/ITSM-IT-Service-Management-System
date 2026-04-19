@@ -4,7 +4,7 @@ using ITSM.Services.Archive;
 
 namespace ITSM.Models;
 
-public class Ticket: ISoftDeletableEntity
+public class Ticket: ISoftDeletable
 {
     public int Id { get; set; }
 
@@ -46,5 +46,10 @@ public class Ticket: ISoftDeletableEntity
 
     public int? TicketSubCategoryId { get; set; } 
     public TicketSubCategory? TicketSubCategory { get; set; }
+    
+    public int? KnowledgeBaseArticleId { get; set; }
+    public KnowledgeBaseArticle? KnowledgeBaseArticle { get; set; }
+
     public bool IsDeleted { get; set; }
+    public List<Discussion> Discussions { get; set; } = new();
 }

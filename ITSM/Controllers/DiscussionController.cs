@@ -1,18 +1,22 @@
-﻿using ITSM.Enums;
+﻿using ITSM.Data;
+using ITSM.Enums;
 using ITSM.Services.Discussion;
 using ITSM.Services.TicketCategory;
 using ITSM.Services.UserManagement;
 using ITSM.ViewModels.Create;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace ITSM.Controllers;
 
-[Authorize]
+[Authorize(Roles = "Admin,Coordinator,Technician")]
 public class DiscussionController(
     ITicketCategoryService categoryService,
     IDiscussionService discussionService,
-    IUserManagementService userManagementService) : BaseController
+    IUserManagementService userManagementService,
+    DBaseContext dBaseContext,
+    ILogger<DiscussionController> logger) : BaseController
 {
     [HttpGet]
     public async Task<IActionResult> ListOfDiscussions(string? search)
@@ -27,36 +31,64 @@ public class DiscussionController(
     }
 
     [HttpGet]
-    public async Task<IActionResult> CreateDiscussion()
+    public async Task<IActionResult> CreateDiscussion(int? ticketId)
     {
         var categories = await categoryService.GetCategorySelectListAsync();
         var model = new DiscussionCreateViewModel
         {
-            Categories = categories
+            Categories = categories,
+            TicketId = ticketId
         };
 
+        if (ticketId.HasValue)
+        {
+            var ticket = await dBaseContext.Tickets.FindAsync(ticketId.Value);
+            if (ticket != null)
+            {
+                model.Title = $"Discussion for Ticket #{ticket.Id}: {ticket.Title}";
+            }
+        }
 
         return View(model);
     }
 
     [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> CreateDiscussion(DiscussionCreateViewModel viewModel)
     {
         if (!ModelState.IsValid)
         {
+            // Log the validation errors
+            var errors = ModelState.Values.SelectMany(v => v.Errors);
+            foreach (var error in errors)
+            {
+                logger.LogError($"Validation Error: {error.ErrorMessage}");
+            }
+            
             viewModel.Categories = await categoryService.GetCategorySelectListAsync();
             return View(viewModel);
+        }
+
+        if (viewModel.TicketId.HasValue)
+        {
+            var ticketExists = await dBaseContext.Tickets.AnyAsync(t => t.Id == viewModel.TicketId.Value);
+            if (!ticketExists)
+            {
+                NotifyError("The ticket you are trying to link does not exist.");
+                viewModel.Categories = await categoryService.GetCategorySelectListAsync();
+                return View(viewModel);
+            }
         }
 
         var user = await userManagementService.GetCurrentUserAsync(User);
         if (user == null)
         {
-            SetTempDataMessage(false, "", "User not found.");
+            NotifyError("User not found.");
             return RedirectToAction("ListOfDiscussions");
         }
 
         var result = await discussionService.CreateDiscussion(viewModel, user.Id);
-        SetTempDataMessage(result, "Discussion created successfully.", "Error while creating the discussion.");
+        SetNotification(result);
 
         return RedirectToAction("ListOfDiscussions");
     }
@@ -73,70 +105,53 @@ public class DiscussionController(
 
 
     [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> AddMessage(int id, DiscussionMessageCreateViewModel viewModel)
     {
         if (!ModelState.IsValid)
         {
-            SetTempDataMessage(false, "", "Please enter a valid message.");
+            NotifyError("Please enter a valid message.");
             return RedirectToAction("ViewDiscussion", new { id });
         }
 
         var user = await userManagementService.GetCurrentUserAsync(User);
         if (user == null)
         {
-            SetTempDataMessage(false, "", "User not found.");
+            NotifyError("User not found.");
             return RedirectToAction("ViewDiscussion", new { id });
         }
 
         var result = await discussionService.AddMessage(user.Id, id, viewModel.MessageContent);
-        SetTempDataMessage(result, "Comment created successfully.", "Error while creating the comment.");
+        SetNotification(result);
 
         return RedirectToAction("ViewDiscussion", new { id });
     }
 
 
-    [HttpGet]
-    public async Task<IActionResult> ManageDiscussions()
-    {
-        var userId = await userManagementService.GetCurrentUserAsync(User);
-        var list = await discussionService.GetUserDiscussions(userId.Id);
-        return View(list);
-    }
-
     [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> ResolveDiscussion(int id)
     {
-        var userId = await userManagementService.GetCurrentUserAsync(User);
-        if (userId != null)
+        var user = await userManagementService.GetCurrentUserAsync(User);
+        if (user != null)
         {
-            var result = await discussionService.ResolveDiscussion(id, userId.Id);
-            SetTempDataMessage(result, "Discussion resolved successfully.", "Error while resolving the discussion.");
+            var result = await discussionService.ResolveDiscussion(id, user.Id);
+            SetNotification(result);
         }
         else
         {
-            TempData["ErrorMessage"] = "User not found.";
+            NotifyError("User not found.");
         }
 
-        return RedirectToAction("ManageDiscussions");
+        return RedirectToAction("ListOfDiscussions");
     }
-
-    [HttpGet]
-    public async Task<IActionResult> ArchiveOfDiscussions(string? search)
+    
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ArchiveDiscussion(int id)
     {
-        var listOfTreads = await discussionService.GetAllDiscussions(Status.Resolved);
-        if (search != null)
-        {
-            listOfTreads = await discussionService.SearchDiscussion(Status.Resolved, search);
-        }
-
-        return View(listOfTreads);
-    }
-
-    [HttpGet]
-    public async Task<IActionResult> ArchiveViewDiscussion(int id)
-    {
-        var discussionThread = await discussionService.GetDiscussionByIdWithMessages(id);
-
-        return View(discussionThread);
+        var result = await discussionService.SoftDeleteDiscussion(id);
+        SetNotification(result);
+        return RedirectToAction("ListOfDiscussions");
     }
 }

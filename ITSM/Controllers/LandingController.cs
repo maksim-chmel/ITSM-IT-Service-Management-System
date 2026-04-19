@@ -1,10 +1,10 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ITSM.Controllers;
 
 [AllowAnonymous]
-public class LandingController : Controller
+public class LandingController : BaseController
 {
     public IActionResult Index()
     {
