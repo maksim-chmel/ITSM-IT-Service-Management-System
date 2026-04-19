@@ -1,318 +1,272 @@
 @using ITSM.Enums
+@using ITSM.ViewModels.Manage
+@using System.Text.Json;
 @model IEnumerable<ITSM.Models.Ticket>
 
 @{
-    ViewData["Title"] = "Ticket Assignment";
-    
-    var statusGroups = Model
-        .GroupBy(t => t.Status)
+    ViewData["Title"] = "Coordinator Dashboard";
+
+    // --- Data for KPI Cards ---
+    var totalTickets = Model.Count();
+    var unassignedTickets = Model.Count(t => t.AssignedUserId == null && t.Status != Status.Resolved && t.Status != Status.Canceled);
+    var inProgressTickets = Model.Count(t => t.Status == Status.Progress);
+
+    // --- Data for Charts ---
+    var statusGroups = Model.GroupBy(t => t.Status).ToDictionary(g => g.Key, g => g.Count());
+    var statusLabels = statusGroups.Keys.Select(s => s.ToString()).ToArray();
+    var statusData = statusGroups.Values.ToArray();
+    var statusColors = statusGroups.Keys.Select(s => s switch {
+        Status.New => "#0d6efd", Status.Open => "#0dcaf0", Status.Progress => "#ffc107",
+        Status.OnHold => "#6c757d", Status.Reopened => "#dc3545", Status.Resolved => "#198754",
+        _ => "#adb5bd"
+    }).ToArray();
+
+    var workloadGroups = Model
+        .Where(t => t.AssignedUser != null && t.Status != Status.Resolved && t.Status != Status.Canceled)
+        .GroupBy(t => t.AssignedUser.UserName)
         .ToDictionary(g => g.Key, g => g.Count());
+    var workloadLabels = workloadGroups.Keys.ToArray();
+    var workloadData = workloadGroups.Values.ToArray();
 
-    var allStatuses = Enum.GetValues(typeof(Status)).Cast<Status>().ToList();
-    var statusLabels = allStatuses.Select(s => s.ToString()).ToArray();
-    var statusData = allStatuses.Select(s => statusGroups.ContainsKey(s) ? statusGroups[s] : 0).ToArray();
-
-    var statusColors = new[]
-    {
-        "#f39c12", // New
-        "#3498db", // Open
-        "#2980b9", // Progress
-        "#27ae60", // Resolved
-        "#bdc3c7", // OnHold
-        "#95a5a6", // Canceled
-        "#e74c3c"  // Reopened
+    // --- Helpers ---
+    Func<Status, string> getBadgeClass = status => status switch {
+        Status.New => "bg-primary", Status.Open => "bg-info", Status.Progress => "bg-warning text-dark",
+        Status.OnHold => "bg-secondary", Status.Reopened => "bg-danger", Status.Resolved => "bg-success",
+        Status.Canceled => "bg-dark", _ => "bg-light text-dark"
     };
-
-   
-    var priorityGroups = Model
-        .GroupBy(t => t.Priority)
-        .ToDictionary(g => g.Key, g => g.Count());
-
-    var allPriorities = Enum.GetValues(typeof(TicketPriority)).Cast<TicketPriority>().ToList();
-    var priorityLabels = allPriorities.Select(p => p.ToString()).ToArray();
-    var priorityData = allPriorities.Select(p => priorityGroups.ContainsKey(p) ? priorityGroups[p] : 0).ToArray();
-
-    var priorityColors = new[]
-    {
-        "#95a5a6", // None
-        "#2ecc71", // Low
-        "#3498db", // Medium
-        "#f39c12", // High
-        "#e74c3c"  // Critical
-    };
-
-   
-    Func<Status, string> getBadgeClass = status =>
-    {
-        return status switch
-        {
-            Status.New => "bg-primary",
-            Status.Open => "bg-info",
-            Status.Progress => "bg-warning text-dark",
-            Status.OnHold => "bg-secondary",
-            Status.Reopened => "bg-danger",
-            Status.Resolved => "bg-success",
-            Status.Canceled => "bg-dark",
-            _ => "bg-light text-dark"
-        };
-    };
-
-  
-    Func<TicketPriority, string> priorityBadgeClass = priority => priority switch
-    {
-        TicketPriority.Low => "bg-secondary text-white",
-        TicketPriority.Medium => "bg-primary text-white",
-        TicketPriority.High => "bg-warning text-dark",
-        TicketPriority.Critical => "bg-danger text-white",
-        _ => "bg-dark text-white"
+    Func<TicketPriority, string> priorityBadgeClass = priority => priority switch {
+        TicketPriority.Low => "bg-secondary", TicketPriority.Medium => "bg-primary",
+        TicketPriority.High => "bg-warning text-dark", TicketPriority.Critical => "bg-danger",
+        _ => "bg-dark"
     };
 }
 
 <div class="d-grid gap-4">
+    <!-- Header -->
     <section class="page-hero">
         <div class="eyebrow">Coordinator Desk</div>
-        <h1 class="section-title">Review the full ticket pipeline and rebalance work when needed.</h1>
-        <p class="section-copy">
-            This screen combines ticket inventory, quick actions, and summary charts so coordinators can assign responsibility and clear stalled work without jumping across multiple pages.
-        </p>
+        <h1 class="section-title">Ticket Assignment & Pipeline Overview</h1>
     </section>
 
-    <div class="dashboard-grid">
-        <section class="dashboard-panel">
-            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
-                <div>
-                    <h2 class="mb-1">@ViewData["Title"]</h2>
-                    <p class="text-muted mb-0">Live view of status, priority, ownership, and ticket lifecycle.</p>
+    <!-- KPI Cards -->
+    <section class="kpi-grid">
+        <div class="kpi-card">
+            <i class="bi bi-ticket-detailed"></i>
+            <div class="kpi-value">@totalTickets</div>
+            <div class="kpi-label">Total Active Tickets</div>
+        </div>
+        <div class="kpi-card">
+            <i class="bi bi-person-plus"></i>
+            <div class="kpi-value">@unassignedTickets</div>
+            <div class="kpi-label">Unassigned</div>
+        </div>
+        <div class="kpi-card">
+            <i class="bi bi-person-workspace"></i>
+            <div class="kpi-value">@inProgressTickets</div>
+            <div class="kpi-label">In Progress</div>
+        </div>
+        <div class="kpi-card-actions">
+             <h5>Actions</h5>
+             <div class="action-grid">
+                 <form asp-action="AssignTickets" method="post" class="d-grid">
+                     <button type="submit" class="btn btn-success"><i class="bi bi-magic"></i> Auto-Assign</button>
+                 </form>
+                 <form asp-action="ResetTickets" method="post" class="d-grid">
+                     <button type="submit" class="btn btn-outline-danger"><i class="bi bi-arrow-counterclockwise"></i> Reset</button>
+                 </form>
+             </div>
+        </div>
+    </section>
+
+    <!-- Dashboard Charts -->
+    <section class="dashboard-grid">
+        <div class="chart-card large">
+            <h5>Technician Workload</h5>
+            <p class="text-muted small">Number of active tickets per technician.</p>
+            <div class="chart-container" style="height:300px;">
+                <canvas id="workloadChart"></canvas>
+            </div>
+        </div>
+        <div class="chart-card">
+            <h5>Status Distribution</h5>
+            <div class="chart-container" style="height:300px; position:relative;">
+                <canvas id="statusChart"></canvas>
+                <div class="chart-center-text">
+                    <strong>@totalTickets</strong>
+                    <span>Total</span>
                 </div>
             </div>
-            <div class="table-responsive">
-            <table class="table table-hover table-bordered align-middle text-center">
-                <thead class="table-dark text-white">
-                    <tr>
-                        <th>#</th>
-                        <th>Title</th>
-                        <th>Status</th>
-                        <th>Priority</th>
-                        <th>Category</th>
-                        <th>SubCategory</th>
-                        <th>Author Name</th>
-                        <th>Assigned To</th>
-                        <th>Created At</th>
-                        <th>Closed At</th>
-                        <th>Actions</th>
-                    </tr>
+        </div>
+    </section>
+
+    <!-- Main Table -->
+    <section class="surface-card">
+        <div class="page-header">
+            <div>
+                <h2 class="mb-1">Ticket Queue</h2>
+                <p class="text-muted mb-0">Manage individual tickets below.</p>
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle text-center">
+                 <thead class="table-dark text-white">
+                <tr>
+                    <th>#</th>
+                    <th>Title</th>
+                    <th>Status</th>
+                    <th>Priority</th>
+                    <th>Category</th>
+                    <th>Assigned To</th>
+                    <th>Created At</th>
+                    <th>Actions</th>
+                </tr>
                 </thead>
                 <tbody class="table-light">
-                    @foreach (var ticket in Model)
+                @foreach (var ticket in Model)
+                {
+                    var isActionable = ticket.Status != Status.Resolved && ticket.Status != Status.Canceled;
+                    <tr>
+                        <td><a asp-controller="TicketAssignment" asp-action="InfoAboutTicket" asp-route-id="@ticket.Id"><strong>@ticket.Id</strong></a></td>
+                        <td class="text-truncate" style="max-width: 200px;" title="@ticket.Title">@ticket.Title</td>
+                        <td><span class="badge @getBadgeClass(ticket.Status)">@ticket.Status</span></td>
+                        <td><span class="badge @priorityBadgeClass(ticket.Priority)">@ticket.Priority</span></td>
+                        <td>@ticket.Category?.Name</td>
+                        <td>@(ticket.AssignedUser?.UserName ?? "Unassigned")</td>
+                        <td>@ticket.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                        <td>
+                            @if (ViewBag.ManagedTicketId != null && ticket.Id == ViewBag.ManagedTicketId)
+                            {
+                                <a asp-action="ReviewAllTickets" class="btn btn-sm btn-secondary">Close</a>
+                            }
+                            else
+                            {
+                                <a asp-action="ReviewAllTickets" asp-route-managedTicketId="@ticket.Id" class="btn btn-sm btn-outline-primary @(isActionable ? "" : "disabled")">Manage</a>
+                            }
+                        </td>
+                    </tr>
+
+                    @if (ViewBag.ManagedTicketId != null && ticket.Id == ViewBag.ManagedTicketId)
                     {
                         <tr>
-                            <td><strong>@ticket.Id</strong></td>
-                            <td class="text-truncate truncate-200" title="@ticket.Title">@ticket.Title</td>
-                            <td><span class="badge @getBadgeClass(ticket.Status)">@ticket.Status</span></td>
-                            <td><span class="badge @priorityBadgeClass(ticket.Priority)">@ticket.Priority</span></td>
-                            <td>@ticket.Category?.Name</td>
-                            <td>@ticket.TicketSubCategory?.Name</td>
-                            <td>@ticket.Author?.UserName</td>
-                            <td>@ticket.AssignedUser</td>
-                            <td>@ticket.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
-                            <td>@(ticket.ClosedAt?.ToString("yyyy-MM-dd HH:mm") ?? "-")</td>
-                            <td>
-                                <div class="dropdown">
-                                    <button class="btn btn-outline-secondary dropdown-toggle" type="button"
-                                            id="ticketActionsDropdown-@ticket.Id"
-                                            data-bs-toggle="dropdown" aria-expanded="false">
-                                        Actions
-                                    </button>
-                                    <ul class="dropdown-menu" aria-labelledby="ticketActionsDropdown-@ticket.Id">
-                                        <li>
-                                            <a class="dropdown-item"
-                                               asp-controller="TicketAssignment"
-                                               asp-action="InfoAboutTicket"
-                                               asp-route-id="@ticket.Id">
-                                                Information
-                                            </a>
-                                        </li>
-                                        @if (ticket.Status != Status.Canceled && ticket.Status != Status.Resolved)
+                            <td colspan="8" class="p-0">
+                                <div class="management-panel">
+                                    <div class="management-form">
+                                        <h5>Assign Technician</h5>
+                                        @if (ViewBag.AssignTechnicianViewModel is AssignTicketViewModel assignModel)
                                         {
-                                            <li>
-                                                <a class="dropdown-item"
-                                                   asp-controller="TicketAssignment"
-                                                   asp-action="AssignTechnician"
-                                                   asp-route-id="@ticket.Id">
-                                                    Manage
-                                                </a>
-                                            </li>
-                                            <li>
-                                                <a class="dropdown-item"
-                                                   asp-controller="TicketAssignment"
-                                                   asp-action="AssignPriority"
-                                                   asp-route-id="@ticket.Id">
-                                                    Manage priority
-                                                </a>
-                                            </li>
-                                            <li>
-                                                <button class="dropdown-item text-danger" type="button"
-                                                        data-bs-toggle="modal"
-                                                        data-bs-target="#cancelTicketModal-@ticket.Id">
-                                                    Cancel Ticket
-                                                </button>
-                                            </li>
+                                            <form asp-action="AssignTechnician" method="post" class="d-flex gap-2">
+                                                <input type="hidden" name="ticketId" value="@assignModel.Ticket.Id"/>
+                                                <select name="userId" class="form-select form-select-sm" required>
+                                                    <option value="">-- Select Qualified Technician --</option>
+                                                    @foreach (var user in assignModel.Users) { <option value="@user.Value">@user.Text</option> }
+                                                </select>
+                                                <button type="submit" class="btn btn-sm btn-primary">Assign</button>
+                                            </form>
+                                            @if (!assignModel.Users.Any())
+                                            {
+                                                <small class="text-muted fst-italic">No technicians are qualified for the '@assignModel.Ticket.Category.Name' category.</small>
+                                            }
                                         }
-                                    </ul>
+                                    </div>
+                                    <div class="management-form">
+                                        <h5>Set Priority</h5>
+                                        @if (ViewBag.AssignPriorityViewModel is AssignTicketPriorityViewModel priorityModel)
+                                        {
+                                            <form asp-action="AssignPriority" method="post" class="d-flex gap-2">
+                                                <input type="hidden" name="ticketId" value="@priorityModel.Ticket.Id"/>
+                                                <select name="priority" class="form-select form-select-sm" asp-for="@priorityModel.SelectedPriority" required>
+                                                    @foreach (var p in priorityModel.Priorities) { <option value="@p.Value">@p.Text</option> }
+                                                </select>
+                                                <button type="submit" class="btn btn-sm btn-secondary">Set</button>
+                                            </form>
+                                        }
+                                    </div>
                                 </div>
                             </td>
                         </tr>
-
-                      
-                        <div class="modal fade" id="cancelTicketModal-@ticket.Id" tabindex="-1"
-                             aria-labelledby="cancelTicketModalLabel-@ticket.Id"
-                             aria-hidden="true">
-                            <div class="modal-dialog">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h5 class="modal-title" id="cancelTicketModalLabel-@ticket.Id">Cancel Ticket</h5>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                    </div>
-                                    <div class="modal-body">
-                                        <form method="post"
-                                              asp-controller="TicketAssignment"
-                                              asp-action="CancelTicket">
-                                            <input type="hidden" name="id" value="@ticket.Id" />
-                                            <div class="mb-3">
-                                                <label for="reason-@ticket.Id" class="form-label">Reason for Cancellation:</label>
-                                                <textarea class="form-control" id="reason-@ticket.Id" name="reason" rows="3"
-                                                          placeholder="Please provide a reason for canceling the ticket"
-                                                          required></textarea>
-                                            </div>
-                                            <div class="modal-footer">
-                                                <button type="button" class="btn btn-outline-secondary"
-                                                        data-bs-dismiss="modal">
-                                                    Cancel
-                                                </button>
-                                                <button type="submit" class="btn btn-outline-danger">Confirm Cancel</button>
-                                            </div>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
                     }
+                }
                 </tbody>
             </table>
         </div>
-        </section>
-
-        <aside class="dashboard-sidebar">
-            <div class="chart-card text-center">
-                <h5 class="mb-3">Status Distribution</h5>
-                <canvas id="statusChart" width="300" height="300"></canvas>
-            </div>
-            <div class="chart-card text-center">
-                <h5 class="mb-3">Priority Distribution</h5>
-                <canvas id="priorityChart" width="300" height="300"></canvas>
-            </div>
-            <div class="chart-card">
-                <h5 class="mb-3">Coordinator Actions</h5>
-                <div class="action-grid">
-                    <form asp-action="AssignTickets" method="post" class="d-grid">
-                        <button type="submit" class="btn btn-outline-success w-100">Assign Tickets</button>
-                    </form>
-
-                    <form asp-action="ResetTickets" method="post" class="d-grid">
-                        <button type="submit" class="btn btn-outline-danger w-100">Reset Tickets</button>
-                    </form>
-
-                    <div>
-                        <button class="btn btn-outline-primary w-100" type="button" id="filterBtn"
-                        data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="bi bi-funnel"></i> Filters
-                        </button>
-                        <div class="dropdown-menu dropdown-panel-md p-3">
-                            <form method="get" class="row g-2">
-                                <div class="col-12">
-                                    <label class="form-label small mb-1">Category</label>
-                                    <select name="CategoryId" class="form-select form-select-sm">
-                                        <option value="">All</option>
-                                        @foreach (var category in (ViewBag.Categories as List<SelectListItem>)!)
-                                        {
-                                            <option value="@category.Value">@category.Text</option>
-                                        }
-                                    </select>
-                                </div>
-
-                                <div class="col-12">
-                                    <label class="form-label small mb-1">Priority</label>
-                                    <select name="Priority" class="form-select form-select-sm">
-                                        <option value="">All</option>
-                                        @foreach (var p in Enum.GetValues(typeof(TicketPriority)))
-                                        {
-                                            <option value="@p">@p</option>
-                                        }
-                                    </select>
-                                </div>
-
-                                <div class="col-12">
-                                    <label class="form-label small mb-1">Status</label>
-                                    <select name="Status" class="form-select form-select-sm">
-                                        <option value="">All</option>
-                                        @foreach (var s in Enum.GetValues(typeof(Status)))
-                                        {
-                                            <option value="@s">@s</option>
-                                        }
-                                    </select>
-                                </div>
-
-                                <div class="col-12 d-grid">
-                                    <button type="submit" class="btn btn-sm btn-outline-success">
-                                        <i class="bi bi-search"></i> Apply
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </aside>
-    </div>
+    </section>
 </div>
 
+<style>
+    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; }
+    .kpi-card, .kpi-card-actions { background: #fff; border-radius: 0.5rem; padding: 1.5rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05); text-align: center; }
+    .kpi-card i { font-size: 2.5rem; color: #0d6efd; margin-bottom: 0.5rem; }
+    .kpi-value { font-size: 2.5rem; font-weight: 700; }
+    .kpi-label { font-size: 1rem; color: #6c757d; }
+    .kpi-card-actions h5 { margin-bottom: 1rem; }
+    .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; align-items: center; }
+    
+    .dashboard-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; }
+    .chart-card { background: #fff; border-radius: 0.5rem; padding: 1.5rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+    .chart-container { position: relative; width: 100%; }
+    .chart-center-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; line-height: 1.2; }
+    .chart-center-text strong { font-size: 2.5rem; }
+    .chart-center-text span { font-size: 1rem; color: #6c757d; }
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    .management-panel { background-color: #f8f9fa; padding: 1rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; border-top: 2px solid #dee2e6; }
+    .management-form h5 { font-size: 1rem; font-weight: 600; margin-bottom: 0.5rem; }
+</style>
 
-<script>
-  
-    function createPieChart(ctx, labels, data, colors) {
-        return new Chart(ctx, {
-            type: 'pie',
-            data: {
-                labels: labels,
-                datasets: [{
-                    data: data,
-                    backgroundColor: colors,
-                    hoverOffset: 10
-                }]
-            },
-            options: {
-                responsive: false,
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Common Chart Options
+            const commonOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
                 plugins: {
-                    legend: { position: 'bottom', labels: { font: { size: 14 } } },
-                    tooltip: { enabled: true }
+                    legend: {
+                        position: 'bottom',
+                        labels: { padding: 20 }
+                    }
                 }
+            };
+
+            // Status Doughnut Chart
+            const statusCtx = document.getElementById('statusChart')?.getContext('2d');
+            if (statusCtx) {
+                new Chart(statusCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: @Html.Raw(JsonSerializer.Serialize(statusLabels)),
+                        datasets: [{
+                            data: @Html.Raw(JsonSerializer.Serialize(statusData)),
+                            backgroundColor: @Html.Raw(JsonSerializer.Serialize(statusColors)),
+                            borderWidth: 0,
+                            hoverOffset: 4
+                        }]
+                    },
+                    options: { ...commonOptions, cutout: '70%' }
+                });
+            }
+
+            // Workload Bar Chart
+            const workloadCtx = document.getElementById('workloadChart')?.getContext('2d');
+            if(workloadCtx) {
+                 new Chart(workloadCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: @Html.Raw(JsonSerializer.Serialize(workloadLabels)),
+                        datasets: [{
+                            label: 'Active Tickets',
+                            data: @Html.Raw(JsonSerializer.Serialize(workloadData)),
+                            backgroundColor: '#0d6efd',
+                        }]
+                    },
+                    options: {
+                        ...commonOptions,
+                        indexAxis: 'y',
+                         plugins: { legend: { display: false } },
+                         scales: { x: { grid: { display: false } }, y: { grid: { display: false } } }
+                    }
+                });
             }
         });
-    }
-
-    // Status chart data
-    const statusLabels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(statusLabels));
-    const statusData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(statusData));
-    const statusColors = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(statusColors));
-
-    // Priority chart data
-    const priorityLabels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(priorityLabels));
-    const priorityData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(priorityData));
-    const priorityColors = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(priorityColors));
-
-    // Create charts
-    createPieChart(document.getElementById('statusChart').getContext('2d'), statusLabels, statusData, statusColors);
-    createPieChart(document.getElementById('priorityChart').getContext('2d'), priorityLabels, priorityData, priorityColors);
-</script>
+    </script>
+}

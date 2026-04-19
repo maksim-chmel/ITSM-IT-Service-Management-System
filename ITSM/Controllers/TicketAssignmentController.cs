@@ -20,7 +20,7 @@ public class TicketAssignmentController(
     : BaseController
 {
     [HttpGet]
-    public async Task<IActionResult> ReviewAllTickets(int? categoryId, TicketPriority? priority, Status? status)
+    public async Task<IActionResult> ReviewAllTickets(int? categoryId, TicketPriority? priority, Status? status, int? managedTicketId)
     {
         var query = ticketService.GetAllTicketsQuery();
         var filteredQuery = ticketSortService.GetFilteredTickets(query, categoryId, priority, status);
@@ -33,17 +33,23 @@ public class TicketAssignmentController(
         ViewBag.SelectedPriority = priority;
         ViewBag.SelectedStatus = status;
 
+        if (managedTicketId.HasValue)
+        {
+            try
+            {
+                ViewBag.ManagedTicketId = managedTicketId.Value;
+                ViewBag.AssignTechnicianViewModel = await ticketAssignmentService.CreateAssignTechnicianViewModel(managedTicketId.Value);
+                ViewBag.AssignPriorityViewModel = await ticketAssignmentService.CreateAssignPriorityViewModel(managedTicketId.Value);
+            }
+            catch (Exception ex)
+            {
+                NotifyError($"Error loading details for ticket #{managedTicketId.Value}: {ex.Message}");
+            }
+        }
+
         return View(tickets);
     }
-
-    [HttpGet]
-    public async Task<IActionResult> AssignTechnician(int id)
-    {
-        var model = await ticketAssignmentService.CreateAssignTechnicianViewModel(id);
-        return View(model);
-    }
-
-
+    
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> AssignTechnician(int ticketId, string userId)
@@ -51,8 +57,7 @@ public class TicketAssignmentController(
         if (string.IsNullOrEmpty(userId))
         {
             NotifyError("Please select a technician.");
-            var model = await ticketAssignmentService.CreateAssignTechnicianViewModel(ticketId);
-            return View(model);
+            return RedirectToAction("ReviewAllTickets", new { managedTicketId = ticketId });
         }
 
         var result = await ticketAssignmentService.AssignTicketToTechnician(ticketId, userId);
@@ -60,16 +65,7 @@ public class TicketAssignmentController(
 
         return RedirectToAction("ReviewAllTickets");
     }
-
-
-    [HttpGet]
-    public async Task<IActionResult> AssignPriority(int id)
-    {
-        var model = await ticketAssignmentService.CreateAssignPriorityViewModel(id);
-        return View(model);
-    }
-
-
+    
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> AssignPriority(int ticketId, TicketPriority priority)
