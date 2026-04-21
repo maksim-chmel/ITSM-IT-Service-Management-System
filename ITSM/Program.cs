@@ -19,11 +19,25 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.DataProtection;
 using System.IO;
+using ITSM.Authorization;
+using Microsoft.AspNetCore.Authorization;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configure Data Protection to persist keys in a volume-mapped directory
-var keysPath = Path.Combine(builder.Environment.ContentRootPath, "keys");
+var connectionString =
+    builder.Configuration["CONNECTION_STRING"] ??
+    builder.Configuration.GetConnectionString("DefaultConnection");
+if (string.IsNullOrWhiteSpace(connectionString))
+{
+    throw new InvalidOperationException(
+        "Database connection string is not configured. Set CONNECTION_STRING or ConnectionStrings:DefaultConnection.");
+}
+
+// Configure Data Protection to persist keys in a volume-mapped directory.
+// In Docker we mount a volume and pass DATA_PROTECTION_KEYS_PATH=/app/keys.
+var keysPath =
+    builder.Configuration["DATA_PROTECTION_KEYS_PATH"] ??
+    Path.Combine(builder.Environment.ContentRootPath, "keys");
 if (!Directory.Exists(keysPath))
 {
     Directory.CreateDirectory(keysPath);
@@ -35,11 +49,14 @@ builder.Services.AddDataProtection()
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<DBaseContext>(options =>
-    options.UseNpgsql(builder.Configuration["CONNECTION_STRING"]));
+    options.UseNpgsql(connectionString));
 
 builder.Services.AddIdentity<User, IdentityRole>()
     .AddEntityFrameworkStores<DBaseContext>()
     .AddDefaultTokenProviders();
+
+builder.Services.AddAuthorization();
+builder.Services.AddSingleton<IAuthorizationHandler, TicketAuthorizationHandler>();
 
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ITicketCategoryService, TicketCategoryService>();
@@ -61,18 +78,28 @@ builder.Services.AddLogging();
 
 var app = builder.Build();
 
-
-using (var scope = app.Services.CreateScope())
+var autoMigrate = builder.Configuration.GetValue("AUTO_MIGRATE", true);
+var seedDemo = builder.Configuration.GetValue("SEED_DEMO", builder.Environment.IsDevelopment());
+if (autoMigrate || seedDemo)
 {
+    using var scope = app.Services.CreateScope();
     var services = scope.ServiceProvider;
     var dbContext = services.GetRequiredService<DBaseContext>();
-    await dbContext.Database.MigrateAsync();
-    await SeedRoles.Initialize(services);
-    await SeedUsers.Initialize(services);
+
+    if (autoMigrate)
+        await dbContext.Database.MigrateAsync();
+
+    if (seedDemo)
+    {
+        await SeedRoles.Initialize(services);
+        await SeedUsers.Initialize(services);
+    }
 }
 
-
-app.UseHttpsRedirection();
+if (builder.Configuration.GetValue("ENABLE_HTTPS_REDIRECT", true))
+{
+    app.UseHttpsRedirection();
+}
 app.UseStaticFiles();
 app.UseRouting();
 app.UseAuthentication();

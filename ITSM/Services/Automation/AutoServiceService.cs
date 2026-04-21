@@ -19,6 +19,7 @@ public class AutoServiceService(
             .ToListAsync();
 
         var technicianIds = (await userManager.GetUsersInRoleAsync(nameof(UserRoles.Technician)))
+            .Where(u => !u.IsDeleted)
             .Select(u => u.Id)
             .ToList();
 
@@ -63,6 +64,7 @@ public class AutoServiceService(
         if (ticket == null) return OperationResult.Failure("Ticket not found.");
 
         var technicianIds = (await userManager.GetUsersInRoleAsync(nameof(UserRoles.Technician)))
+            .Where(u => !u.IsDeleted)
             .Select(u => u.Id)
             .ToList();
 

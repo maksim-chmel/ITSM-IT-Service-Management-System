@@ -27,11 +27,14 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       AUTO_MIGRATE: "true"
+      SEED_DEMO: "true"
+      ENABLE_HTTPS_REDIRECT: "false"
+      DATA_PROTECTION_KEYS_PATH: "/app/keys"
       CONNECTION_STRING: "Host=postgres;Port=5432;Database=itsm;Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
     ports:
       - "8080:8080"
     volumes:
-      - keys_data:/src/ITSM/keys
+      - keys_data:/app/keys
 
 volumes:
   postgres_data:

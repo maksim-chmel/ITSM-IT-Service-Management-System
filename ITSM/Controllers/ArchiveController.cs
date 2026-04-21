@@ -1,14 +1,21 @@
 ﻿using ITSM.Data;
 using ITSM.Enums;
+using ITSM.Authorization;
 using ITSM.Services.Archive;
 using ITSM.Services.Discussion;
+using ITSM.Services.Ticket;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace ITSM.Controllers;
 [Authorize(Roles = "Admin,Coordinator,Technician")]
-public class ArchiveController(IArchiveService archiveService, IDiscussionService discussionService, DBaseContext context) : BaseController
+public class ArchiveController(
+    IArchiveService archiveService,
+    IDiscussionService discussionService,
+    ITicketService ticketService,
+    IAuthorizationService authorizationService,
+    DBaseContext context) : BaseController
 {
     [HttpGet]
     public IActionResult Index()
@@ -29,6 +36,15 @@ public class ArchiveController(IArchiveService archiveService, IDiscussionServic
         var discussion = await discussionService.GetDiscussionByIdWithMessages(id);
         if (discussion == null) return NotFound();
         return View("ViewArchivedDiscussion", discussion);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> RestoreDiscussion(int id)
+    {
+        var result = await discussionService.RestoreDiscussion(id);
+        SetNotification(result);
+        return RedirectToAction("ArchivedDiscussions");
     }
 
     [HttpGet]
@@ -80,8 +96,26 @@ public class ArchiveController(IArchiveService archiveService, IDiscussionServic
         if (selectedTicketIds == null || !selectedTicketIds.Any())
             return RedirectToAction("DeletedTickets");
 
-        var result = await archiveService.RestoreEntitiesAsync(context.Tickets,selectedTicketIds);
-        SetNotification(result);
+        var actor = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "unknown";
+        var restored = 0;
+
+        foreach (var ticketId in selectedTicketIds.Distinct())
+        {
+            var ticket = await context.Tickets.IgnoreQueryFilters().FirstOrDefaultAsync(t => t.Id == ticketId);
+            if (ticket == null) continue;
+
+            var auth = await authorizationService.AuthorizeAsync(User, ticket, new TicketRequirement(TicketOperations.Restore));
+            if (!auth.Succeeded) continue;
+
+            var res = await ticketService.RestoreTicketAsync(ticketId, actor);
+            if (res.IsSuccess) restored++;
+        }
+
+        if (restored > 0)
+            NotifySuccess($"{restored} tickets restored successfully.");
+        else
+            NotifyError("No tickets were restored.");
+
         return RedirectToAction("DeletedTickets");
     }
 

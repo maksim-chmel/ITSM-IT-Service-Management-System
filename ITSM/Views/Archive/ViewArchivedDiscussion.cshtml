@@ -6,11 +6,18 @@
                 <h3 class="mb-1">@Model.Title</h3>
                 <p class="text-muted mb-0">@Model.Description</p>
             </div>
-            <a asp-controller="Archive" asp-action="ArchivedDiscussions" class="btn btn-outline-secondary btn-sm">Back to List</a>
+            <div class="d-flex gap-2">
+                <form asp-controller="Archive" asp-action="RestoreDiscussion" asp-route-id="@Model.Id" method="post" class="d-inline">
+                    <button type="submit" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-arrow-counterclockwise"></i> Restore
+                    </button>
+                </form>
+                <a asp-controller="Archive" asp-action="ArchivedDiscussions" class="btn btn-outline-secondary btn-sm">Back to List</a>
+            </div>
         </div>
 
         <p class="small text-muted mb-3">
-            <strong>Author:</strong> @Model.Author.UserName |
+            <strong>Author:</strong> @(Model.Author?.UserName ?? "N/A") |
             <strong>Created:</strong> @Model.CreatedAt.ToLocalTime().ToString("g") |
             <strong>Closed:</strong> @(Model.ClosedAt?.ToLocalTime().ToString("g") ?? "N/A")
         </p>

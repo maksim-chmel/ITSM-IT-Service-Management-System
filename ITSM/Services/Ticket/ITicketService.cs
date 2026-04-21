@@ -19,10 +19,13 @@ public interface ITicketService
     Task AddTicketStepAsync(int ticketId, string adminComment);
     Task<IEnumerable<Models.Ticket>> GetTicketsAssignedToAdminAsync(string adminId);
     Task<OperationResult> ChangeTicketStatus(int id, Status status);
-    Task<OperationResult> AddCancelReason(int id, string reason);
+    Task<OperationResult> CancelTicketAsync(int id, string reason, string actorUserId);
     Task<TicketCreateViewModel> BuildCreateTicketViewModel(int selectedCategoryId);
     Task<OperationResult> PlaceOnHoldAsync(int ticketId, string reason);
     Task<OperationResult> ResumeProgressAsync(int ticketId);
     Task<OperationResult> ReopenTicketAsync(int ticketId, string reason);
+    Task<OperationResult> AcceptTicketProcessingAsync(int ticketId, string technicianUserId);
+    Task<OperationResult> ArchiveTicketAsync(int ticketId, string actorUserId, string? note = null);
+    Task<OperationResult> RestoreTicketAsync(int ticketId, string actorUserId, string? note = null);
     Task<OperationResult> UnassignTicketAsync(int ticketId);
 }

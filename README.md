@@ -62,21 +62,29 @@ This project is configured to run entirely within Docker. All you need is Docker
 Execute the following command from the root directory of the project (where `docker-compose.yml` is located):
 
 ```bash
-docker-compose up --build
+docker compose up --build
 ```
+
+If your setup still uses the legacy plugin name, use `docker-compose up --build`.
 
 **What happens next?**
 - Docker Compose will build the .NET application image.
 - It will start a PostgreSQL container and a container for the web application.
-- The web application will wait for the database to be ready.
-- On first startup, the application will automatically apply all Entity Framework migrations to create the database schema and seed the necessary user roles.
+- On first startup, the web application will automatically apply all **existing** Entity Framework migrations to create the database schema.
+- For demo/recruiter convenience in Docker, the app will also seed demo roles/users (can be disabled via `SEED_DEMO=false`).
 
 The application will be available at **`http://localhost:8080`**.
 
-### 4. Create Your First User
+### 4. Demo Accounts (Docker)
 
-1.  Navigate to `http://localhost:8080/Auth/Register` to create your first user account.
-2.  This first user will **not** have any special roles. To gain full access, you will need to assign the `Admin` role directly in the database (this is a one-time setup step).
+When started via Docker Compose, the following accounts are created automatically:
+
+- `admin@itsm.local` / `Admin123!` (Admin)
+- `coordinator@itsm.local` / `Coordinator123!` (Coordinator)
+- `technician@itsm.local` / `Technician123!` (Technician)
+- `user@itsm.local` / `User123!` (User)
+
+You can also register a new user at `http://localhost:8080/Auth/Register`.
 
 ---
 

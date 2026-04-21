@@ -35,36 +35,9 @@ public class TicketCategoryService(DBaseContext context) : ITicketCategoryServic
 
     public async Task<OperationResult> DeleteCategory(int id)
     {
-        await using var transaction = await context.Database.BeginTransactionAsync();
-
-        var category = await context.TicketCategories
-            .Include(c => c.Tickets)
-            .Include(c => c.SubCategories)
-            .FirstOrDefaultAsync(c => c.Id == id);
-
-        if (category == null)
-            return OperationResult.Failure("Category not found.");
-
-
-        foreach (var subCategory in category.SubCategories)
-        {
-            context.TicketSubCategories.Remove(subCategory);
-        }
-
-
-        context.TicketCategories.Remove(category);
-
-        try
-        {
-            await context.SaveChangesAsync();
-            await transaction.CommitAsync();
-            return OperationResult.Success("Category deleted permanently.");
-        }
-        catch (Exception ex)
-        {
-            await transaction.RollbackAsync();
-            return OperationResult.Failure($"Error deleting category: {ex.Message}");
-        }
+        // Portfolio/demo rule: we do not permanently delete business entities.
+        // Keep the method for backwards compatibility, but perform an archive instead.
+        return await SoftDeleteCategory(id);
     }
 
     public async Task<OperationResult> SoftDeleteCategory(int id)
@@ -138,11 +111,8 @@ public class TicketCategoryService(DBaseContext context) : ITicketCategoryServic
 
     public async Task<OperationResult> DeleteSubCategoryAsync(int subCategoryId)
     {
-        var subCategory = await context.TicketSubCategories.FindAsync(subCategoryId);
-        if (subCategory == null) return OperationResult.Failure("Subcategory not found.");
-        context.TicketSubCategories.Remove(subCategory);
-        await context.SaveChangesAsync();
-        return OperationResult.Success("Subcategory permanently deleted.");
+        // Portfolio/demo rule: do not permanently delete.
+        return await SoftDeleteSubCategoryAsync(subCategoryId);
     }
 
     public async Task<OperationResult> SoftDeleteSubCategoryAsync(int subCategoryId)

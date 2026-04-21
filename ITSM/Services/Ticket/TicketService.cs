@@ -69,8 +69,11 @@ public class TicketService(
         return OperationResult.Success("Ticket resolved successfully.");
     }
 
-    public async Task<OperationResult> AddCancelReason(int id, string reason)
+    public async Task<OperationResult> CancelTicketAsync(int id, string reason, string actorUserId)
     {
+        if (string.IsNullOrWhiteSpace(reason))
+            return OperationResult.Failure("Cancel reason is required.");
+
         var ticket = await dBaseContext.Tickets
             .Include(t => t.TicketHistory)
             .FirstOrDefaultAsync(t => t.Id == id);
@@ -78,22 +81,22 @@ public class TicketService(
         if (ticket == null) return OperationResult.Failure("Ticket not found.");
         
         ticket.Status = Status.Canceled;
-        ticket.Priority = TicketPriority.None;
         ticket.ClosedAt = DateTime.UtcNow;
         ticket.CancelReason = reason;
-        ticket.IsDeleted = true;
 
-        foreach (var historyItem in ticket.TicketHistory)
+        dBaseContext.TicketHistory.Add(new TicketHistory
         {
-            historyItem.IsDeleted = true;
-        }
+            TicketId = id,
+            AdminComment = $"Ticket canceled by {actorUserId}. Reason: {reason}",
+            CreatedAt = DateTime.UtcNow
+        });
         
         dBaseContext.Tickets.Update(ticket);
         await dBaseContext.SaveChangesAsync();
 
         await discussionService.AutoResolveDiscussionsByTicketId(id);
 
-        return OperationResult.Success("Ticket and its history have been canceled and archived.");
+        return OperationResult.Success("Ticket canceled successfully.");
     }
 
     public async Task<IEnumerable<Models.Ticket>> GetAllTickets()
@@ -242,6 +245,73 @@ public class TicketService(
         await dBaseContext.SaveChangesAsync();
 
         return OperationResult.Success("Ticket progress has been resumed.");
+    }
+
+    public async Task<OperationResult> AcceptTicketProcessingAsync(int ticketId, string technicianUserId)
+    {
+        if (string.IsNullOrWhiteSpace(technicianUserId))
+            return OperationResult.Failure("Invalid user.");
+
+        var ticket = await dBaseContext.Tickets.FindAsync(ticketId);
+        if (ticket == null) return OperationResult.Failure("Ticket not found.");
+
+        // If it's already assigned to someone else, do not allow "taking" it.
+        if (ticket.AssignedUserId != null && ticket.AssignedUserId != technicianUserId)
+            return OperationResult.Failure("Ticket is assigned to another technician.");
+
+        ticket.AssignedUserId = technicianUserId;
+        ticket.Status = Status.Progress;
+
+        dBaseContext.TicketHistory.Add(new TicketHistory
+        {
+            TicketId = ticketId,
+            AdminComment = "Ticket accepted for processing.",
+            CreatedAt = DateTime.UtcNow
+        });
+
+        await dBaseContext.SaveChangesAsync();
+
+        return OperationResult.Success("Ticket accepted for processing.");
+    }
+
+    public async Task<OperationResult> ArchiveTicketAsync(int ticketId, string actorUserId, string? note = null)
+    {
+        var ticket = await dBaseContext.Tickets
+            .IgnoreQueryFilters()
+            .FirstOrDefaultAsync(t => t.Id == ticketId);
+        if (ticket == null) return OperationResult.Failure("Ticket not found.");
+        if (ticket.IsDeleted) return OperationResult.Failure("Ticket is already archived.");
+
+        ticket.IsDeleted = true;
+        dBaseContext.TicketHistory.Add(new TicketHistory
+        {
+            TicketId = ticketId,
+            AdminComment = $"Ticket archived by {actorUserId}." + (string.IsNullOrWhiteSpace(note) ? "" : $" Note: {note}"),
+            CreatedAt = DateTime.UtcNow
+        });
+
+        await dBaseContext.SaveChangesAsync();
+        return OperationResult.Success("Ticket archived.");
+    }
+
+    public async Task<OperationResult> RestoreTicketAsync(int ticketId, string actorUserId, string? note = null)
+    {
+        var ticket = await dBaseContext.Tickets
+            .IgnoreQueryFilters()
+            .FirstOrDefaultAsync(t => t.Id == ticketId);
+        if (ticket == null) return OperationResult.Failure("Ticket not found.");
+        if (!ticket.IsDeleted) return OperationResult.Failure("Ticket is not archived.");
+
+        ticket.IsDeleted = false;
+        dBaseContext.TicketHistory.Add(new TicketHistory
+        {
+            TicketId = ticketId,
+            AdminComment = $"Ticket restored by {actorUserId}." + (string.IsNullOrWhiteSpace(note) ? "" : $" Note: {note}"),
+            CreatedAt = DateTime.UtcNow
+        });
+
+        await dBaseContext.SaveChangesAsync();
+        return OperationResult.Success("Ticket restored.");
     }
 
     public async Task<OperationResult> ReopenTicketAsync(int ticketId, string reason)

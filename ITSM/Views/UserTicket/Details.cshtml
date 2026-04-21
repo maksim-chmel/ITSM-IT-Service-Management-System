@@ -1,0 +1,83 @@
+@using ITSM.Enums
+@model ITSM.ViewModels.Manage.TicketDetailsViewModel
+
+@{
+    ViewData["Title"] = $"Ticket #{Model.Ticket.Id}";
+
+    Func<Status, string> getBadgeClass = status =>
+    {
+        return status switch
+        {
+            Status.New => "bg-primary",
+            Status.Open => "bg-info",
+            Status.Progress => "bg-warning text-dark",
+            Status.OnHold => "bg-secondary",
+            Status.Reopened => "bg-danger",
+            Status.Resolved => "bg-success",
+            Status.Canceled => "bg-dark",
+            _ => "bg-light text-dark"
+        };
+    };
+}
+
+<div class="d-grid gap-4">
+    <div class="page-actions d-flex justify-content-between">
+        <a asp-action="UserTicketsList" class="btn btn-outline-secondary">
+            Back to My Tickets
+        </a>
+        <span class="badge @getBadgeClass(Model.Ticket.Status) fs-6">@Model.Ticket.Status</span>
+    </div>
+
+    <section class="surface-card">
+        <div class="page-header">
+            <div>
+                <h2>Ticket #@Model.Ticket.Id: @Model.Ticket.Title</h2>
+                <p class="text-muted mb-0">Requester view for status and history.</p>
+            </div>
+        </div>
+        <div class="info-grid">
+            <div class="info-card"><dl><dt>Author</dt><dd>@(Model.Ticket.Author?.UserName ?? "N/A")</dd></dl></div>
+            <div class="info-card"><dl><dt>Created At</dt><dd>@Model.Ticket.CreatedAt.ToString("yyyy-MM-dd HH:mm")</dd></dl></div>
+            <div class="info-card"><dl><dt>Assigned To</dt><dd>@(Model.Ticket.AssignedUser?.UserName ?? "Unassigned")</dd></dl></div>
+            <div class="info-card"><dl><dt>Description</dt><dd>@Model.Ticket.Description</dd></dl></div>
+            @if (Model.Ticket.Status == Status.Resolved)
+            {
+                <div class="info-card"><dl><dt>Fix Description</dt><dd>@(Model.Ticket.FixDescription ?? "N/A")</dd></dl></div>
+            }
+            @if (Model.Ticket.Status == Status.Canceled)
+            {
+                <div class="info-card"><dl><dt>Cancel Reason</dt><dd>@(Model.Ticket.CancelReason ?? "N/A")</dd></dl></div>
+            }
+        </div>
+    </section>
+
+    <section class="surface-card">
+        <div class="page-header">
+            <div>
+                <h3>History</h3>
+                <p class="text-muted mb-0">All logged status changes and notes.</p>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover table-bordered align-middle">
+                <thead class="table-dark text-white">
+                <tr>
+                    <th style="width: 220px;">Created At</th>
+                    <th>Note</th>
+                </tr>
+                </thead>
+                <tbody class="table-light">
+                @foreach (var entry in Model.TicketHistory)
+                {
+                    <tr>
+                        <td>@entry.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                        <td>@(entry.AdminComment ?? "")</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+

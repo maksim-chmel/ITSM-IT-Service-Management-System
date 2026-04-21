@@ -15,4 +15,5 @@ public interface IDiscussionService
     Task<IEnumerable<Models.Discussion>> SearchDiscussion(Status status, string search);
     Task<OperationResult> AutoResolveDiscussionsByTicketId(int ticketId);
     Task<OperationResult> SoftDeleteDiscussion(int discussionId);
+    Task<OperationResult> RestoreDiscussion(int discussionId);
 }

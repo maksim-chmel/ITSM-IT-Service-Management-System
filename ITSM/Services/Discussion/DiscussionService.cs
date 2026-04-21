@@ -40,11 +40,10 @@ public class DiscussionService(DBaseContext context) : IDiscussionService
         
         discussion.Status = Status.Resolved;
         discussion.ClosedAt = DateTime.UtcNow;
-        discussion.IsDeleted = true;
 
         context.Discussions.Update(discussion);
         await context.SaveChangesAsync();
-        return OperationResult.Success("Discussion has been resolved and moved to the archive.");
+        return OperationResult.Success("Discussion has been resolved.");
     }
 
     public async Task<IEnumerable<Models.Discussion>> GetAllDiscussions(Status status)
@@ -157,5 +156,25 @@ public class DiscussionService(DBaseContext context) : IDiscussionService
 
         await context.SaveChangesAsync();
         return OperationResult.Success("Discussion and its messages have been archived.");
+    }
+
+    public async Task<OperationResult> RestoreDiscussion(int discussionId)
+    {
+        var discussion = await context.Discussions
+            .IgnoreQueryFilters()
+            .Include(d => d.Messages)
+            .FirstOrDefaultAsync(d => d.Id == discussionId);
+
+        if (discussion == null) return OperationResult.Failure("Discussion not found.");
+        if (!discussion.IsDeleted) return OperationResult.Failure("Discussion is not archived.");
+
+        discussion.IsDeleted = false;
+        foreach (var message in discussion.Messages)
+        {
+            message.IsDeleted = false;
+        }
+
+        await context.SaveChangesAsync();
+        return OperationResult.Success("Discussion restored.");
     }
 }

@@ -23,13 +23,18 @@ public class TicketAssignmentService(
         if (ticket == null)
             throw new Exception("Ticket not found");
 
-        var technicians = await context.Users
-            .Where(u => u.UserCategoryAssignments.Any(uca => uca.CategoryId == ticket.CategoryId))
-            .Select(u => new SelectListItem
-            {
-                Value = u.Id,
-                Text = u.UserName
-            })
+        var technicians = await (
+                from u in context.Users
+                join ur in context.UserRoles on u.Id equals ur.UserId
+                join r in context.Roles on ur.RoleId equals r.Id
+                where r.Name == nameof(UserRoles.Technician)
+                where !u.IsDeleted
+                where u.UserCategoryAssignments.Any(uca => uca.CategoryId == ticket.CategoryId)
+                select new SelectListItem
+                {
+                    Value = u.Id,
+                    Text = u.UserName
+                })
             .ToListAsync();
 
         var model = new AssignTicketViewModel
@@ -67,8 +72,16 @@ public class TicketAssignmentService(
         var ticket = await context.Tickets.FindAsync(ticketId);
         if (ticket == null) return OperationResult.Failure("Ticket not found.");
 
-        var user = await context.Users.FindAsync(userId);
-        if (user == null) return OperationResult.Failure("Technician not found.");
+        var user = await (
+                from u in context.Users
+                join ur in context.UserRoles on u.Id equals ur.UserId
+                join r in context.Roles on ur.RoleId equals r.Id
+                where u.Id == userId
+                where r.Name == nameof(UserRoles.Technician)
+                where !u.IsDeleted
+                select u)
+            .FirstOrDefaultAsync();
+        if (user == null) return OperationResult.Failure("Technician not found or is archived.");
 
         ticket.AssignedUserId = userId;
         ticket.Status = Status.Progress;

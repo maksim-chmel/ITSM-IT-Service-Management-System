@@ -31,6 +31,18 @@ public class DiscussionController(
     }
 
     [HttpGet]
+    public async Task<IActionResult> ResolvedDiscussions(string? search)
+    {
+        var list = await discussionService.GetAllDiscussions(Status.Resolved);
+        if (search != null)
+        {
+            list = await discussionService.SearchDiscussion(Status.Resolved, search);
+        }
+
+        return View(list);
+    }
+
+    [HttpGet]
     public async Task<IActionResult> CreateDiscussion(int? ticketId)
     {
         var categories = await categoryService.GetCategorySelectListAsync();
@@ -143,7 +155,7 @@ public class DiscussionController(
             NotifyError("User not found.");
         }
 
-        return RedirectToAction("ListOfDiscussions");
+        return RedirectToAction("ResolvedDiscussions");
     }
     
     [HttpPost]

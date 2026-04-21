@@ -4,6 +4,7 @@ using ITSM.Services.Charts;
 using ITSM.Services.Ticket;
 using ITSM.Services.TicketAssignment;
 using ITSM.Services.TicketSort;
+using ITSM.Authorization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -16,7 +17,8 @@ public class TicketAssignmentController(
     ITicketAssignmentService ticketAssignmentService,
     ITicketSortService ticketSortService,
     IAutoServiceService serviceService,
-    ITicketChartService chart)
+    ITicketChartService chart,
+    IAuthorizationService authorizationService)
     : BaseController
 {
     [HttpGet]
@@ -60,6 +62,12 @@ public class TicketAssignmentController(
             return RedirectToAction("ReviewAllTickets", new { managedTicketId = ticketId });
         }
 
+        var ticket = await ticketService.GetTicketById(ticketId);
+        if (ticket == null) return NotFound();
+
+        var auth = await authorizationService.AuthorizeAsync(User, ticket, new TicketRequirement(TicketOperations.Assign));
+        if (!auth.Succeeded) return Forbid();
+
         var result = await ticketAssignmentService.AssignTicketToTechnician(ticketId, userId);
         SetNotification(result);
 
@@ -77,6 +85,12 @@ public class TicketAssignmentController(
             return View(model);
         }
 
+        var ticket = await ticketService.GetTicketById(ticketId);
+        if (ticket == null) return NotFound();
+
+        var auth = await authorizationService.AuthorizeAsync(User, ticket, new TicketRequirement(TicketOperations.Assign));
+        if (!auth.Succeeded) return Forbid();
+
         var result = await ticketAssignmentService.UpdateTicketPriority(ticketId, priority);
         SetNotification(result);
 
@@ -86,6 +100,12 @@ public class TicketAssignmentController(
     [HttpGet]
     public async Task<IActionResult> InfoAboutTicket(int id)
     {
+        var ticket = await ticketService.GetTicketById(id);
+        if (ticket == null) return NotFound();
+
+        var auth = await authorizationService.AuthorizeAsync(User, ticket, new TicketRequirement(TicketOperations.View));
+        if (!auth.Succeeded) return Forbid();
+
         var viewModel = await ticketService.CreateTicketDetailsViewModel(id);
 
         return View(viewModel);
@@ -95,6 +115,12 @@ public class TicketAssignmentController(
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> CloseTicket(int id)
     {
+        var ticket = await ticketService.GetTicketById(id);
+        if (ticket == null) return NotFound();
+
+        var auth = await authorizationService.AuthorizeAsync(User, ticket, new TicketRequirement(TicketOperations.ChangeStatus));
+        if (!auth.Succeeded) return Forbid();
+
         var result = await ticketService.ChangeTicketStatus(id, Status.Resolved);
         SetNotification(result);
         return RedirectToAction("InfoAboutTicket", new { id });
@@ -104,6 +130,12 @@ public class TicketAssignmentController(
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> ReOpenTicket(int id)
     {
+        var ticket = await ticketService.GetTicketById(id);
+        if (ticket == null) return NotFound();
+
+        var auth = await authorizationService.AuthorizeAsync(User, ticket, new TicketRequirement(TicketOperations.ChangeStatus));
+        if (!auth.Succeeded) return Forbid();
+
         var result = await ticketService.ChangeTicketStatus(id, Status.Reopened);
         SetNotification(result);
         return RedirectToAction("InfoAboutTicket", new { id });
@@ -113,7 +145,14 @@ public class TicketAssignmentController(
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> CancelTicket(int id, string reason)
     {
-        var result = await ticketService.AddCancelReason(id, reason);
+        var ticket = await ticketService.GetTicketById(id);
+        if (ticket == null) return NotFound();
+
+        var auth = await authorizationService.AuthorizeAsync(User, ticket, new TicketRequirement(TicketOperations.ChangeStatus));
+        if (!auth.Succeeded) return Forbid();
+
+        var actor = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "unknown";
+        var result = await ticketService.CancelTicketAsync(id, reason, actor);
         SetNotification(result);
         return RedirectToAction("ReviewAllTickets");
     }

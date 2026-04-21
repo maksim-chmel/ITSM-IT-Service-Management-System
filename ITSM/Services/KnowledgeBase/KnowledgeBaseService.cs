@@ -53,7 +53,7 @@ public class KnowledgeBaseService(DBaseContext dBaseContext) : IKnowledgeBaseSer
         return OperationResult.Success("Knowledge base article created successfully.");
     }
 
-    public async Task<OperationResult> DeleteArticle(int articleId, string authorId)
+    public async Task<OperationResult> ArchiveArticle(int articleId, string authorId)
     {
         var article = await dBaseContext.KnowledgeBaseArticles.FindAsync(articleId);
         if (article == null) return OperationResult.Failure("Article not found.");
@@ -61,7 +61,7 @@ public class KnowledgeBaseService(DBaseContext dBaseContext) : IKnowledgeBaseSer
 
         article.IsDeleted = true;
         await dBaseContext.SaveChangesAsync();
-        return OperationResult.Success("Article deleted successfully.");
+        return OperationResult.Success("Article archived successfully.");
     }
 
 

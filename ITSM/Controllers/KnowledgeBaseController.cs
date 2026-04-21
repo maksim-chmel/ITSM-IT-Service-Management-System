@@ -75,12 +75,12 @@ public class KnowledgeBaseController(
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> DeleteArticle(int id)
+    public async Task<IActionResult> ArchiveArticle(int id)
     {
         var currentUser = await userService.GetCurrentUserAsync(User);
         if (currentUser != null)
         {
-            var result = await knowledgeBaseService.DeleteArticle(id, currentUser.Id);
+            var result = await knowledgeBaseService.ArchiveArticle(id, currentUser.Id);
             SetNotification(result);
         }
         else

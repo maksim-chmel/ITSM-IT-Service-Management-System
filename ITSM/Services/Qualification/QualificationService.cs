@@ -38,9 +38,34 @@ public class QualificationService(DBaseContext dBaseContext, IUserManagementServ
             
         user.SkillLevel = model.SkillLevel;
         model.SelectedCategoryIds ??= new List<string>();
-        await RemoveExistingAssignmentsAsync(model.UserId);
 
-        await AddNewAssignmentsAsync(model.UserId, model.SelectedCategoryIds);
+        // Portfolio/demo rule: do not physically delete assignments.
+        // We keep a stable (UserId, CategoryId) row and toggle IsDeleted.
+        var selectedCategoryIds = model.SelectedCategoryIds
+            .Select(int.Parse)
+            .ToHashSet();
+
+        var existing = await dBaseContext.UserCategoryAssignments
+            .IgnoreQueryFilters()
+            .Where(uca => uca.UserId == model.UserId)
+            .ToListAsync();
+
+        foreach (var assignment in existing)
+        {
+            assignment.IsDeleted = !selectedCategoryIds.Contains(assignment.CategoryId);
+        }
+
+        var existingCategoryIds = existing.Select(x => x.CategoryId).ToHashSet();
+        var missing = selectedCategoryIds.Except(existingCategoryIds);
+        foreach (var catId in missing)
+        {
+            dBaseContext.UserCategoryAssignments.Add(new UserCategoryAssignment
+            {
+                UserId = model.UserId,
+                CategoryId = catId,
+                IsDeleted = false
+            });
+        }
 
         await dBaseContext.SaveChangesAsync();
         return OperationResult.Success("User qualifications and categories updated.");
@@ -54,31 +79,5 @@ public class QualificationService(DBaseContext dBaseContext, IUserManagementServ
             .ToListAsync();
     }
 
-    private async Task RemoveExistingAssignmentsAsync(string userId)
-    {
-        var existingAssignments = await dBaseContext.UserCategoryAssignments
-            .Where(uca => uca.UserId == userId)
-            .ToListAsync();
-
-
-        dBaseContext.UserCategoryAssignments.RemoveRange(existingAssignments);
-
-
-        await dBaseContext.SaveChangesAsync();
-    }
-
-    private async Task AddNewAssignmentsAsync(string userId, List<string> categoryIds)
-    {
-        var assignments = categoryIds.Select(catId => new UserCategoryAssignment
-        {
-            UserId = userId,
-            CategoryId = int.Parse(catId)
-        }).ToList();
-
-
-        await dBaseContext.UserCategoryAssignments.AddRangeAsync(assignments);
-
-
-        await dBaseContext.SaveChangesAsync();
-    }
+    // Legacy helpers removed: assignments are now archived/restored via IsDeleted toggling.
 }

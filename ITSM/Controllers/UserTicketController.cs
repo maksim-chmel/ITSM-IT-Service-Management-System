@@ -1,4 +1,5 @@
 ﻿using ITSM.Enums;
+using ITSM.Authorization;
 using ITSM.Services.Ticket;
 using ITSM.Services.TicketSort;
 using ITSM.Services.UserManagement;
@@ -13,7 +14,8 @@ namespace ITSM.Controllers;
 public class UserTicketController(
     IUserManagementService userService,
     ITicketService ticketService,
-    ITicketSortService ticketSortService)
+    ITicketSortService ticketSortService,
+    IAuthorizationService authorizationService)
     : BaseController
 {
     [HttpGet]
@@ -55,4 +57,17 @@ public class UserTicketController(
         ViewBag.Categories = ticketSortService.GetCategorySelectList();
         return View(filteredTickets);
     }
-}
+
+    [HttpGet]
+    public async Task<IActionResult> Details(int id)
+    {
+        var ticket = await ticketService.GetTicketById(id);
+        if (ticket == null) return NotFound();
+
+        var auth = await authorizationService.AuthorizeAsync(User, ticket, new TicketRequirement(TicketOperations.View));
+        if (!auth.Succeeded) return Forbid();
+
+        var viewModel = await ticketService.CreateTicketDetailsViewModel(id);
+        return View(viewModel);
+    }
+} 

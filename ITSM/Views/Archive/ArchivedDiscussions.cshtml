@@ -42,7 +42,7 @@
                             <strong>Created:</strong> @thread.CreatedAt.ToLocalTime().ToString("g") <br />
                             <strong>Closed:</strong> @(thread.ClosedAt?.ToLocalTime().ToString("g") ?? "N/A")
                         </p>
-                        <a asp-controller="Archive" asp-action="ViewResolvedDiscussion" asp-route-id="@thread.Id" class="btn btn-outline-primary btn-sm w-100">View History</a>
+                        <a asp-controller="Archive" asp-action="ViewArchivedDiscussion" asp-route-id="@thread.Id" class="btn btn-outline-primary btn-sm w-100">View History</a>
                     </article>
                 }
             </div>
