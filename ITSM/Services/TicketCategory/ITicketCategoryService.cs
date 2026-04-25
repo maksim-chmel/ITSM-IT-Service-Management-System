@@ -11,7 +11,7 @@ public interface ITicketCategoryService
     Task<List<SelectListItem>> GetCategorySelectListAsync(List<Models.TicketCategory>? categories = null);
     Task<OperationResult> DeleteCategory(int id);
     Task<OperationResult> SoftDeleteCategory(int id);
-    Task<Models.TicketCategory> GetSubCategoryListAsync(int categoryId);
+    Task<Models.TicketCategory?> GetSubCategoryListAsync(int categoryId);
     Task<OperationResult> DeleteSubCategoryAsync(int subCategoryId);
     Task<OperationResult> SoftDeleteSubCategoryAsync(int subCategoryId);
     Task<OperationResult> AddSubCategoryAsync(SubCategoryCreateViewModel viewModel);

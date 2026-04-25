@@ -1,6 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
+# 
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ITSM", "ITSM\ITSM.csproj", "{A67F39DB-88E6-45A4-989B-BB31665A6B23}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ITSM", "ITSM", "{1FF46558-AEEF-44AD-8B8E-F60C608B6559}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ITSM.Tests", "ITSM.Tests\ITSM.Tests.csproj", "{49175CE1-47A5-4252-B30F-2E781A93DE89}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -12,5 +17,12 @@ Global
 		{A67F39DB-88E6-45A4-989B-BB31665A6B23}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A67F39DB-88E6-45A4-989B-BB31665A6B23}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A67F39DB-88E6-45A4-989B-BB31665A6B23}.Release|Any CPU.Build.0 = Release|Any CPU
+		{49175CE1-47A5-4252-B30F-2E781A93DE89}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{49175CE1-47A5-4252-B30F-2E781A93DE89}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{49175CE1-47A5-4252-B30F-2E781A93DE89}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{49175CE1-47A5-4252-B30F-2E781A93DE89}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{A67F39DB-88E6-45A4-989B-BB31665A6B23} = {1FF46558-AEEF-44AD-8B8E-F60C608B6559}
 	EndGlobalSection
 EndGlobal

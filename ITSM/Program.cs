@@ -73,12 +73,12 @@ builder.Services.AddScoped<IAutoServiceService,AutoServiceService>();
 builder.Services.AddScoped<IArchiveService,ArchiveService>();
 builder.Services.AddScoped<ITicketChartService,TicketChartService>();
 builder.Services.AddLogging();
-
+builder.Services.AddHealthChecks();
 
 
 var app = builder.Build();
 
-var autoMigrate = builder.Configuration.GetValue("AUTO_MIGRATE", true);
+app.MapHealthChecks("/health");var autoMigrate = builder.Configuration.GetValue("AUTO_MIGRATE", true);
 var seedDemo = builder.Configuration.GetValue("SEED_DEMO", builder.Environment.IsDevelopment());
 if (autoMigrate || seedDemo)
 {

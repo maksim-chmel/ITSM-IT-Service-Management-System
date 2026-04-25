@@ -18,7 +18,7 @@ public class KnowledgeBaseService(DBaseContext dBaseContext) : IKnowledgeBaseSer
     }
 
 
-    public async Task<KnowledgeBaseArticle> GetArticleById(int id)
+    public async Task<KnowledgeBaseArticle?> GetArticleById(int id)
     {
         return await dBaseContext.KnowledgeBaseArticles
             .Include(c => c.Author)

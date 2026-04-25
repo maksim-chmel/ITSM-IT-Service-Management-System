@@ -112,6 +112,7 @@ public class DiscussionController(
     public async Task<IActionResult> ViewDiscussion(int id)
     {
         var discussionThread = await discussionService.GetDiscussionByIdWithMessages(id);
+        if (discussionThread == null) return NotFound();
         return View(discussionThread);
     }
 

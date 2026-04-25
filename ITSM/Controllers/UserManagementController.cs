@@ -63,6 +63,7 @@ public class UserManagementController(IUserManagementService userService,IQualif
     public async Task<IActionResult> AssignCategoryToUser(string userId)
     {
         var model = await qualification.GetAssignCategoryViewModelAsync(userId);
+        if (model == null) return NotFound();
 
         return View(model);
     }

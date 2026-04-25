@@ -11,6 +11,6 @@ public interface IKnowledgeBaseService
     Task<OperationResult> ArchiveArticle(int articleId, string authorId);
     Task<OperationResult> UpdateArticle(string authorId, EditKnowBaseViewModel viewModel);
     Task<List<Models.TicketCategory>> GetAllArticlesByCategory();
-    Task<KnowledgeBaseArticle> GetArticleById(int id);
+    Task<KnowledgeBaseArticle?> GetArticleById(int id);
 
 }

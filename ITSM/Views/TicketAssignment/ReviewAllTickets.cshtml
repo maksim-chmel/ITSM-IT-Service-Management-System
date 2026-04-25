@@ -23,7 +23,7 @@
 
     var workloadGroups = Model
         .Where(t => t.AssignedUser != null && t.Status != Status.Resolved && t.Status != Status.Canceled)
-        .GroupBy(t => t.AssignedUser.UserName)
+        .GroupBy(t => t.AssignedUser!.UserName ?? "Unassigned")
         .ToDictionary(g => g.Key, g => g.Count());
     var workloadLabels = workloadGroups.Keys.ToArray();
     var workloadData = workloadGroups.Values.ToArray();

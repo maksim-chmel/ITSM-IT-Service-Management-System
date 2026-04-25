@@ -1,4 +1,5 @@
-﻿using ITSM.Models;
+using ITSM.Data;
+using ITSM.Models;
 using ITSM.ViewModels.Manage;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -7,7 +8,8 @@ namespace ITSM.Services.RoleManager;
 
 public class UserRolesService(
     UserManager<User> userManager,
-    RoleManager<IdentityRole> roleManager)
+    RoleManager<IdentityRole> roleManager,
+    DBaseContext context)
     : IUserRolesService
 {
     public async Task<ManageUserRolesViewModel?> GetUserRolesViewModel(string userId)
@@ -21,11 +23,11 @@ public class UserRolesService(
         return new ManageUserRolesViewModel
         {
             UserId = user.Id,
-            UserName = user.UserName,
-            Roles = roles.Select(r => new RoleSelectionViewModel
+            UserName = user.UserName ?? "Unknown",
+            Roles = roles.Select(role => new RoleSelectionViewModel
             {
-                RoleName = r.Name,
-                IsSelected = r.Name != null && userRoles.Contains(r.Name)
+                RoleName = role.Name,
+                IsSelected = userRoles.Contains(role.Name!)
             }).ToList()
         };
     }
@@ -37,17 +39,35 @@ public class UserRolesService(
         if (user == null) return OperationResult.Failure("User not found.");
 
         var currentRoles = await userManager.GetRolesAsync(user);
-        var rolesToAdd = selectedRoles.Where(r => r.IsSelected)
-            .Select(r => r.RoleName).ToList();
+        var rolesToAdd = selectedRoles.Where(r => r.IsSelected && r.RoleName != null)
+            .Select(r => r.RoleName!).ToList();
 
-        var removeResult = await userManager.RemoveFromRolesAsync(user, currentRoles);
-        if (!removeResult.Succeeded) return OperationResult.Failure("Failed to remove current roles.");
+        using var transaction = await context.Database.BeginTransactionAsync();
+        try
+        {
+            var removeResult = await userManager.RemoveFromRolesAsync(user, currentRoles);
+            if (!removeResult.Succeeded)
+            {
+                await transaction.RollbackAsync();
+                return OperationResult.Failure("Failed to remove current roles.");
+            }
 
-        var addResult = await userManager.AddToRolesAsync(user, rolesToAdd);
-        if (!addResult.Succeeded) return OperationResult.Failure("Failed to add new roles.");
+            var addResult = await userManager.AddToRolesAsync(user, rolesToAdd);
+            if (!addResult.Succeeded)
+            {
+                await transaction.RollbackAsync();
+                return OperationResult.Failure("Failed to add new roles.");
+            }
 
-        return OperationResult.Success("User roles updated successfully.");
+            await transaction.CommitAsync();
+            return OperationResult.Success("User roles updated successfully.");
+        }
+        catch (Exception)
+        {
+            await transaction.RollbackAsync();
+            return OperationResult.Failure("An error occurred while updating roles.");
+        }
     }
-  
+
 
 }

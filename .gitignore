@@ -1,5 +1,25 @@
+# Environment files
+.env
+appsettings.Development.json
+
+# ASP.NET Core Data Protection keys (persisted via Docker volume)
+ITSM/keys/
+
 bin/
 obj/
+**/bin/
+**/obj/
 /packages/
 riderModule.iml
 /_ReSharper.Caches/
+.DS_Store
+**/.DS_Store
+.idea/
+*.user
+*.suo
+*.DotSettings.user
+
+# Test project outputs and unused folders
+Tests/
+ITSM/obj/Debug/net8.0/ITSM.AssemblyInfo.cs
+ITSM/obj/Debug/net8.0/.NETCoreApp,Version=v8.0.AssemblyAttributes.cs

@@ -24,8 +24,9 @@ public class KnowledgeBaseController(
     [HttpGet]
     public async Task<IActionResult> ViewArticle(int id)
     {
-        var articles = await knowledgeBaseService.GetArticleById(id);
-        return View(articles);
+        var article = await knowledgeBaseService.GetArticleById(id);
+        if (article == null) return NotFound();
+        return View(article);
     }
 
     [HttpGet]

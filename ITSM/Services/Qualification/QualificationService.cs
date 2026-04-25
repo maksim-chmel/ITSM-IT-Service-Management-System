@@ -10,7 +10,7 @@ namespace ITSM.Services.Qualification;
 public class QualificationService(DBaseContext dBaseContext, IUserManagementService userManagement,ITicketCategoryService categoryService)
     : IQualificationService
 {
-    public async Task<AssignCategoryToUserViewModel> GetAssignCategoryViewModelAsync(string userId)
+    public async Task<AssignCategoryToUserViewModel?> GetAssignCategoryViewModelAsync(string userId)
     {
         var user = await userManagement.GetUserById(userId);
         if (user == null)

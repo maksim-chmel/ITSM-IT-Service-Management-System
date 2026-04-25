@@ -56,7 +56,7 @@ public class DiscussionService(DBaseContext context) : IDiscussionService
             .ToListAsync();
     }
 
-    public async Task<Models.Discussion> GetDiscussionByIdWithMessages(int id)
+    public async Task<Models.Discussion?> GetDiscussionByIdWithMessages(int id)
     {
         var discussion = await context.Discussions
             .IgnoreQueryFilters()

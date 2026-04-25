@@ -101,7 +101,7 @@ public class TicketCategoryService(DBaseContext context) : ITicketCategoryServic
     }
 
 
-    public async Task<Models.TicketCategory> GetSubCategoryListAsync(int categoryId)
+    public async Task<Models.TicketCategory?> GetSubCategoryListAsync(int categoryId)
     {
         return await context.TicketCategories
             .Include(c => c.SubCategories)

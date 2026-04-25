@@ -1,4 +1,3 @@
-using ITSM.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -6,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace ITSM.Controllers;
 
 [Authorize]
-public class HomeController(DBaseContext context) : BaseController
+public class HomeController() : BaseController
 {
     public IActionResult Index()
     {
