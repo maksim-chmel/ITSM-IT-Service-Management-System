@@ -1,4 +1,4 @@
-# ITSM — IT Service Management System
+# ITSM — IT Service Management System [![.NET CI](https://github.com/maksim-chmel/ITSM-IT-Service-Management-System/actions/workflows/main.yml/badge.svg)](https://github.com/maksim-chmel/ITSM-IT-Service-Management-System/actions/workflows/main.yml)
 
 A full-featured IT service management web application built with ASP.NET Core 8 MVC. The system supports the full ticket lifecycle, from submission by a user to resolution by a technician, featuring an automated assignment engine, a knowledge base, team discussions, and a soft-delete archive.
 
