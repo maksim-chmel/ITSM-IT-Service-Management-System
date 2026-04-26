@@ -28,11 +28,6 @@ services:
       ASPNETCORE_ENVIRONMENT: Development
       AUTO_MIGRATE: "true"
       SEED_DEMO: "true"
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:80/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
       ENABLE_HTTPS_REDIRECT: "false"
       DATA_PROTECTION_KEYS_PATH: "/app/keys"
       CONNECTION_STRING: "Host=postgres;Port=5432;Database=itsm;Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
@@ -40,6 +35,11 @@ services:
       - "8080:8080"
     volumes:
       - keys_data:/app/keys
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
 volumes:
   postgres_data:

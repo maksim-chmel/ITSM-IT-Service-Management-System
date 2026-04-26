@@ -6,14 +6,14 @@ namespace ITSM.Data;
 
 public class DBaseContext(DbContextOptions<DBaseContext> options) : IdentityDbContext<User>(options)
 {
-    public DbSet<Ticket> Tickets { get; set; }
-    public DbSet<TicketHistory> TicketHistory { get; set; }
-    public DbSet<TicketCategory> TicketCategories { get; set; }
-    public DbSet<TicketSubCategory> TicketSubCategories { get; set; }
-    public DbSet<Discussion> Discussions { get; set; }
-    public DbSet<DiscussionMessage> DiscussionMessages { get; set; }
-    public DbSet<UserCategoryAssignment> UserCategoryAssignments { get; set; }
-    public DbSet<KnowledgeBaseArticle> KnowledgeBaseArticles { get; set; }
+    public virtual DbSet<Ticket> Tickets { get; set; }
+    public virtual DbSet<TicketHistory> TicketHistory { get; set; }
+    public virtual DbSet<TicketCategory> TicketCategories { get; set; }
+    public virtual DbSet<TicketSubCategory> TicketSubCategories { get; set; }
+    public virtual DbSet<Discussion> Discussions { get; set; }
+    public virtual DbSet<DiscussionMessage> DiscussionMessages { get; set; }
+    public virtual DbSet<UserCategoryAssignment> UserCategoryAssignments { get; set; }
+    public virtual DbSet<KnowledgeBaseArticle> KnowledgeBaseArticles { get; set; }
 protected override void OnModelCreating(ModelBuilder modelBuilder)
 {
     base.OnModelCreating(modelBuilder);
