@@ -29,7 +29,7 @@ public class AutoServiceService(
             .Where(u => technicianIds.Contains(u.Id))
             .ToListAsync();
 
-        // Dictionary to track temporary load during this batch run
+       
         var currentLoad = users.ToDictionary(
             u => u.Id, 
             u => u.AssignedTickets.Count(t => t.Status != Status.Resolved && t.Status != Status.Canceled)

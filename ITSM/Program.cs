@@ -18,7 +18,7 @@ using ITSM.Services.UserProfile;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.DataProtection;
-using System.IO;
+using System.Threading.RateLimiting;
 using ITSM.Authorization;
 using Microsoft.AspNetCore.Authorization;
 
@@ -33,8 +33,6 @@ if (string.IsNullOrWhiteSpace(connectionString))
         "Database connection string is not configured. Set CONNECTION_STRING or ConnectionStrings:DefaultConnection.");
 }
 
-// Configure Data Protection to persist keys in a volume-mapped directory.
-// In Docker we mount a volume and pass DATA_PROTECTION_KEYS_PATH=/app/keys.
 var keysPath =
     builder.Configuration["DATA_PROTECTION_KEYS_PATH"] ??
     Path.Combine(builder.Environment.ContentRootPath, "keys");
@@ -74,11 +72,28 @@ builder.Services.AddScoped<IArchiveService,ArchiveService>();
 builder.Services.AddScoped<ITicketChartService,TicketChartService>();
 builder.Services.AddLogging();
 builder.Services.AddHealthChecks();
+builder.Services.AddRateLimiter(options =>
+{
+    options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(ctx =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: ctx.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 10,
+                Window = TimeSpan.FromSeconds(10),
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                QueueLimit = 2
+            }));
+
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+});
 
 
 var app = builder.Build();
 
-app.MapHealthChecks("/health");var autoMigrate = builder.Configuration.GetValue("AUTO_MIGRATE", true);
+app.MapHealthChecks("/health").DisableRateLimiting();
+
+var autoMigrate = builder.Configuration.GetValue("AUTO_MIGRATE", true);
 var seedDemo = builder.Configuration.GetValue("SEED_DEMO", builder.Environment.IsDevelopment());
 if (autoMigrate || seedDemo)
 {
@@ -100,17 +115,15 @@ if (builder.Configuration.GetValue("ENABLE_HTTPS_REDIRECT", true))
 {
     app.UseHttpsRedirection();
 }
+app.UseMiddleware<ExceptionMiddleware>();
 app.UseStaticFiles();
 app.UseRouting();
+app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
-app.UseMiddleware<ExceptionMiddleware>();
 
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Landing}/{action=Index}/{id?}");
-app.MapControllerRoute(
-        name: "authorized",
-        pattern: "{controller=Home}/{action=Index}/{id?}")
-    .RequireAuthorization();
+
 app.Run();
