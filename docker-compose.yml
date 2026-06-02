@@ -3,7 +3,7 @@ services:
     image: postgres:16
     container_name: itsm-postgres
     environment:
-      POSTGRES_DB: itsm
+      POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
@@ -30,7 +30,7 @@ services:
       SEED_DEMO: "true"
       ENABLE_HTTPS_REDIRECT: "false"
       DATA_PROTECTION_KEYS_PATH: "/app/keys"
-      CONNECTION_STRING: "Host=postgres;Port=5432;Database=itsm;Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
+      CONNECTION_STRING: "Host=postgres;Port=5432;Database={POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
     ports:
       - "8080:8080"
     volumes:
