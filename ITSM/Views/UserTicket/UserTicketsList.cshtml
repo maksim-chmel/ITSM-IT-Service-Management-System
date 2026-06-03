@@ -86,6 +86,16 @@
                 </tr>
                 </thead>
                 <tbody class="table-light">
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="8" class="text-center text-muted py-4">
+                                <i class="bi bi-inbox fs-3 d-block mb-2"></i>
+                                You haven't submitted any tickets yet.
+                                <a asp-action="CreateTicket" asp-controller="UserTicket" asp-route-categoryId="1" class="ms-1">Create your first one.</a>
+                            </td>
+                        </tr>
+                    }
 	                @foreach (var ticket in Model)
 	                {
 	                    <tr>

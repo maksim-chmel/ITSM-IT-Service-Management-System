@@ -12,7 +12,9 @@ public class UserManagementService(DBaseContext dBaseContext, UserManager<User> 
 {
     public async Task<User?> GetUserById(string id)
     {
-        return await dBaseContext.Users.FindAsync(id);
+        return await dBaseContext.Users
+            .IgnoreQueryFilters()
+            .FirstOrDefaultAsync(u => u.Id == id);
     }
 
     /*  public async Task<bool> DeleteUserById(string userId)
@@ -71,24 +73,14 @@ public class UserManagementService(DBaseContext dBaseContext, UserManager<User> 
 
     public async Task<UserWithRolesViewModel[]> GetAllUsersToList()
     {
-        return await dBaseContext.Users
+        var users = await dBaseContext.Users
+            .IgnoreQueryFilters()
             .AsNoTracking()
-            .Select(user => new UserWithRolesViewModel
-            {
-                Id = user.Id,
-                UserName = user.UserName,
-                Email = user.Email,
-                PhoneNumber = user.PhoneNumber,
-                IsDeleted = user.IsDeleted,
-                Roles = dBaseContext.UserRoles
-                    .Where(ur => ur.UserId == user.Id)
-                    .Join(dBaseContext.Roles, ur => ur.RoleId, r => r.Id, (ur, r) => r.Name!)
-                    .ToList(),
-                AssignedCategories = user.UserCategoryAssignments
-                    .Select(uca => uca.TicketCategory.Name)
-                    .ToList()
-            })
-            .ToArrayAsync();
+            .Include(u => u.UserCategoryAssignments)
+                .ThenInclude(uca => uca.TicketCategory)
+            .ToListAsync();
+
+        return await BuildUserViewModelsAsync(users);
     }
 
     public async Task<User?> GetCurrentUserAsync(ClaimsPrincipal principal)
@@ -101,10 +93,18 @@ public class UserManagementService(DBaseContext dBaseContext, UserManager<User> 
         var user = await GetUserById(id);
         if (user == null) return OperationResult.Failure("User not found.");
 
-       
+        if (!string.IsNullOrWhiteSpace(editmodel.Email) &&
+            !string.Equals(user.Email, editmodel.Email, StringComparison.OrdinalIgnoreCase))
+        {
+            var existing = await userManager.FindByEmailAsync(editmodel.Email);
+            if (existing != null && existing.Id != id)
+                return OperationResult.Failure("This email address is already in use.");
+        }
+
         user.UserName = editmodel.UserName;
+        user.NormalizedUserName = userManager.NormalizeName(editmodel.UserName);
         user.Email = editmodel.Email;
-        user.NormalizedEmail = editmodel.Email?.Normalize();
+        user.NormalizedEmail = userManager.NormalizeEmail(editmodel.Email);
         user.PhoneNumber = editmodel.PhoneNumber;
 
        
@@ -152,32 +152,54 @@ public class UserManagementService(DBaseContext dBaseContext, UserManager<User> 
     public async Task<UserWithRolesViewModel[]> SearchUser(string? search)
     {
         var query = dBaseContext.Users
-            .AsNoTracking();
+            .IgnoreQueryFilters()
+            .AsNoTracking()
+            .Include(u => u.UserCategoryAssignments)
+                .ThenInclude(uca => uca.TicketCategory);
 
+        List<User> users;
         if (!string.IsNullOrWhiteSpace(search))
         {
-            search = search.ToLower();
-            query = query.Where(u =>
-                (u.UserName != null && u.UserName.ToLower().Contains(search)) ||
-                (u.Email != null && u.Email.ToLower().Contains(search)));
+            var s = search.ToLower();
+            users = await query.Where(u =>
+                (u.UserName != null && u.UserName.ToLower().Contains(s)) ||
+                (u.Email != null && u.Email.ToLower().Contains(s)))
+                .ToListAsync();
+        }
+        else
+        {
+            users = await query.ToListAsync();
         }
 
-        return await query
-            .Select(user => new UserWithRolesViewModel
-            {
-                Id = user.Id,
-                UserName = user.UserName,
-                Email = user.Email,
-                PhoneNumber = user.PhoneNumber,
-                IsDeleted = user.IsDeleted,
-                Roles = dBaseContext.UserRoles
-                    .Where(ur => ur.UserId == user.Id)
-                    .Join(dBaseContext.Roles, ur => ur.RoleId, r => r.Id, (ur, r) => r.Name!)
-                    .ToList(),
-                AssignedCategories = user.UserCategoryAssignments
-                    .Select(uca => uca.TicketCategory.Name)
-                    .ToList()
-            })
-            .ToArrayAsync();
+        return await BuildUserViewModelsAsync(users);
+    }
+
+    private async Task<UserWithRolesViewModel[]> BuildUserViewModelsAsync(List<User> users)
+    {
+        var userIds = users.Select(u => u.Id).ToList();
+
+        var rolePairs = await (
+            from ur in dBaseContext.UserRoles
+            join r in dBaseContext.Roles on ur.RoleId equals r.Id
+            where userIds.Contains(ur.UserId)
+            select new { ur.UserId, r.Name }
+        ).ToListAsync();
+
+        var rolesByUser = rolePairs
+            .GroupBy(x => x.UserId)
+            .ToDictionary(g => g.Key, g => g.Select(x => x.Name!).ToList());
+
+        return users.Select(user => new UserWithRolesViewModel
+        {
+            Id = user.Id,
+            UserName = user.UserName,
+            Email = user.Email,
+            PhoneNumber = user.PhoneNumber,
+            IsDeleted = user.IsDeleted,
+            Roles = rolesByUser.GetValueOrDefault(user.Id) ?? [],
+            AssignedCategories = user.UserCategoryAssignments
+                .Select(uca => uca.TicketCategory.Name)
+                .ToList()
+        }).ToArray();
     }
 }

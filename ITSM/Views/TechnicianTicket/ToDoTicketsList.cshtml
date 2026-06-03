@@ -39,6 +39,11 @@
                     <i class="bi bi-funnel"></i> Filters
                 </button>
                 <div class="dropdown-menu dropdown-panel-sm p-3">
+                    @{
+                        var activeCategory = Context.Request.Query["CategoryId"].ToString();
+                        var activePriority = Context.Request.Query["Priority"].ToString();
+                        var activeStatus   = Context.Request.Query["Status"].ToString();
+                    }
                     <form method="get" class="row g-2">
                         <div class="col-12">
                             <label class="form-label small mb-1">Category</label>
@@ -46,7 +51,7 @@
                                 <option value="">All</option>
                                 @foreach (var category in (ViewBag.Categories as List<SelectListItem>)!)
                                 {
-                                    <option value="@category.Value">@category.Text</option>
+                                    <option value="@category.Value" selected="@(category.Value == activeCategory ? "selected" : null)">@category.Text</option>
                                 }
                             </select>
                         </div>
@@ -57,7 +62,7 @@
                                 <option value="">All</option>
                                 @foreach (var p in Enum.GetValues(typeof(ITSM.Enums.TicketPriority)))
                                 {
-                                    <option value="@p">@p</option>
+                                    <option value="@p" selected="@(p.ToString() == activePriority ? "selected" : null)">@p</option>
                                 }
                             </select>
                         </div>
@@ -68,7 +73,7 @@
                                 <option value="">All</option>
                                 @foreach (var s in Enum.GetValues(typeof(ITSM.Enums.Status)))
                                 {
-                                    <option value="@s">@s</option>
+                                    <option value="@s" selected="@(s.ToString() == activeStatus ? "selected" : null)">@s</option>
                                 }
                             </select>
                         </div>

@@ -14,8 +14,6 @@
             <a asp-action="KnowledgeBaseByCategories" class="btn btn-outline-secondary btn-sm">Back</a>
         </div>
         <hr />
-        <div>
-            @Html.Raw(Model.Content)
-        </div>
+        <div style="white-space: pre-wrap;">@Model.Content</div>
     </section>
 </div>

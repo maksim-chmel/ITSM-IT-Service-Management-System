@@ -14,7 +14,7 @@
 
         <form asp-action="RestoreTaxonomy" method="post" id="restoreForm">
             <div class="page-actions mb-3 d-flex justify-content-between">
-                <button type="submit" class="btn btn-outline-primary">
+                <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#restoreCategoryModal">
                     <i class="bi bi-arrow-counterclockwise"></i> Restore Selected
                 </button>
                 <div class="form-check form-switch">
@@ -61,6 +61,24 @@
     </section>
 </div>
 
+<div class="modal fade" id="restoreCategoryModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Restore Selected</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Restore the selected categories and subcategories? They will become active and visible to users again.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirmRestoreCategories">Restore</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <script>
         document.addEventListener("DOMContentLoaded", function() {
@@ -71,21 +89,14 @@
                 allCheckboxes.forEach(cb => cb.checked = this.checked);
             });
             
-            allCheckboxes.forEach(checkbox => {
-                checkbox.addEventListener('change', function() {
-                    if (!this.checked) {
-                        selectAll.checked = false;
-                    } else {
-                        // Check if all are checked
-                        let allChecked = true;
-                        allCheckboxes.forEach(cb => {
-                            if (!cb.checked) {
-                                allChecked = false;
-                            }
-                        });
-                        selectAll.checked = allChecked;
-                    }
-                });
+            allCheckboxes.forEach(cb => cb.addEventListener("change", function () {
+                const checked = [...allCheckboxes].filter(c => c.checked).length;
+                selectAll.checked = checked === allCheckboxes.length;
+                selectAll.indeterminate = checked > 0 && checked < allCheckboxes.length;
+            }));
+
+            document.getElementById("confirmRestoreCategories").addEventListener("click", function () {
+                document.getElementById("restoreForm").submit();
             });
         });
     </script>

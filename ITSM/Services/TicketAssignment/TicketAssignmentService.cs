@@ -69,6 +69,8 @@ public class TicketAssignmentService(
     
     public async Task<OperationResult> AssignTicketToTechnician(int ticketId, string userId)
     {
+        await using var transaction = await context.Database.BeginTransactionAsync();
+
         var ticket = await context.Tickets.FindAsync(ticketId);
         if (ticket == null) return OperationResult.Failure("Ticket not found.");
 
@@ -93,8 +95,9 @@ public class TicketAssignmentService(
             CreatedAt = DateTime.UtcNow
         };
         context.TicketHistory.Add(history);
-        
+
         await context.SaveChangesAsync();
+        await transaction.CommitAsync();
         return OperationResult.Success($"Ticket assigned to {user.UserName}.");
     }
 

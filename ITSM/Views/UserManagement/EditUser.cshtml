@@ -54,12 +54,24 @@
     </section>
     </div>
 <script>
-    document.getElementById("showPasswordFields").addEventListener("change", function() {
-        var passwordFields = document.getElementById("passwordFields");
-        if (this.checked) {
-            passwordFields.classList.add("show");
+    const toggle = document.getElementById("showPasswordFields");
+    const section = document.getElementById("passwordFields");
+    const pwdInputs = section.querySelectorAll("input");
+
+    function setPasswordSectionEnabled(enabled) {
+        if (enabled) {
+            section.classList.add("show");
+            pwdInputs.forEach(i => i.disabled = false);
         } else {
-            passwordFields.classList.remove("show");
+            section.classList.remove("show");
+            pwdInputs.forEach(i => { i.disabled = true; i.value = ""; });
         }
+    }
+
+    toggle.addEventListener("change", function () {
+        setPasswordSectionEnabled(this.checked);
     });
+
+    // Disable on load so auto-filled values aren't accidentally submitted
+    setPasswordSectionEnabled(false);
 </script>

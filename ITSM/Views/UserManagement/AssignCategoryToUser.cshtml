@@ -23,15 +23,26 @@
                     <thead class="table-dark text-white">
                         <tr>
                             <th>Skill Level</th>
+                            <th>Description</th>
                             <th>Selected</th>
                         </tr>
                     </thead>
                     <tbody>
+                        @{
+                            var skillDescriptions = new Dictionary<SkillLevel, string>
+                            {
+                                [SkillLevel.Junior]  = "Handles simple, well-defined requests. Low priority tickets.",
+                                [SkillLevel.Middle]  = "Resolves standard incidents independently. Medium priority tickets.",
+                                [SkillLevel.Senior]  = "Manages complex cases and escalations. High priority tickets.",
+                                [SkillLevel.Expert]  = "Owns critical incidents and drives cross-team resolution.",
+                            };
+                        }
                         @foreach (var level in Enum.GetValues(typeof(SkillLevel)).Cast<SkillLevel>())
                         {
                             var isChecked = Model.SkillLevel == level;
                             <tr>
-                                <td>@level</td>
+                                <td><strong>@level</strong></td>
+                                <td class="text-muted small text-start">@skillDescriptions[level]</td>
                                 <td>
                                     <div class="form-check form-switch d-flex justify-content-center">
                                         <input class="form-check-input" type="radio" name="SkillLevel" value="@level" @(isChecked ? "checked" : "") />

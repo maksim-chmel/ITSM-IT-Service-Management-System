@@ -10,9 +10,11 @@
     </section>
 
     <div class="surface-card surface-card--narrow">
-        <form method="get" asp-action="CreateTicket" asp-controller="UserTicket" class="mb-4">
+        <form method="get" asp-action="CreateTicket" asp-controller="UserTicket" class="mb-4" id="categoryForm">
+            <input type="hidden" name="preservedTitle" id="preservedTitle" />
+            <input type="hidden" name="preservedDescription" id="preservedDescription" />
             <div class="form-floating">
-                <select name="categoryId" class="form-select" onchange="this.form.submit()">
+                <select name="categoryId" class="form-select" id="categorySelect">
                     <option value="">Select Category</option>
                     @foreach (var cat in Model.Categories)
                     {
@@ -40,13 +42,15 @@
                 <span class="text-danger" asp-validation-for="SubCategoryId"></span>
             </div>
             <div class="form-floating mb-3">
-                <input asp-for="Title" class="form-control" placeholder="Title"/>
+                <input asp-for="Title" class="form-control" placeholder="Title" id="ticketTitle"
+                       value="@Context.Request.Query["preservedTitle"]"/>
                 <label asp-for="Title">Title</label>
                 <span class="text-danger" asp-validation-for="Title"></span>
             </div>
 
             <div class="form-floating mb-4">
-                <textarea asp-for="Description" class="form-control textarea-lg" placeholder="Description"></textarea>
+                <textarea asp-for="Description" class="form-control textarea-lg" placeholder="Description"
+                          id="ticketDescription">@Context.Request.Query["preservedDescription"]</textarea>
                 <label asp-for="Description">Description</label>
                 <span class="text-danger" asp-validation-for="Description"></span>
             </div>
@@ -62,14 +66,17 @@
 
 <script>
     document.addEventListener("DOMContentLoaded", function () {
-        const inputs = document.querySelectorAll(".form-control");
-
-     
-        inputs.forEach(input => {
+        document.querySelectorAll(".form-control").forEach(input => {
             input.addEventListener("input", function () {
                 this.classList.toggle("is-invalid", !this.checkValidity());
                 this.classList.toggle("is-valid", this.checkValidity());
             });
+        });
+
+        document.getElementById("categorySelect").addEventListener("change", function () {
+            document.getElementById("preservedTitle").value = document.getElementById("ticketTitle").value;
+            document.getElementById("preservedDescription").value = document.getElementById("ticketDescription").value;
+            document.getElementById("categoryForm").submit();
         });
     });
 </script>

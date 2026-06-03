@@ -143,9 +143,7 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
     // Global Query Filters for Soft Delete
     modelBuilder.Entity<Ticket>().HasQueryFilter(t => !t.IsDeleted);
     modelBuilder.Entity<KnowledgeBaseArticle>().HasQueryFilter(a => !a.IsDeleted);
-    // NOTE: We intentionally do NOT apply a global query filter to User.
-    // Archived users must still be visible in historical/audit views (tickets, KB, discussions).
-    // Access for archived users is enforced via Identity lockout + security stamp invalidation.
+    modelBuilder.Entity<User>().HasQueryFilter(u => !u.IsDeleted);
     modelBuilder.Entity<Discussion>().HasQueryFilter(d => !d.IsDeleted);
     modelBuilder.Entity<UserCategoryAssignment>().HasQueryFilter(uca => !uca.IsDeleted);
     modelBuilder.Entity<DiscussionMessage>().HasQueryFilter(dm => !dm.IsDeleted);

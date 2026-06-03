@@ -59,20 +59,16 @@
 
             @if (Model.Ticket.AssignedUserId != null && (User.IsInRole("Admin") || User.IsInRole("Coordinator")))
             {
-                <form method="post" asp-controller="TechnicianTicket" asp-action="UnassignTicket" asp-route-id="@Model.Ticket.Id">
-                    <button type="submit" class="btn btn-outline-warning">
-                        <i class="bi bi-person-x"></i> Unassign
-                    </button>
-                </form>
+                <button type="button" class="btn btn-outline-warning" data-bs-toggle="modal" data-bs-target="#unassignModal">
+                    <i class="bi bi-person-x"></i> Unassign
+                </button>
             }
 
             @if (canManageTicket)
             {
-                <form method="post" asp-controller="TechnicianTicket" asp-action="ArchiveTicket" asp-route-id="@Model.Ticket.Id">
-                    <button type="submit" class="btn btn-outline-danger">
-                        <i class="bi bi-archive"></i> Archive
-                    </button>
-                </form>
+                <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#archiveTicketModal">
+                    <i class="bi bi-archive"></i> Archive
+                </button>
             }
         </div>
     </div>
@@ -165,6 +161,52 @@
                     </a>
                 </div>
             </section>
+        </div>
+    </div>
+</div>
+
+<!-- Unassign Modal -->
+<div class="modal fade" id="unassignModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Unassign Ticket</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Remove the current technician assignment? The ticket will be returned to the open queue.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form method="post" asp-controller="TechnicianTicket" asp-action="UnassignTicket" asp-route-id="@Model.Ticket.Id">
+                    <button type="submit" class="btn btn-warning">Unassign</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Archive Ticket Modal -->
+<div class="modal fade" id="archiveTicketModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" asp-controller="TechnicianTicket" asp-action="ArchiveTicket" asp-route-id="@Model.Ticket.Id">
+                <div class="modal-header">
+                    <h5 class="modal-title">Archive Ticket</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>This ticket will be moved to the archive. You can restore it later.</p>
+                    <div class="mb-3">
+                        <label class="form-label">Note (optional)</label>
+                        <input type="text" name="note" class="form-control" placeholder="Reason for archiving..." />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger">Archive</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>

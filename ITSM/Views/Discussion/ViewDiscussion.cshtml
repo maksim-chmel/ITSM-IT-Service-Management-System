@@ -20,16 +20,12 @@
                 
                 @if (Model.AuthorId == User.FindFirstValue(ClaimTypes.NameIdentifier))
                 {
-                    <form asp-action="ResolveDiscussion" asp-route-id="@Model.Id" method="post" class="d-inline">
-                        <button type="submit" class="btn btn-outline-success btn-sm">
-                            <i class="bi bi-check-circle"></i> Resolve
-                        </button>
-                    </form>
-                    <form asp-action="ArchiveDiscussion" asp-route-id="@Model.Id" method="post" class="d-inline">
-                        <button type="submit" class="btn btn-outline-danger btn-sm">
-                            <i class="bi bi-archive"></i> Archive
-                        </button>
-                    </form>
+                    <button type="button" class="btn btn-outline-success btn-sm" data-bs-toggle="modal" data-bs-target="#resolveDiscussionModal">
+                        <i class="bi bi-check-circle"></i> Resolve
+                    </button>
+                    <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#archiveDiscussionModal">
+                        <i class="bi bi-archive"></i> Archive
+                    </button>
                 }
                 <a asp-action="ListOfDiscussions" class="btn btn-outline-secondary btn-sm">Close</a>
             </div>
@@ -67,4 +63,44 @@
             <button type="submit" class="btn btn-outline-primary btn-sm">Send</button>
         </form>
     </section>
+</div>
+
+<div class="modal fade" id="resolveDiscussionModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Resolve Discussion</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Mark this discussion as resolved? It will move to the resolved section and be closed for new messages.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form asp-action="ResolveDiscussion" asp-route-id="@Model.Id" method="post" class="d-inline">
+                    <button type="submit" class="btn btn-success">Resolve</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="archiveDiscussionModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Archive Discussion</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Move this discussion to the archive? All messages will be archived with it.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form asp-action="ArchiveDiscussion" asp-route-id="@Model.Id" method="post" class="d-inline">
+                    <button type="submit" class="btn btn-danger">Archive</button>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>

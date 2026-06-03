@@ -45,7 +45,12 @@ public class UserProfileController(IUserProfileService userProfileService) : Bas
 
         if (IsPasswordChangeRequested(model))
         {
-            var passwordResult = await userProfileService.ChangeUserPasswordAsync(user, model.CurrentPassword!, model.NewPassword!);
+            if (string.IsNullOrWhiteSpace(model.CurrentPassword) || string.IsNullOrWhiteSpace(model.NewPassword))
+            {
+                NotifyError("Current password and new password are required to change your password.");
+                return View(model);
+            }
+            var passwordResult = await userProfileService.ChangeUserPasswordAsync(user, model.CurrentPassword, model.NewPassword);
             if (!passwordResult.IsSuccess)
             {
                 SetNotification(passwordResult);

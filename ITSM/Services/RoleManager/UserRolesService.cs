@@ -42,29 +42,22 @@ public class UserRolesService(
         var rolesToAdd = selectedRoles.Where(r => r.IsSelected && r.RoleName != null)
             .Select(r => r.RoleName!).ToList();
 
-        using var transaction = await context.Database.BeginTransactionAsync();
+        await using var transaction = await context.Database.BeginTransactionAsync();
         try
         {
             var removeResult = await userManager.RemoveFromRolesAsync(user, currentRoles);
             if (!removeResult.Succeeded)
-            {
-                await transaction.RollbackAsync();
                 return OperationResult.Failure("Failed to remove current roles.");
-            }
 
             var addResult = await userManager.AddToRolesAsync(user, rolesToAdd);
             if (!addResult.Succeeded)
-            {
-                await transaction.RollbackAsync();
                 return OperationResult.Failure("Failed to add new roles.");
-            }
 
             await transaction.CommitAsync();
             return OperationResult.Success("User roles updated successfully.");
         }
         catch (Exception)
         {
-            await transaction.RollbackAsync();
             return OperationResult.Failure("An error occurred while updating roles.");
         }
     }

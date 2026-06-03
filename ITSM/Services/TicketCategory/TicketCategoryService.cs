@@ -130,15 +130,23 @@ public class TicketCategoryService(DBaseContext context) : ITicketCategoryServic
 
     public async Task<OperationResult> AddSubCategoryAsync(SubCategoryCreateViewModel viewModel)
     {
+        if (string.IsNullOrWhiteSpace(viewModel.Name))
+            return OperationResult.Failure("Subcategory name is required.");
+
         var categoryExists = await context.TicketCategories
             .AnyAsync(c => c.Id == viewModel.CategoryId);
 
         if (!categoryExists)
-        {
             return OperationResult.Failure("Parent category not found.");
-        }
 
-        var subCategory = new TicketSubCategory()
+        var duplicate = await context.TicketSubCategories
+            .AnyAsync(s => s.CategoryId == viewModel.CategoryId &&
+                           s.Name.ToLower() == viewModel.Name.ToLower());
+
+        if (duplicate)
+            return OperationResult.Failure("A subcategory with this name already exists in the selected category.");
+
+        var subCategory = new TicketSubCategory
         {
             Name = viewModel.Name,
             CategoryId = viewModel.CategoryId

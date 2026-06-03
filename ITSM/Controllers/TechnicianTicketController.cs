@@ -65,30 +65,13 @@ public class TechnicianTicketController(
         var ticket = await ticketService.GetTicketById(id);
         if (ticket == null) return NotFound();
 
-        // If assigned to someone else, only Admin/Coordinator should be able to proceed.
-        if (ticket.AssignedUserId != null)
-        {
-            var caller = await userManager.GetUserAsync(User);
-            if (caller != null && ticket.AssignedUserId != caller.Id)
-            {
-                var allowOverride =
-                    User.IsInRole(nameof(UserRoles.Admin)) ||
-                    User.IsInRole(nameof(UserRoles.Coordinator));
-                if (!allowOverride)
-                {
-                    NotifyError("This ticket is already assigned to another technician.");
-                    return RedirectToAction("ShowDetailsAboutTicket", new { id });
-                }
-            }
-        }
-
         var auth = await authorizationService.AuthorizeAsync(User, ticket, new TicketRequirement(TicketOperations.Accept));
         if (!auth.Succeeded)
         {
             NotifyError("You are not authorized to start processing this ticket.");
             return RedirectToAction("ShowDetailsAboutTicket", new { id });
         }
-        
+
         var currentUser = await userManager.GetUserAsync(User);
         if (currentUser == null) return RedirectToAction("Login", "Auth");
 
@@ -163,7 +146,8 @@ public class TechnicianTicketController(
         
         if (string.IsNullOrWhiteSpace(adminComment))
         {
-            ModelState.AddModelError("adminComment", "Note is required.");
+            NotifyError("Note is required.");
+            return RedirectToAction("ShowDetailsAboutTicket", new { id = ticketId });
         }
 
         await ticketService.AddTicketStepAsync(ticketId, adminComment);

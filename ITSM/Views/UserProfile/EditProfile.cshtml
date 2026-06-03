@@ -73,12 +73,24 @@
 
 @section Scripts {
     <script>
-       
-        document.getElementById("showPasswordFields").addEventListener("change", function() {
-            var passwordFields = document.getElementById("passwordFields");
-            
-            
-            passwordFields.classList.toggle("show", this.checked);
+        const toggle = document.getElementById("showPasswordFields");
+        const section = document.getElementById("passwordFields");
+        const pwdInputs = section.querySelectorAll("input");
+
+        function setPasswordSectionEnabled(enabled) {
+            if (enabled) {
+                section.classList.add("show");
+                pwdInputs.forEach(i => i.disabled = false);
+            } else {
+                section.classList.remove("show");
+                pwdInputs.forEach(i => { i.disabled = true; i.value = ""; });
+            }
+        }
+
+        toggle.addEventListener("change", function () {
+            setPasswordSectionEnabled(this.checked);
         });
+
+        setPasswordSectionEnabled(false);
     </script>
 }

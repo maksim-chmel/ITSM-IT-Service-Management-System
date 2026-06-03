@@ -68,11 +68,15 @@
                 </tr>
                 </thead>
                 <tbody class="table-light">
+                @if (!Model.TicketHistory.Any())
+                {
+                    <tr><td colspan="2" class="text-center text-muted py-3">No activity recorded yet.</td></tr>
+                }
                 @foreach (var entry in Model.TicketHistory)
                 {
                     <tr>
                         <td>@entry.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
-                        <td>@(entry.AdminComment ?? "")</td>
+                        <td>@(string.IsNullOrWhiteSpace(entry.AdminComment) ? "—" : entry.AdminComment)</td>
                     </tr>
                 }
                 </tbody>

@@ -58,26 +58,12 @@ public class DiscussionService(DBaseContext context) : IDiscussionService
 
     public async Task<Models.Discussion?> GetDiscussionByIdWithMessages(int id)
     {
-        var discussion = await context.Discussions
+        return await context.Discussions
             .IgnoreQueryFilters()
             .Include(t => t.Author)
+            .Include(t => t.Messages.OrderBy(m => m.CreatedAt))
+                .ThenInclude(m => m.Author)
             .FirstOrDefaultAsync(t => t.Id == id);
-
-        if (discussion == null)
-        {
-            return null;
-        }
-
-        var messages = await context.DiscussionMessages
-            .IgnoreQueryFilters()
-            .Where(m => m.DiscussionId == id)
-            .Include(m => m.Author)
-            .OrderBy(m => m.CreatedAt)
-            .ToListAsync();
-
-        discussion.Messages = messages;
-
-        return discussion;
     }
 
 

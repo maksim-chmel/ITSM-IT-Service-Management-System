@@ -37,7 +37,7 @@
             <div class="info-card"><dl><dt>Title</dt><dd>@Model.Ticket.Title</dd></dl></div>
             <div class="info-card"><dl><dt>Author</dt><dd>@Model.Ticket.Author?.UserName</dd></dl></div>
             <div class="info-card"><dl><dt>Created At</dt><dd>@Model.Ticket.CreatedAt.ToString("yyyy-MM-dd HH:mm")</dd></dl></div>
-            <div class="info-card"><dl><dt>Assigned To</dt><dd>@Model.Ticket.AssignedUser</dd></dl></div>
+            <div class="info-card"><dl><dt>Assigned To</dt><dd>@(Model.Ticket.AssignedUser?.UserName ?? "Unassigned")</dd></dl></div>
             <div class="info-card"><dl><dt>Fix Description</dt><dd>@(string.IsNullOrWhiteSpace(Model.Ticket.FixDescription) ? "-" : Model.Ticket.FixDescription)</dd></dl></div>
             <div class="info-card"><dl><dt>Cancel Reason</dt><dd>@(string.IsNullOrWhiteSpace(Model.Ticket.CancelReason) ? "-" : Model.Ticket.CancelReason)</dd></dl></div>
             <div class="info-card full-span"><dl><dt>Description</dt><dd>@Model.Ticket.Description</dd></dl></div>
@@ -60,11 +60,15 @@
                     </tr>
                 </thead>
                 <tbody>
+                    @if (!Model.TicketHistory.Any())
+                    {
+                        <tr><td colspan="2" class="text-center text-muted py-3">No notes recorded yet.</td></tr>
+                    }
                     @foreach (var note in Model.TicketHistory)
                     {
                         <tr>
                             <td>@note.CreatedAt.ToString("dd.MM.yyyy HH:mm")</td>
-                            <td>@note.AdminComment</td>
+                            <td>@(string.IsNullOrWhiteSpace(note.AdminComment) ? "—" : note.AdminComment)</td>
                         </tr>
                     }
                 </tbody>

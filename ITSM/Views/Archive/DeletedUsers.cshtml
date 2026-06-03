@@ -49,9 +49,18 @@
 
 @section Scripts {
     <script>
-        document.getElementById("selectAll").addEventListener("change", function () {
-            const checkboxes = document.querySelectorAll('input[name="selectedUserIds"]');
+        const selectAll = document.getElementById("selectAll");
+        const checkboxes = document.querySelectorAll('input[name="selectedUserIds"]');
+
+        selectAll.addEventListener("change", function () {
             checkboxes.forEach(cb => cb.checked = this.checked);
         });
+
+        checkboxes.forEach(cb => cb.addEventListener("change", function () {
+            const total = checkboxes.length;
+            const checked = [...checkboxes].filter(c => c.checked).length;
+            selectAll.checked = checked === total;
+            selectAll.indeterminate = checked > 0 && checked < total;
+        }));
     </script>
 }

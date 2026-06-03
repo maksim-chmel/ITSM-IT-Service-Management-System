@@ -19,17 +19,29 @@
             </div>
             <div class="table-responsive">
                 <table class="table table-hover table-bordered align-middle text-center">
+                    @{
+                        var roleDescriptions = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+                        {
+                            ["Admin"]       = "Full access — users, categories, roles, archive.",
+                            ["Coordinator"] = "Assigns tickets, manages priorities, monitors pipeline.",
+                            ["Technician"]  = "Receives and resolves tickets from the queue.",
+                            ["User"]        = "Creates support requests and tracks their status.",
+                        };
+                    }
                     <thead class="table-dark text-white">
                         <tr>
                             <th>Role</th>
-                            <th>Selected</th>
+                            <th class="text-start">Access Scope</th>
+                            <th>Active</th>
                         </tr>
                     </thead>
                     <tbody>
                         @for (var i = 0; i < Model.Roles.Count; i++)
                         {
+                            var desc = roleDescriptions.GetValueOrDefault(Model.Roles[i].RoleName ?? "", "—");
                             <tr>
-                                <td>@Model.Roles[i].RoleName</td>
+                                <td><strong>@Model.Roles[i].RoleName</strong></td>
+                                <td class="text-start text-muted small">@desc</td>
                                 <td>
                                     <div class="form-check form-switch d-flex justify-content-center">
                                         <input class="form-check-input" type="checkbox" asp-for="Roles[i].IsSelected" role="switch">

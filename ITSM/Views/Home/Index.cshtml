@@ -27,20 +27,50 @@
     </section>
 
     <section class="surface-card">
-        <div class="row g-4 align-items-center">
-            <div class="col-lg-7">
-                <h3 class="mb-3">Recommended next step</h3>
-                <p class="text-muted mb-0">
-                    Open one of the primary workflow areas from the sidebar. Requesters usually start with ticket creation, technicians with assigned work, coordinators with ticket review, and administrators with users and categories.
-                </p>
-            </div>
-            <div class="col-lg-5">
-                <div class="feature-card">
-                    <i class="bi bi-arrow-left-short"></i>
-                    <h5 class="fw-semibold">Use the left navigation</h5>
-                    <p class="mb-0">The sidebar is now the primary control surface and stays available across operational screens.</p>
-                </div>
-            </div>
+        <h3 class="mb-4">Quick Actions</h3>
+        <div class="d-flex flex-wrap gap-3">
+            @if (User.IsInRole("User"))
+            {
+                <a asp-controller="UserTicket" asp-action="CreateTicket" asp-route-categoryId="1" class="btn btn-outline-primary">
+                    <i class="bi bi-plus-circle me-1"></i> New Ticket
+                </a>
+                <a asp-controller="UserTicket" asp-action="UserTicketsList" class="btn btn-outline-secondary">
+                    <i class="bi bi-list-ul me-1"></i> My Tickets
+                </a>
+            }
+            @if (User.IsInRole("Technician"))
+            {
+                <a asp-controller="TechnicianTicket" asp-action="ToDoTicketsList" class="btn btn-outline-primary">
+                    <i class="bi bi-wrench me-1"></i> My Queue
+                </a>
+                <a asp-controller="Discussion" asp-action="ListOfDiscussions" class="btn btn-outline-secondary">
+                    <i class="bi bi-chat-text me-1"></i> Discussions
+                </a>
+            }
+            @if (User.IsInRole("Coordinator"))
+            {
+                <a asp-controller="TicketAssignment" asp-action="ReviewAllTickets" class="btn btn-outline-primary">
+                    <i class="bi bi-kanban me-1"></i> Assignment Board
+                </a>
+                <a asp-controller="Discussion" asp-action="ListOfDiscussions" class="btn btn-outline-secondary">
+                    <i class="bi bi-chat-text me-1"></i> Discussions
+                </a>
+            }
+            @if (User.IsInRole("Admin"))
+            {
+                <a asp-controller="UserManagement" asp-action="UsersList" class="btn btn-outline-primary">
+                    <i class="bi bi-people me-1"></i> Users
+                </a>
+                <a asp-controller="TicketCategory" asp-action="CategoryList" class="btn btn-outline-secondary">
+                    <i class="bi bi-tags me-1"></i> Categories
+                </a>
+                <a asp-controller="Archive" asp-action="Index" class="btn btn-outline-secondary">
+                    <i class="bi bi-archive me-1"></i> Archive
+                </a>
+            }
+            <a asp-controller="KnowledgeBase" asp-action="KnowledgeBaseByCategories" class="btn btn-outline-secondary">
+                <i class="bi bi-book me-1"></i> Knowledge Base
+            </a>
         </div>
     </section>
 </div>

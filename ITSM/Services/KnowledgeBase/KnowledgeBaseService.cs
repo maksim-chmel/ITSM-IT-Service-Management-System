@@ -74,7 +74,6 @@ public class KnowledgeBaseService(DBaseContext dBaseContext) : IKnowledgeBaseSer
         article.Article = viewModel.Article;
         article.Content = viewModel.Content;
         article.CategoryId = viewModel.CategoryId;
-        article.CreatedAt = DateTime.UtcNow;
         dBaseContext.KnowledgeBaseArticles.Update(article);
         await dBaseContext.SaveChangesAsync();
         return OperationResult.Success("Article updated successfully.");

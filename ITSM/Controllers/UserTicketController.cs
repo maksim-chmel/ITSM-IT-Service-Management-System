@@ -36,7 +36,9 @@ public class UserTicketController(
         var result = await ticketService.CreateNewTicket(model, currentUser.Id);
 
         SetNotification(result);
-        return RedirectToAction("CreateTicket");
+        if (result.IsSuccess)
+            return RedirectToAction("UserTicketsList");
+        return RedirectToAction("CreateTicket", new { categoryId = model.CategoryId });
     }
 
     [HttpGet]

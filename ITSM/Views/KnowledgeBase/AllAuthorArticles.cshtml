@@ -31,6 +31,16 @@
                 </tr>
                 </thead>
                 <tbody class="table-light">
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="5" class="text-center text-muted py-4">
+                            <i class="bi bi-journal-x fs-3 d-block mb-2"></i>
+                            You haven't published any articles yet.
+                            <a asp-action="CreateArticle" class="ms-1">Write your first one.</a>
+                        </td>
+                    </tr>
+                }
                 @foreach (var article in Model)
                 {
                     <tr>
@@ -40,9 +50,12 @@
                         <td>@article.CreatedAt.ToString("yyyy-MM-dd")</td>
                         <td>
                             <a asp-action="EditArticle" asp-route-id="@article.Id" class="btn btn-outline-primary btn-sm">Edit</a>
-                            <form asp-action="ArchiveArticle" asp-route-id="@article.Id" method="post" class="d-inline" onsubmit="return confirm('Archive this article? It will be moved to the recovery zone.');">
-                                <button type="submit" class="btn btn-outline-danger btn-sm">Archive</button>
-                            </form>
+                            <button type="button" class="btn btn-outline-danger btn-sm"
+                                    data-bs-toggle="modal" data-bs-target="#archiveArticleModal"
+                                    data-action="@Url.Action("ArchiveArticle", "KnowledgeBase", new { id = article.Id })"
+                                    data-title="@article.Article">
+                                Archive
+                            </button>
                         </td>
                     </tr>
                 }
@@ -51,3 +64,38 @@
         </div>
     </section>
 </div>
+
+<form id="archiveArticleForm" method="post">
+    @Html.AntiForgeryToken()
+</form>
+
+<div class="modal fade" id="archiveArticleModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Archive Article</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Archive <strong id="archiveArticleTitle"></strong>? It will be moved to the recovery zone and hidden from the knowledge base.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="archiveArticleConfirm">Archive</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.getElementById("archiveArticleModal").addEventListener("show.bs.modal", function (e) {
+            const btn = e.relatedTarget;
+            document.getElementById("archiveArticleTitle").textContent = btn.dataset.title;
+            document.getElementById("archiveArticleForm").action = btn.dataset.action;
+        });
+        document.getElementById("archiveArticleConfirm").addEventListener("click", function () {
+            document.getElementById("archiveArticleForm").submit();
+        });
+    </script>
+}

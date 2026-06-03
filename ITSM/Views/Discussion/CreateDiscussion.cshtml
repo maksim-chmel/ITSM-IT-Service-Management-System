@@ -35,7 +35,10 @@
                 <span class="text-danger" asp-validation-for="Description"></span>
             </div>
 
-            <button type="submit" class="btn btn-outline-primary w-100">Create</button>
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-outline-primary flex-grow-1">Create</button>
+                <a asp-action="ListOfDiscussions" class="btn btn-outline-secondary">Cancel</a>
+            </div>
         </form>
     </section>
 </div>
