@@ -21,11 +21,9 @@ public class DiscussionController(
     [HttpGet]
     public async Task<IActionResult> ListOfDiscussions(string? search)
     {
-        var listOfTreads = await discussionService.GetAllDiscussions(Status.Open);
-        if (search != null)
-        {
-            listOfTreads = await discussionService.SearchDiscussion(Status.Open, search);
-        }
+        var listOfTreads = search != null
+            ? await discussionService.SearchDiscussion(Status.Open, search)
+            : await discussionService.GetAllDiscussions(Status.Open);
 
         return View(listOfTreads);
     }
@@ -33,11 +31,9 @@ public class DiscussionController(
     [HttpGet]
     public async Task<IActionResult> ResolvedDiscussions(string? search)
     {
-        var list = await discussionService.GetAllDiscussions(Status.Resolved);
-        if (search != null)
-        {
-            list = await discussionService.SearchDiscussion(Status.Resolved, search);
-        }
+        var list = search != null
+            ? await discussionService.SearchDiscussion(Status.Resolved, search)
+            : await discussionService.GetAllDiscussions(Status.Resolved);
 
         return View(list);
     }
@@ -121,8 +117,11 @@ public class DiscussionController(
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> AddMessage(int id, DiscussionMessageCreateViewModel viewModel)
     {
+        var isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest";
+
         if (!ModelState.IsValid)
         {
+            if (isAjax) return BadRequest(new { error = "Please enter a valid message." });
             NotifyError("Please enter a valid message.");
             return RedirectToAction("ViewDiscussion", new { id });
         }
@@ -130,13 +129,24 @@ public class DiscussionController(
         var user = await userManagementService.GetCurrentUserAsync(User);
         if (user == null)
         {
+            if (isAjax) return BadRequest(new { error = "User not found." });
             NotifyError("User not found.");
             return RedirectToAction("ViewDiscussion", new { id });
         }
 
         var result = await discussionService.AddMessage(user.Id, id, viewModel.MessageContent);
-        SetNotification(result);
 
+        if (isAjax)
+        {
+            if (!result.IsSuccess) return BadRequest(new { error = result.Message });
+            return Json(new {
+                author    = user.UserName,
+                content   = viewModel.MessageContent,
+                timestamp = DateTime.UtcNow.ToLocalTime().ToString("g")
+            });
+        }
+
+        SetNotification(result);
         return RedirectToAction("ViewDiscussion", new { id });
     }
 
@@ -156,7 +166,7 @@ public class DiscussionController(
             NotifyError("User not found.");
         }
 
-        return RedirectToAction("ResolvedDiscussions");
+        return RedirectToAction("ViewDiscussion", new { id });
     }
     
     [HttpPost]

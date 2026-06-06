@@ -3,11 +3,16 @@ using ITSM.Models;
 using ITSM.ViewModels.Create;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace ITSM.Services.TicketCategory;
 
-public class TicketCategoryService(DBaseContext context) : ITicketCategoryService
+public class TicketCategoryService(DBaseContext context, IMemoryCache cache) : ITicketCategoryService
 {
+    private const string AllCategoriesKey = "TicketCategories:All";
+    private static string SubCategoriesKey(int categoryId) => $"TicketCategories:Sub:{categoryId}";
+    private static readonly TimeSpan CacheTtl = TimeSpan.FromMinutes(10);
+
     public async Task<OperationResult> CreateCategory(string name)
     {
         var categoryExists = await context.TicketCategories
@@ -21,15 +26,20 @@ public class TicketCategoryService(DBaseContext context) : ITicketCategoryServic
         };
         context.TicketCategories.Add(category);
         await context.SaveChangesAsync();
+        cache.Remove(AllCategoriesKey);
         return OperationResult.Success("Category created successfully.");
     }
 
 
     public async Task<List<Models.TicketCategory>> GetAllCategoriesToList()
     {
-        return await context.TicketCategories
-            .Include(c => c.SubCategories)
-            .ToListAsync();
+        return await cache.GetOrCreateAsync(AllCategoriesKey, async entry =>
+        {
+            entry.SlidingExpiration = CacheTtl;
+            return await context.TicketCategories
+                .Include(c => c.SubCategories)
+                .ToListAsync();
+        }) ?? [];
     }
 
 
@@ -74,6 +84,8 @@ public class TicketCategoryService(DBaseContext context) : ITicketCategoryServic
         {
             await context.SaveChangesAsync();
             await transaction.CommitAsync();
+            cache.Remove(AllCategoriesKey);
+            cache.Remove(SubCategoriesKey(id));
             return OperationResult.Success("Category, its subcategories, and related user assignments have been archived.");
         }
         catch (Exception ex)
@@ -103,9 +115,13 @@ public class TicketCategoryService(DBaseContext context) : ITicketCategoryServic
 
     public async Task<Models.TicketCategory?> GetSubCategoryListAsync(int categoryId)
     {
-        return await context.TicketCategories
-            .Include(c => c.SubCategories)
-            .FirstOrDefaultAsync(c => c.Id == categoryId);
+        return await cache.GetOrCreateAsync(SubCategoriesKey(categoryId), async entry =>
+        {
+            entry.SlidingExpiration = CacheTtl;
+            return await context.TicketCategories
+                .Include(c => c.SubCategories)
+                .FirstOrDefaultAsync(c => c.Id == categoryId);
+        });
     }
 
 
@@ -120,10 +136,13 @@ public class TicketCategoryService(DBaseContext context) : ITicketCategoryServic
         var subCategory = await context.TicketSubCategories.FindAsync(subCategoryId);
         if (subCategory == null) return OperationResult.Failure("Subcategory not found.");
 
+        var categoryId = subCategory.CategoryId;
         subCategory.IsDeleted = true;
         context.TicketSubCategories.Update(subCategory);
 
         await context.SaveChangesAsync();
+        cache.Remove(AllCategoriesKey);
+        cache.Remove(SubCategoriesKey(categoryId));
         return OperationResult.Success("Subcategory archived.");
     }
 
@@ -154,14 +173,20 @@ public class TicketCategoryService(DBaseContext context) : ITicketCategoryServic
 
         context.TicketSubCategories.Add(subCategory);
         await context.SaveChangesAsync();
+        cache.Remove(AllCategoriesKey);
+        cache.Remove(SubCategoriesKey(viewModel.CategoryId));
         return OperationResult.Success("Subcategory added successfully.");
     }
 
     private async Task<List<TicketSubCategory>> GetSubCategories(int categoryId)
     {
-        return await context.TicketSubCategories
-            .Where(sc => sc.CategoryId == categoryId)
-            .ToListAsync();
+        return await cache.GetOrCreateAsync(SubCategoriesKey(categoryId), async entry =>
+        {
+            entry.SlidingExpiration = CacheTtl;
+            return await context.TicketSubCategories
+                .Where(sc => sc.CategoryId == categoryId)
+                .ToListAsync();
+        }) ?? [];
     }
 
     public async Task<List<TicketSubCategory>> GetSubCategoriesForCategory(int? selectedCategoryId)

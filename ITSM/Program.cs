@@ -70,6 +70,7 @@ builder.Services.AddScoped<IKnowledgeBaseService, KnowledgeBaseService>();
 builder.Services.AddScoped<IAutoServiceService,AutoServiceService>();
 builder.Services.AddScoped<IArchiveService,ArchiveService>();
 builder.Services.AddScoped<ITicketChartService,TicketChartService>();
+builder.Services.AddMemoryCache();
 builder.Services.AddLogging();
 builder.Services.AddHealthChecks();
 builder.Services.AddRateLimiter(options =>

@@ -1,0 +1,45 @@
+@using ITSM.ViewModels.Manage
+@{
+    var assignModel   = ViewBag.AssignTechnicianViewModel as AssignTicketViewModel;
+    var priorityModel = ViewBag.AssignPriorityViewModel   as AssignTicketPriorityViewModel;
+}
+
+<div class="management-panel">
+    <div class="management-form">
+        <h5>Assign Technician</h5>
+        @if (assignModel != null)
+        {
+            <form asp-controller="TicketAssignment" asp-action="AssignTechnician" method="post" class="d-flex gap-2">
+                <input type="hidden" name="ticketId" value="@assignModel.Ticket.Id"/>
+                <select name="userId" class="form-select form-select-sm" required>
+                    <option value="">-- Select Qualified Technician --</option>
+                    @foreach (var user in assignModel.Users)
+                    {
+                        <option value="@user.Value">@user.Text</option>
+                    }
+                </select>
+                <button type="submit" class="btn btn-sm btn-primary">Assign</button>
+            </form>
+            @if (!assignModel.Users.Any())
+            {
+                <small class="text-muted fst-italic">No technicians qualify for the '@(assignModel.Ticket.Category?.Name ?? "selected")' category.</small>
+            }
+        }
+    </div>
+    <div class="management-form">
+        <h5>Set Priority</h5>
+        @if (priorityModel != null)
+        {
+            <form asp-controller="TicketAssignment" asp-action="AssignPriority" method="post" class="d-flex gap-2">
+                <input type="hidden" name="ticketId" value="@priorityModel.Ticket.Id"/>
+                <select name="priority" class="form-select form-select-sm" required>
+                    @foreach (var p in priorityModel.Priorities)
+                    {
+                        <option value="@p.Value">@p.Text</option>
+                    }
+                </select>
+                <button type="submit" class="btn btn-sm btn-secondary">Set</button>
+            </form>
+        }
+    </div>
+</div>

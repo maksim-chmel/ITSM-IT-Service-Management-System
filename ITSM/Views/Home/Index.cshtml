@@ -1,4 +1,5 @@
-﻿@{
+@using ITSM.Enums
+@{
     ViewData["Title"] = "Operations Home";
 }
 
@@ -9,29 +10,35 @@
         <p class="section-copy">
             Your role-specific tools are grouped in the navigation sidebar. Open tickets, knowledge, assignments, or discussions from there and keep the main area focused on the selected task.
         </p>
-
-        <div class="metrics-grid">
-            <div class="metric-card">
-                <strong>Tickets</strong>
-                <span>Create, route, and close requests with tracked ownership and status.</span>
-            </div>
-            <div class="metric-card">
-                <strong>Knowledge</strong>
-                <span>Publish repeatable fixes and operational notes for the team.</span>
-            </div>
-            <div class="metric-card">
-                <strong>Discussions</strong>
-                <span>Resolve internal coordination questions without leaving the platform.</span>
-            </div>
-        </div>
     </section>
+
+    @if (ViewBag.StatA != null)
+    {
+        <section class="surface-card">
+            <h3 class="mb-4">Your Snapshot</h3>
+            <div class="d-flex flex-wrap gap-4">
+                <div class="text-center px-4 py-2 border rounded-3">
+                    <div class="fs-1 fw-bold lh-1 mb-1">@ViewBag.StatA</div>
+                    <div class="small text-muted">@ViewBag.StatALabel</div>
+                </div>
+                <div class="text-center px-4 py-2 border rounded-3">
+                    <div class="fs-1 fw-bold lh-1 mb-1 text-warning">@ViewBag.StatB</div>
+                    <div class="small text-muted">@ViewBag.StatBLabel</div>
+                </div>
+                <div class="text-center px-4 py-2 border rounded-3">
+                    <div class="fs-1 fw-bold lh-1 mb-1 @ViewBag.StatCColor">@ViewBag.StatC</div>
+                    <div class="small text-muted">@ViewBag.StatCLabel</div>
+                </div>
+            </div>
+        </section>
+    }
 
     <section class="surface-card">
         <h3 class="mb-4">Quick Actions</h3>
         <div class="d-flex flex-wrap gap-3">
             @if (User.IsInRole("User"))
             {
-                <a asp-controller="UserTicket" asp-action="CreateTicket" asp-route-categoryId="1" class="btn btn-outline-primary">
+                <a asp-controller="UserTicket" asp-action="CreateTicket" class="btn btn-outline-primary">
                     <i class="bi bi-plus-circle me-1"></i> New Ticket
                 </a>
                 <a asp-controller="UserTicket" asp-action="UserTicketsList" class="btn btn-outline-secondary">
@@ -58,7 +65,10 @@
             }
             @if (User.IsInRole("Admin"))
             {
-                <a asp-controller="UserManagement" asp-action="UsersList" class="btn btn-outline-primary">
+                <a asp-controller="TicketAssignment" asp-action="ReviewAllTickets" class="btn btn-outline-primary">
+                    <i class="bi bi-journals me-1"></i> All Tickets
+                </a>
+                <a asp-controller="UserManagement" asp-action="UsersList" class="btn btn-outline-secondary">
                     <i class="bi bi-people me-1"></i> Users
                 </a>
                 <a asp-controller="TicketCategory" asp-action="CategoryList" class="btn btn-outline-secondary">

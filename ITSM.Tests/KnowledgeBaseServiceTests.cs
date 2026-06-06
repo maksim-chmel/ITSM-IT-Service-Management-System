@@ -1,5 +1,6 @@
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using ITSM.Data;
 using ITSM.Models;
 using ITSM.Services.KnowledgeBase;
@@ -20,7 +21,8 @@ public class KnowledgeBaseServiceTests
             .Options;
         _db = new DBaseContext(options);
         _db.Database.EnsureCreated();
-        _sut = new KnowledgeBaseService(_db);
+        var cache = new MemoryCache(new MemoryCacheOptions());
+        _sut = new KnowledgeBaseService(_db, cache);
     }
 
     private async Task<User> EnsureUser(string userId)

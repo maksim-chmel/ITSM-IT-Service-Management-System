@@ -24,10 +24,12 @@
         </div>
 
         <form method="get" class="compact-search mb-4">
-            <input type="text" name="search" class="form-control" placeholder="Search by title..." value="@Context.Request.Query["search"]" />
+            <input type="text" name="search" id="live-search-input" class="form-control" placeholder="Search by title..." value="@Context.Request.Query["search"]" autocomplete="off" />
             <button type="submit" class="btn btn-outline-primary"><i class="bi bi-search"></i></button>
+            <a id="clear-search-btn" href="@Url.Action("ListOfDiscussions")" class="btn btn-outline-secondary @(string.IsNullOrEmpty(Context.Request.Query["search"]) ? "d-none" : "")" title="Clear search"><i class="bi bi-x-lg"></i></a>
         </form>
 
+        <div id="search-results">
         @if (!Model.Any())
         {
             <p class="text-center mb-0">No available discussion topics.</p>
@@ -42,6 +44,7 @@
                         <h5 class="card-title text-truncate">@thread.Title</h5>
                         <p class="card-text">
                             <strong>Author:</strong> @thread.Author?.UserName <br />
+                            <strong>Category:</strong> @(thread.Category?.Name ?? "—") <br />
                             <strong>Created:</strong> @thread.CreatedAt.ToLocalTime().ToString("g")
                         </p>
                         <a asp-action="ViewDiscussion" asp-route-id="@thread.Id" class="btn btn-outline-primary btn-sm w-100"><i class="bi bi-chat-text"></i> View</a>
@@ -49,5 +52,35 @@
                 }
             </div>
         }
+        </div>
     </section>
 </div>
+
+@section Scripts {
+<script>
+(function () {
+    const input    = document.getElementById("live-search-input");
+    const results  = document.getElementById("search-results");
+    const clearBtn = document.getElementById("clear-search-btn");
+    if (!input || !results) return;
+
+    let timer;
+    input.addEventListener("input", function () {
+        clearTimeout(timer);
+        const q = this.value.trim();
+        clearBtn?.classList.toggle("d-none", !q);
+        timer = setTimeout(async function () {
+            const url = `${window.location.pathname}?search=${encodeURIComponent(q)}`;
+            history.replaceState({}, "", url);
+            try {
+                const resp = await fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" } });
+                const html = await resp.text();
+                const doc  = new DOMParser().parseFromString(html, "text/html");
+                const fresh = doc.getElementById("search-results");
+                if (fresh) results.innerHTML = fresh.innerHTML;
+            } catch { /* silent */ }
+        }, 300);
+    });
+})();
+</script>
+}

@@ -6,11 +6,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>@ViewData["Title"] - @(User.Identity?.IsAuthenticated == true ? User.Identity.Name : "Guest")</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css"/>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true"/>
     <link rel="stylesheet" href="~/ITSMSystem.styles.css" asp-append-version="true"/>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <script>
+        // Anti-FOUC: set theme before first paint
+        (function(){var t=localStorage.getItem('theme')||(window.matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');document.documentElement.setAttribute('data-theme',t);})();
+    </script>
 </head>
 <body class="@(User.Identity?.IsAuthenticated == true ? "app-shell auth-shell" : "app-shell guest-shell")">
+<div class="page-progress is-loading" id="page-progress"><div class="page-progress__bar"></div></div>
 <header>
     @{
         var successMessage = TempData["SuccessMessage"] as string;
@@ -21,6 +29,10 @@
             User.IsInRole(nameof(UserRoles.Technician)) ? "Technician" :
             User.IsInRole(nameof(UserRoles.User)) ? "Requester" :
             "Guest";
+        var _ctrl = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+        var _act  = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
+        string NavActive(string ctrl, string? act = null) =>
+            _ctrl == ctrl && (act == null || _act == act) ? " active" : "";
     }
 
     <div class="flash-stack">
@@ -45,6 +57,9 @@
                     <span class="topbar__user">@User.Identity?.Name</span>
                     <span class="topbar__role">@currentRole</span>
                 </div>
+                <button id="theme-toggle" class="topbar__theme-btn" type="button" title="Toggle theme" aria-label="Toggle dark mode">
+                    <i id="theme-icon" class="bi bi-moon-fill"></i>
+                </button>
                 <a class="topbar__logout" asp-area="" asp-controller="Auth" asp-action="Logout">
                     Logout <i class="bi bi-box-arrow-right"></i>
                 </a>
@@ -64,62 +79,67 @@
             </div>
             <ul class="nav flex-column">
                 <li class="nav-item">
-                    <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">
+                    <a class="nav-link@(NavActive("Home"))" asp-area="" asp-controller="Home" asp-action="Index">
                         <i class="bi bi-house"></i> <span>Home</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" asp-area="" asp-controller="UserProfile" asp-action="EditProfile">
+                    <a class="nav-link@(NavActive("UserProfile"))" asp-area="" asp-controller="UserProfile" asp-action="EditProfile">
                         <i class="bi bi-person"></i> <span>Profile</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" asp-area="" asp-controller="KnowledgeBase" asp-action="KnowledgeBaseByCategories">
+                    <a class="nav-link@(NavActive("KnowledgeBase", "KnowledgeBaseByCategories"))" asp-area="" asp-controller="KnowledgeBase" asp-action="KnowledgeBaseByCategories">
                         <i class="bi bi-question-circle"></i> <span>Help Center</span>
                     </a>
                 </li>
                 @if (User.IsInRole(nameof(UserRoles.User)))
                 {
-
                     <li class="nav-item">
-                        <a class="nav-link" asp-area="" asp-controller="UserTicket" asp-action="CreateTicket">
+                        <a class="nav-link@(NavActive("UserTicket", "CreateTicket"))" asp-area="" asp-controller="UserTicket" asp-action="CreateTicket">
                             <i class="bi bi-file-earmark-plus"></i> <span>Create Ticket</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" asp-area="" asp-controller="UserTicket" asp-action="UserTicketsList">
+                        <a class="nav-link@(NavActive("UserTicket", "UserTicketsList"))" asp-area="" asp-controller="UserTicket" asp-action="UserTicketsList">
                             <i class="bi bi-journal-text"></i> <span>My Tickets</span>
                         </a>
                     </li>
-                    
                 }
 
                 @if (User.IsInRole(nameof(UserRoles.Technician)))
                 {
                     <li class="nav-item">
-                        <a class="nav-link" asp-area="" asp-controller="TechnicianTicket" asp-action="ToDoTicketsList">
+                        <a class="nav-link@(NavActive("TechnicianTicket"))" asp-area="" asp-controller="TechnicianTicket" asp-action="ToDoTicketsList">
                             <i class="bi bi-list-task"></i> <span>My Tasks</span>
                         </a>
                     </li>
-                   
-
                 }
-
 
                 @if (User.IsInRole(nameof(UserRoles.Admin)))
                 {
                     <li class="nav-item">
-                        <a class="nav-link" asp-area="" asp-controller="UserManagement" asp-action="UsersList">
+                        <a class="nav-link@(NavActive("TicketAssignment"))" asp-area="" asp-controller="TicketAssignment" asp-action="ReviewAllTickets">
+                            <i class="bi bi-journals"></i> <span>All Tickets</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link@(NavActive("TechnicianTicket"))" asp-area="" asp-controller="TechnicianTicket" asp-action="ToDoTicketsList">
+                            <i class="bi bi-list-task"></i> <span>My Tasks</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link@(NavActive("UserManagement"))" asp-area="" asp-controller="UserManagement" asp-action="UsersList">
                             <i class="bi bi-people"></i> <span>Users Management</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" asp-area="" asp-controller="TicketCategory" asp-action="CategoryList">
+                        <a class="nav-link@(NavActive("TicketCategory"))" asp-area="" asp-controller="TicketCategory" asp-action="CategoryList">
                             <i class="bi bi-tags"></i> <span>Category Management</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" asp-area="" asp-controller="Archive" asp-action="Index">
+                        <a class="nav-link@(NavActive("Archive"))" asp-area="" asp-controller="Archive" asp-action="Index">
                             <i class="bi bi-file-earmark-zip"></i> <span>Archive</span>
                         </a>
                     </li>
@@ -128,7 +148,7 @@
                 @if (User.IsInRole(nameof(UserRoles.Coordinator)))
                 {
                     <li class="nav-item">
-                        <a class="nav-link" asp-area="" asp-controller="TicketAssignment" asp-action="ReviewAllTickets">
+                        <a class="nav-link@(NavActive("TicketAssignment"))" asp-area="" asp-controller="TicketAssignment" asp-action="ReviewAllTickets">
                             <i class="bi bi-journals"></i> <span>Ticket Assignment</span>
                         </a>
                     </li>
@@ -138,12 +158,12 @@
                      User.IsInRole(nameof(UserRoles.Technician)))
                 {
                     <li class="nav-item">
-                        <a class="nav-link" asp-area="" asp-controller="KnowledgeBase" asp-action="AllAuthorArticles">
+                        <a class="nav-link@(NavActive("KnowledgeBase", "AllAuthorArticles"))" asp-area="" asp-controller="KnowledgeBase" asp-action="AllAuthorArticles">
                             <i class="bi bi-book"></i> <span>My Articles</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" asp-area="" asp-controller="Discussion" asp-action="ListOfDiscussions">
+                        <a class="nav-link@(NavActive("Discussion"))" asp-area="" asp-controller="Discussion" asp-action="ListOfDiscussions">
                             <i class="bi bi-chat"></i> <span>Discussions</span>
                         </a>
                     </li>
@@ -176,15 +196,72 @@
     setTimeout(function() {
         var successMessage = document.getElementById('successMessage');
         var errorMessage = document.getElementById('errorMessage');
-
-        if (successMessage) {
-            successMessage.remove();
-        }
-
-        if (errorMessage) {
-            errorMessage.remove();
-        }
+        if (successMessage) successMessage.remove();
+        if (errorMessage) errorMessage.remove();
     }, 5000);
+
+    // ── Page progress bar ──────────────────────────────
+    (function () {
+        var bar   = document.getElementById('page-progress');
+        var inner = bar ? bar.querySelector('.page-progress__bar') : null;
+        if (!bar || !inner) return;
+
+        function finish() {
+            bar.classList.remove('is-loading');
+            bar.classList.add('is-done');
+            setTimeout(function () {
+                bar.style.opacity = '0';
+                setTimeout(function () {
+                    bar.classList.remove('is-done');
+                    inner.style.width = '0';
+                    bar.style.opacity = '';
+                }, 300);
+            }, 150);
+        }
+
+        function start() {
+            bar.style.opacity = '1';
+            inner.style.width = '0';
+            bar.classList.remove('is-done');
+            bar.classList.add('is-loading');
+        }
+
+        window.addEventListener('load', finish);
+
+        document.addEventListener('click', function (e) {
+            var a = e.target.closest('a[href]');
+            if (!a) return;
+            var href = a.getAttribute('href') || '';
+            if (href.startsWith('#') || href.startsWith('javascript:') || href.startsWith('mailto:') ||
+                a.target || e.ctrlKey || e.metaKey || e.shiftKey) return;
+            start();
+        });
+
+        document.addEventListener('submit', start);
+    })();
+
+    // ── Dark mode toggle ───────────────────────────────
+    (function () {
+        var html = document.documentElement;
+        var btn  = document.getElementById('theme-toggle');
+        var icon = document.getElementById('theme-icon');
+
+        function updateIcon(theme) {
+            if (!icon) return;
+            icon.className = theme === 'dark' ? 'bi bi-sun-fill' : 'bi bi-moon-fill';
+        }
+
+        updateIcon(html.getAttribute('data-theme') || 'light');
+
+        if (btn) {
+            btn.addEventListener('click', function () {
+                var next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+                html.setAttribute('data-theme', next);
+                localStorage.setItem('theme', next);
+                updateIcon(next);
+            });
+        }
+    })();
 </script>
 </body>
 </html>

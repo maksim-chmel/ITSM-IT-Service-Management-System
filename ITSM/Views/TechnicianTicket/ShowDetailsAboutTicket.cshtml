@@ -25,9 +25,10 @@
 
 <div class="d-grid gap-4">
     <div class="page-actions d-flex justify-content-between">
-        <a asp-controller="TechnicianTicket" asp-action="ToDoTicketsList" class="btn btn-outline-secondary">
-            <i class="bi bi-arrow-left"></i> Back to Queue
-        </a>
+        <button type="button" class="btn btn-outline-secondary"
+                onclick="history.length > 1 ? history.back() : location.href='@Url.Action("ToDoTicketsList", "TechnicianTicket")'">
+            <i class="bi bi-arrow-left"></i> Back
+        </button>
         
         <!-- Action Buttons Group -->
         <div class="d-flex gap-2">
@@ -43,7 +44,7 @@
             
             @if (canManageTicket && Model.Ticket.Status == Status.OnHold)
             {
-                <form method="post" asp-controller="TechnicianTicket" asp-action="ResumeProgress" asp-route-id="@Model.Ticket.Id">
+                <form method="post" asp-controller="TechnicianTicket" asp-action="ResumeProgress" asp-route-id="@Model.Ticket.Id" id="resume-progress-form">
                     <button type="submit" class="btn btn-outline-primary">
                         <i class="bi bi-play-circle"></i> Resume Progress
                     </button>
@@ -64,6 +65,13 @@
                 </button>
             }
 
+            @if (canManageTicket && (Model.Ticket.Status == Status.Progress || Model.Ticket.Status == Status.OnHold || Model.Ticket.Status == Status.Reopened))
+            {
+                <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#cancelTicketModal">
+                    <i class="bi bi-x-circle"></i> Cancel Ticket
+                </button>
+            }
+
             @if (canManageTicket)
             {
                 <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#archiveTicketModal">
@@ -79,7 +87,7 @@
                 <h2>Ticket #@Model.Ticket.Id: @Model.Ticket.Title</h2>
                 <p class="text-muted mb-0">Technician detail view for execution notes and resolution actions.</p>
             </div>
-            <span class="badge @statusBadgeClass fs-6">@Model.Ticket.Status</span>
+            <span class="badge @statusBadgeClass fs-6" id="status-badge">@Model.Ticket.Status</span>
         </div>
         <div class="info-grid">
             <div class="info-card"><dl><dt>Author</dt><dd>@Model.Ticket.Author?.UserName</dd></dl></div>
@@ -88,11 +96,11 @@
             <div class="info-card"><dl><dt>Description</dt><dd>@Model.Ticket.Description</dd></dl></div>
             @if (Model.Ticket.Status == Status.Resolved)
             {
-                <div class="info-card"><dl><dt>Fix Description</dt><dd>@Model.Ticket.FixDescription</dd></dl></div>
+                <div class="info-card"><dl><dt>Fix Description</dt><dd>@(Model.Ticket.FixDescription ?? "N/A")</dd></dl></div>
             }
-             @if (Model.Ticket.Status == Status.Canceled)
+            @if (Model.Ticket.Status == Status.Canceled)
             {
-                <div class="info-card"><dl><dt>Cancel Reason</dt><dd>@Model.Ticket.CancelReason</dd></dl></div>
+                <div class="info-card"><dl><dt>Cancel Reason</dt><dd>@(Model.Ticket.CancelReason ?? "N/A")</dd></dl></div>
             }
         </div>
     </section>
@@ -120,12 +128,16 @@
                             <th>Note</th>
                         </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="log-tbody">
+                        @if (!Model.TicketHistory.Any())
+                        {
+                            <tr id="log-empty-row"><td colspan="2" class="text-center text-muted py-3">No activity recorded yet.</td></tr>
+                        }
                         @foreach (var note in Model.TicketHistory.OrderByDescending(h => h.CreatedAt))
                         {
                             <tr>
                                 <td>@note.CreatedAt.ToString("dd.MM.yyyy HH:mm")</td>
-                                <td>@note.AdminComment</td>
+                                <td>@(note.AdminComment ?? "—")</td>
                             </tr>
                         }
                         </tbody>
@@ -165,6 +177,29 @@
     </div>
 </div>
 
+<!-- Cancel Ticket Modal -->
+<div class="modal fade" id="cancelTicketModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" asp-controller="TechnicianTicket" asp-action="CancelTicketProcessing" asp-route-id="@Model.Ticket.Id">
+                <div class="modal-header">
+                    <h5 class="modal-title">Cancel Ticket</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-danger">This action cannot be undone. The ticket will be marked as Canceled.</p>
+                    <label class="form-label">Reason <span class="text-danger">*</span></label>
+                    <textarea class="form-control" name="reason" rows="3" placeholder="e.g., 'Duplicate request.'" required></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger">Confirm Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <!-- Unassign Modal -->
 <div class="modal fade" id="unassignModal" tabindex="-1">
     <div class="modal-dialog">
@@ -196,6 +231,13 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
+                    @if (Model.Ticket.Status != Status.Resolved && Model.Ticket.Status != Status.Canceled)
+                    {
+                        <div class="alert alert-warning py-2 mb-3">
+                            <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                            <strong>Warning:</strong> This ticket is still active (status: <strong>@Model.Ticket.Status</strong>). Archiving removes it from all queues.
+                        </div>
+                    }
                     <p>This ticket will be moved to the archive. You can restore it later.</p>
                     <div class="mb-3">
                         <label class="form-label">Note (optional)</label>
@@ -215,7 +257,7 @@
 <div class="modal fade" id="addNoteModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form method="post" asp-controller="TechnicianTicket" asp-action="AddNewCommentToTicket">
+            <form method="post" asp-controller="TechnicianTicket" asp-action="AddNewCommentToTicket" id="add-note-form">
                 <div class="modal-header">
                     <h5 class="modal-title">Add Log Entry</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -270,7 +312,7 @@
 <div class="modal fade" id="placeOnHoldModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form method="post" asp-controller="TechnicianTicket" asp-action="PlaceOnHold" asp-route-id="@Model.Ticket.Id">
+            <form method="post" asp-controller="TechnicianTicket" asp-action="PlaceOnHold" asp-route-id="@Model.Ticket.Id" id="place-on-hold-form">
                 <div class="modal-header">
                     <h5 class="modal-title">Place Ticket On Hold</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -287,6 +329,73 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const logTbody  = document.getElementById("log-tbody");
+    const statusBadge = document.getElementById("status-badge");
+
+    function prependLogRow(date, comment) {
+        document.getElementById("log-empty-row")?.remove();
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td>${date}</td><td>${escapeHtml(comment)}</td>`;
+        logTbody.prepend(tr);
+    }
+
+    function updateBadge(statusText, cssClass) {
+        if (!statusBadge) return;
+        statusBadge.textContent = statusText;
+        statusBadge.className = `badge ${cssClass} fs-6`;
+    }
+
+    function escapeHtml(str) {
+        return String(str).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+    }
+
+    async function ajaxFormSubmit(formId, onSuccess) {
+        const form = document.getElementById(formId);
+        if (!form) return;
+        form.addEventListener("submit", async function (e) {
+            e.preventDefault();
+            const submitBtn = form.querySelector("[type=submit]");
+            if (submitBtn) submitBtn.disabled = true;
+            try {
+                const resp = await fetch(form.action, {
+                    method:  "POST",
+                    body:    new FormData(form),
+                    headers: { "X-Requested-With": "XMLHttpRequest" }
+                });
+                if (!resp.ok) {
+                    const err = await resp.json().catch(() => ({ error: "An error occurred." }));
+                    alert(err.error);
+                    return;
+                }
+                const data = await resp.json();
+                onSuccess(data, form);
+            } catch {
+                location.reload();
+            } finally {
+                if (submitBtn) submitBtn.disabled = false;
+            }
+        });
+    }
+
+    // Add Log Entry (AJAX)
+    ajaxFormSubmit("add-note-form", function (data, form) {
+        prependLogRow(data.date, data.comment);
+        bootstrap.Modal.getInstance(document.getElementById("addNoteModal"))?.hide();
+        form.querySelector("textarea").value = "";
+    });
+
+    // Place On Hold (AJAX) — reload so action buttons update to reflect new status
+    ajaxFormSubmit("place-on-hold-form", function () { location.reload(); });
+
+    // Resume Progress (AJAX) — reload so action buttons update to reflect new status
+    ajaxFormSubmit("resume-progress-form", function () { location.reload(); });
+});
+</script>
+}
 
 <div class="modal fade" id="reopenTicketModal" tabindex="-1">
     <div class="modal-dialog">

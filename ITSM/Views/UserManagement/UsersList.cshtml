@@ -21,10 +21,12 @@
         </div>
 
         <form method="get" class="compact-search mb-4">
-            <input type="text" name="search" class="form-control" placeholder="Search by name or email" value="@search" />
+            <input type="text" name="search" id="live-search-input" class="form-control" placeholder="Search by name or email" value="@search" autocomplete="off" />
             <button type="submit" class="btn btn-outline-primary"><i class="bi bi-search"></i></button>
+            <a id="clear-search-btn" href="@Url.Action("UsersList")" class="btn btn-outline-secondary @(string.IsNullOrEmpty(search) ? "d-none" : "")" title="Clear search"><i class="bi bi-x-lg"></i></a>
         </form>
 
+        <div id="search-results">
         <div class="table-responsive">
             <table class="table table-hover table-bordered align-middle text-center">
                 <thead class="table-dark text-white">
@@ -109,6 +111,7 @@
                 </tbody>
             </table>
         </div>
+        </div>
     </section>
 </div>
 
@@ -144,5 +147,30 @@
         document.getElementById("archiveUserConfirm").addEventListener("click", function () {
             document.getElementById("archiveUserForm").submit();
         });
+
+        (function () {
+            const input    = document.getElementById("live-search-input");
+            const results  = document.getElementById("search-results");
+            const clearBtn = document.getElementById("clear-search-btn");
+            if (!input || !results) return;
+
+            let timer;
+            input.addEventListener("input", function () {
+                clearTimeout(timer);
+                const q = this.value.trim();
+                clearBtn?.classList.toggle("d-none", !q);
+                timer = setTimeout(async function () {
+                    const url = `${window.location.pathname}?search=${encodeURIComponent(q)}`;
+                    history.replaceState({}, "", url);
+                    try {
+                        const resp = await fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" } });
+                        const html = await resp.text();
+                        const doc  = new DOMParser().parseFromString(html, "text/html");
+                        const fresh = doc.getElementById("search-results");
+                        if (fresh) results.innerHTML = fresh.innerHTML;
+                    } catch { /* silent */ }
+                }, 300);
+            });
+        })();
     </script>
 }

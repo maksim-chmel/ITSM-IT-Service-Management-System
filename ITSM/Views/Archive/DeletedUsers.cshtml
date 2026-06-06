@@ -11,7 +11,7 @@
 
         <form asp-action="RestoreUsers" method="post">
             <div class="page-actions mb-3">
-                <button type="submit" class="btn btn-outline-primary">
+                <button type="submit" id="restoreBtn" class="btn btn-outline-primary" disabled>
                     <i class="bi bi-arrow-counterclockwise"></i> Restore Selected
                 </button>
             </div>
@@ -28,6 +28,15 @@
                     </tr>
                     </thead>
                     <tbody class="table-light">
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-4">
+                                <i class="bi bi-people fs-3 d-block mb-2"></i>
+                                No deleted users found.
+                            </td>
+                        </tr>
+                    }
                     @foreach (var user in Model)
                     {
                         <tr>
@@ -51,9 +60,16 @@
     <script>
         const selectAll = document.getElementById("selectAll");
         const checkboxes = document.querySelectorAll('input[name="selectedUserIds"]');
+        const restoreBtn = document.getElementById("restoreBtn");
+
+        function updateRestoreBtn() {
+            const anyChecked = [...checkboxes].some(c => c.checked);
+            restoreBtn.disabled = !anyChecked;
+        }
 
         selectAll.addEventListener("change", function () {
             checkboxes.forEach(cb => cb.checked = this.checked);
+            updateRestoreBtn();
         });
 
         checkboxes.forEach(cb => cb.addEventListener("change", function () {
@@ -61,6 +77,7 @@
             const checked = [...checkboxes].filter(c => c.checked).length;
             selectAll.checked = checked === total;
             selectAll.indeterminate = checked > 0 && checked < total;
+            updateRestoreBtn();
         }));
     </script>
 }

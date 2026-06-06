@@ -12,5 +12,6 @@ public interface IKnowledgeBaseService
     Task<OperationResult> UpdateArticle(string authorId, EditKnowBaseViewModel viewModel);
     Task<List<Models.TicketCategory>> GetAllArticlesByCategory();
     Task<KnowledgeBaseArticle?> GetArticleById(int id);
+    Task<List<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem>> GetArticlesForSelect();
 
 }

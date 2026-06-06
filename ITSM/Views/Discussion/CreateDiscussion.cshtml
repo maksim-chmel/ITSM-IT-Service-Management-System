@@ -37,7 +37,7 @@
 
             <div class="d-flex gap-2">
                 <button type="submit" class="btn btn-outline-primary flex-grow-1">Create</button>
-                <a asp-action="ListOfDiscussions" class="btn btn-outline-secondary">Cancel</a>
+                <a asp-action="ListOfDiscussions" class="btn btn-outline-secondary" id="cancelBtn">Cancel</a>
             </div>
         </form>
     </section>
@@ -46,12 +46,20 @@
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         const inputs = document.querySelectorAll(".form-control");
+        let isDirty = false;
 
         inputs.forEach(input => {
             input.addEventListener("input", function () {
+                isDirty = true;
                 this.classList.toggle("is-invalid", !this.checkValidity());
                 this.classList.toggle("is-valid", this.checkValidity());
             });
+        });
+
+        document.getElementById("cancelBtn").addEventListener("click", function (e) {
+            if (isDirty && !confirm("You have unsaved changes. Leave anyway?")) {
+                e.preventDefault();
+            }
         });
     });
 </script>

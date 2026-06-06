@@ -14,19 +14,26 @@
         </div>
 
     <form asp-action="EditUser" method="post">
+        @if (!ViewData.ModelState.IsValid)
+        {
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+        }
         <div class="mb-3">
-            <label for="UserName" class="form-label">User Name</label>
-            <input type="text" class="form-control" id="UserName" name="UserName" value="@Model.UserName" required/>
+            <label asp-for="UserName" class="form-label">User Name</label>
+            <input asp-for="UserName" class="form-control" required/>
+            <span asp-validation-for="UserName" class="text-danger small"></span>
         </div>
 
         <div class="mb-3">
-            <label for="Email" class="form-label">Email</label>
-            <input type="email" class="form-control" id="Email" name="Email" value="@Model.Email" required/>
+            <label asp-for="Email" class="form-label">Email</label>
+            <input asp-for="Email" type="email" class="form-control" required/>
+            <span asp-validation-for="Email" class="text-danger small"></span>
         </div>
 
         <div class="mb-3">
-            <label for="PhoneNumber" class="form-label">Phone Number</label>
-            <input type="text" class="form-control" id="PhoneNumber" name="PhoneNumber" value="@Model.PhoneNumber"/>
+            <label asp-for="PhoneNumber" class="form-label">Phone Number</label>
+            <input asp-for="PhoneNumber" class="form-control"/>
+            <span asp-validation-for="PhoneNumber" class="text-danger small"></span>
         </div>
 
         <div class="form-check form-switch mb-3">

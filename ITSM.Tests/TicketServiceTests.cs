@@ -8,6 +8,7 @@ using ITSM.Services.Ticket;
 using ITSM.Services.TicketCategory;
 using ITSM.Services.Automation;
 using ITSM.Services.Discussion;
+using ITSM.Services.KnowledgeBase;
 using ITSM.ViewModels.Create;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
@@ -22,6 +23,7 @@ public class TicketServiceTests
     private readonly Mock<IAutoServiceService> _autoService;
     private readonly Mock<IDiscussionService> _discussionService;
     private readonly Mock<ITicketCategoryService> _categoryService;
+    private readonly Mock<IKnowledgeBaseService> _knowledgeBase;
 
     public TicketServiceTests()
     {
@@ -51,7 +53,10 @@ public class TicketServiceTests
         _categoryService.Setup(c => c.GetCategorySelectListAsync(It.IsAny<List<TicketCategory>?>())).ReturnsAsync(new List<SelectListItem>());
         _categoryService.Setup(c => c.MapSubCategoriesToSelectList(It.IsAny<List<TicketSubCategory>>())).Returns(new List<SelectListItem>());
 
-        _sut = new TicketService(_db, _categoryService.Object, _autoService.Object, _discussionService.Object);
+        _knowledgeBase = new Mock<IKnowledgeBaseService>();
+        _knowledgeBase.Setup(k => k.GetArticlesForSelect()).ReturnsAsync(new List<SelectListItem>());
+
+        _sut = new TicketService(_db, _categoryService.Object, _autoService.Object, _discussionService.Object, _knowledgeBase.Object);
     }
 
     private async Task<Ticket> SeedTicket(Status status = Status.New, string? assignedUserId = null, string? authorId = null)

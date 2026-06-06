@@ -4,6 +4,7 @@ using ITSM.Models;
 using ITSM.Services.Automation;
 using ITSM.Services.TicketCategory;
 using ITSM.Services.Discussion;
+using ITSM.Services.KnowledgeBase;
 using ITSM.ViewModels.Create;
 using ITSM.ViewModels.Manage;
 using Microsoft.EntityFrameworkCore;
@@ -11,10 +12,11 @@ using Microsoft.EntityFrameworkCore;
 namespace ITSM.Services.Ticket;
 
 public class TicketService(
-    DBaseContext dBaseContext, 
+    DBaseContext dBaseContext,
     ITicketCategoryService category,
     IAutoServiceService autoService,
-    IDiscussionService discussionService)
+    IDiscussionService discussionService,
+    IKnowledgeBaseService knowledgeBase)
     : ITicketService
 {
     public async Task<OperationResult> CreateNewTicket(TicketCreateViewModel model, string currentUserId)
@@ -173,7 +175,7 @@ public class TicketService(
         await dBaseContext.Entry(ticket).Collection(t => t.Discussions).LoadAsync();
 
         var ticketHistory = await GetTicketHistoryByTicketId(ticket.Id);
-        var articles = await dBaseContext.KnowledgeBaseArticles.ToListAsync();
+        var articles = await knowledgeBase.GetArticlesForSelect();
 
         return new TicketDetailsViewModel
         {
@@ -181,11 +183,7 @@ public class TicketService(
             TicketHistory = ticketHistory,
             AuthorName = ticket.Author?.UserName,
             Discussions = ticket.Discussions ?? new List<Models.Discussion>(),
-            AvailableArticles = articles.Select(a => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem
-            {
-                Value = a.Id.ToString(),
-                Text = a.Article
-            }).ToList()
+            AvailableArticles = articles
         };
     }
 

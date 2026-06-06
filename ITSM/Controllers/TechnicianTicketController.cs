@@ -82,8 +82,14 @@ public class TechnicianTicketController(
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> CancelTicketProcessing(int id)
+    public async Task<IActionResult> CancelTicketProcessing(int id, string reason)
     {
+        if (string.IsNullOrWhiteSpace(reason))
+        {
+            NotifyError("A reason is required to cancel the ticket.");
+            return RedirectToAction("ShowDetailsAboutTicket", new { id });
+        }
+
         var ticket = await ticketService.GetTicketById(id);
         if (ticket == null) return NotFound();
 
@@ -95,7 +101,7 @@ public class TechnicianTicketController(
         }
 
         var actor = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "unknown";
-        var result = await ticketService.CancelTicketAsync(id, "Canceled by technician.", actor);
+        var result = await ticketService.CancelTicketAsync(id, reason, actor);
         SetNotification(result);
         return RedirectToAction("ToDoTicketsList");
     }
@@ -134,23 +140,31 @@ public class TechnicianTicketController(
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> AddNewCommentToTicket(int ticketId, string adminComment)
     {
+        var isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest";
+
         var ticket = await ticketService.GetTicketById(ticketId);
         if (ticket == null) return NotFound();
 
         var auth = await authorizationService.AuthorizeAsync(User, ticket, new TicketRequirement(TicketOperations.AddComment));
         if (!auth.Succeeded)
         {
+            if (isAjax) return Forbid();
             NotifyError("You are not authorized to add comments to this ticket.");
             return RedirectToAction("ShowDetailsAboutTicket", new { id = ticketId });
         }
-        
+
         if (string.IsNullOrWhiteSpace(adminComment))
         {
+            if (isAjax) return BadRequest(new { error = "Note is required." });
             NotifyError("Note is required.");
             return RedirectToAction("ShowDetailsAboutTicket", new { id = ticketId });
         }
 
         await ticketService.AddTicketStepAsync(ticketId, adminComment);
+
+        if (isAjax)
+            return Json(new { comment = adminComment, date = DateTime.UtcNow.ToString("dd.MM.yyyy HH:mm") });
+
         return RedirectToAction("ShowDetailsAboutTicket", new { id = ticketId });
     }
     
@@ -159,11 +173,15 @@ public class TechnicianTicketController(
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> PlaceOnHold(int id, string reason)
     {
+        var isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest";
+
         if (string.IsNullOrWhiteSpace(reason))
         {
+            if (isAjax) return BadRequest(new { error = "A reason is required." });
             NotifyError("A reason is required to place the ticket on hold.");
             return RedirectToAction("ShowDetailsAboutTicket", new { id });
         }
+
         var ticket = await ticketService.GetTicketById(id);
         if (ticket == null) return NotFound();
 
@@ -171,6 +189,16 @@ public class TechnicianTicketController(
         if (!auth.Succeeded) return Forbid();
 
         var result = await ticketService.PlaceOnHoldAsync(id, reason);
+
+        if (isAjax)
+        {
+            if (!result.IsSuccess) return BadRequest(new { error = result.Message });
+            return Json(new {
+                comment = $"Ticket placed on hold. Reason: {reason}",
+                date    = DateTime.UtcNow.ToString("dd.MM.yyyy HH:mm")
+            });
+        }
+
         SetNotification(result);
         return RedirectToAction("ShowDetailsAboutTicket", new { id });
     }
@@ -180,6 +208,8 @@ public class TechnicianTicketController(
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> ResumeProgress(int id)
     {
+        var isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest";
+
         var ticket = await ticketService.GetTicketById(id);
         if (ticket == null) return NotFound();
 
@@ -187,6 +217,16 @@ public class TechnicianTicketController(
         if (!auth.Succeeded) return Forbid();
 
         var result = await ticketService.ResumeProgressAsync(id);
+
+        if (isAjax)
+        {
+            if (!result.IsSuccess) return BadRequest(new { error = result.Message });
+            return Json(new {
+                comment = "Ticket progress has been resumed.",
+                date    = DateTime.UtcNow.ToString("dd.MM.yyyy HH:mm")
+            });
+        }
+
         SetNotification(result);
         return RedirectToAction("ShowDetailsAboutTicket", new { id });
     }

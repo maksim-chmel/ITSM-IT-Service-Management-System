@@ -1,6 +1,7 @@
 ﻿using ITSM.Enums;
 using ITSM.Authorization;
 using ITSM.Services.Ticket;
+using ITSM.Services.TicketCategory;
 using ITSM.Services.TicketSort;
 using ITSM.Services.UserManagement;
 using ITSM.ViewModels.Create;
@@ -14,10 +15,18 @@ namespace ITSM.Controllers;
 public class UserTicketController(
     IUserManagementService userService,
     ITicketService ticketService,
+    ITicketCategoryService categoryService,
     ITicketSortService ticketSortService,
     IAuthorizationService authorizationService)
     : BaseController
 {
+    [HttpGet]
+    public async Task<IActionResult> SubCategories(int categoryId)
+    {
+        var subs = await categoryService.GetSubCategoriesForCategory(categoryId);
+        return Json(subs.Select(s => new { value = s.Id, text = s.Name }));
+    }
+
     [HttpGet]
     public async Task<IActionResult> CreateTicket(int categoryId)
     {

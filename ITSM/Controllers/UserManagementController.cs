@@ -13,11 +13,9 @@ public class UserManagementController(IUserManagementService userService,IQualif
     [HttpGet]
     public async Task<IActionResult> UsersList(string? search)
     {
-        var list = await userService.GetAllUsersToList();
-        if (search != null)
-        {
-            list = await userService.SearchUser(search);
-        }
+        var list = search != null
+            ? await userService.SearchUser(search)
+            : await userService.GetAllUsersToList();
 
         return View(list);
     }

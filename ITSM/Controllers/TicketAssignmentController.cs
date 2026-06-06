@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ITSM.Controllers;
 
-[Authorize(Roles = nameof(UserRoles.Coordinator))]
+[Authorize(Roles = $"{nameof(UserRoles.Coordinator)},{nameof(UserRoles.Admin)}")]
 public class TicketAssignmentController(
     ITicketService ticketService,
     ITicketAssignmentService ticketAssignmentService,
@@ -81,8 +81,7 @@ public class TicketAssignmentController(
         if (!Enum.IsDefined(typeof(TicketPriority), priority))
         {
             NotifyError("Invalid priority selected.");
-            var model = await ticketAssignmentService.CreateAssignPriorityViewModel(ticketId);
-            return View(model);
+            return RedirectToAction("ReviewAllTickets", new { managedTicketId = ticketId });
         }
 
         var ticket = await ticketService.GetTicketById(ticketId);
@@ -111,50 +110,20 @@ public class TicketAssignmentController(
         return View(viewModel);
     }
 
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> CloseTicket(int id)
+    [HttpGet]
+    public async Task<IActionResult> ManagementPanel(int ticketId)
     {
-        var ticket = await ticketService.GetTicketById(id);
-        if (ticket == null) return NotFound();
-
-        var auth = await authorizationService.AuthorizeAsync(User, ticket, new TicketRequirement(TicketOperations.ChangeStatus));
-        if (!auth.Succeeded) return Forbid();
-
-        var result = await ticketService.ChangeTicketStatus(id, Status.Resolved);
-        SetNotification(result);
-        return RedirectToAction("InfoAboutTicket", new { id });
-    }
-
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> ReOpenTicket(int id)
-    {
-        var ticket = await ticketService.GetTicketById(id);
-        if (ticket == null) return NotFound();
-
-        var auth = await authorizationService.AuthorizeAsync(User, ticket, new TicketRequirement(TicketOperations.ChangeStatus));
-        if (!auth.Succeeded) return Forbid();
-
-        var result = await ticketService.ChangeTicketStatus(id, Status.Reopened);
-        SetNotification(result);
-        return RedirectToAction("InfoAboutTicket", new { id });
-    }
-
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> CancelTicket(int id, string reason)
-    {
-        var ticket = await ticketService.GetTicketById(id);
-        if (ticket == null) return NotFound();
-
-        var auth = await authorizationService.AuthorizeAsync(User, ticket, new TicketRequirement(TicketOperations.ChangeStatus));
-        if (!auth.Succeeded) return Forbid();
-
-        var actor = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "unknown";
-        var result = await ticketService.CancelTicketAsync(id, reason, actor);
-        SetNotification(result);
-        return RedirectToAction("ReviewAllTickets");
+        try
+        {
+            ViewBag.AssignTechnicianViewModel = await ticketAssignmentService.CreateAssignTechnicianViewModel(ticketId);
+            ViewBag.AssignPriorityViewModel   = await ticketAssignmentService.CreateAssignPriorityViewModel(ticketId);
+            ViewBag.ManagedTicketId           = ticketId;
+            return PartialView("_ManagementPanel");
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
     }
 
     [HttpPost]

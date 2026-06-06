@@ -23,6 +23,16 @@
                 </div>
             </div>
 
+            @{
+                var hasDeletedItems = Model.Any(c => c.IsDeleted || c.SubCategories.Any(s => s.IsDeleted));
+            }
+            @if (!hasDeletedItems)
+            {
+                <p class="text-center text-muted py-4">
+                    <i class="bi bi-tags fs-3 d-block mb-2"></i>
+                    No archived categories or subcategories found.
+                </p>
+            }
             <ul class="list-group">
                 @foreach (var category in Model)
                 {

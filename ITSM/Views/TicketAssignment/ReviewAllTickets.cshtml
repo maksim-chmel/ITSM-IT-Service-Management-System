@@ -134,10 +134,19 @@
                 </tr>
                 </thead>
                 <tbody class="table-light">
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="8" class="text-center text-muted py-4">
+                            <i class="bi bi-ticket fs-3 d-block mb-2"></i>
+                            No active tickets in the pipeline.
+                        </td>
+                    </tr>
+                }
                 @foreach (var ticket in Model)
                 {
                     var isActionable = ticket.Status != Status.Resolved && ticket.Status != Status.Canceled;
-                    <tr>
+                    <tr data-ticket-row="@ticket.Id">
                         <td><a asp-controller="TicketAssignment" asp-action="InfoAboutTicket" asp-route-id="@ticket.Id"><strong>@ticket.Id</strong></a></td>
                         <td class="text-truncate" style="max-width: 200px;" title="@ticket.Title">@ticket.Title</td>
                         <td><span class="badge @getBadgeClass(ticket.Status)">@ticket.Status</span></td>
@@ -146,13 +155,10 @@
                         <td>@(ticket.AssignedUser?.UserName ?? "Unassigned")</td>
                         <td>@ticket.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
                         <td>
-                            @if (ViewBag.ManagedTicketId != null && ticket.Id == ViewBag.ManagedTicketId)
+                            @if (isActionable)
                             {
-                                <a asp-action="ReviewAllTickets" class="btn btn-sm btn-secondary">Close</a>
-                            }
-                            else if (isActionable)
-                            {
-                                <a asp-action="ReviewAllTickets" asp-route-managedTicketId="@ticket.Id" class="btn btn-sm btn-outline-primary">Manage</a>
+                                <button type="button" class="btn btn-sm btn-outline-primary js-manage-btn"
+                                        data-ticket-id="@ticket.Id">Manage</button>
                             }
                             else
                             {
@@ -163,48 +169,10 @@
                             }
                         </td>
                     </tr>
-
-                    @if (ViewBag.ManagedTicketId != null && ticket.Id == ViewBag.ManagedTicketId)
-                    {
-                        <tr>
-                            <td colspan="8" class="p-0">
-                                <div class="management-panel">
-                                    <div class="management-form">
-                                        <h5>Assign Technician</h5>
-                                        @if (ViewBag.AssignTechnicianViewModel is AssignTicketViewModel assignModel)
-                                        {
-                                            <form asp-action="AssignTechnician" method="post" class="d-flex gap-2">
-                                                <input type="hidden" name="ticketId" value="@assignModel.Ticket.Id"/>
-                                                <select name="userId" class="form-select form-select-sm" required>
-                                                    <option value="">-- Select Qualified Technician --</option>
-                                                    @foreach (var user in assignModel.Users) { <option value="@user.Value">@user.Text</option> }
-                                                </select>
-                                                <button type="submit" class="btn btn-sm btn-primary">Assign</button>
-                                            </form>
-                                            @if (!assignModel.Users.Any())
-                                            {
-                                                <small class="text-muted fst-italic">No technicians are qualified for the '@assignModel.Ticket.Category.Name' category.</small>
-                                            }
-                                        }
-                                    </div>
-                                    <div class="management-form">
-                                        <h5>Set Priority</h5>
-                                        @if (ViewBag.AssignPriorityViewModel is AssignTicketPriorityViewModel priorityModel)
-                                        {
-                                            <form asp-action="AssignPriority" method="post" class="d-flex gap-2">
-                                                <input type="hidden" name="ticketId" value="@priorityModel.Ticket.Id"/>
-                                                <select name="priority" class="form-select form-select-sm" asp-for="@priorityModel.SelectedPriority" required>
-                                                    @foreach (var p in priorityModel.Priorities) { <option value="@p.Value">@p.Text</option> }
-                                                </select>
-                                                <button type="submit" class="btn btn-sm btn-secondary">Set</button>
-                                            </form>
-                                        }
-                                    </div>
-                                </div>
-                            </td>
-                        </tr>
-                    }
                 }
+                <tr id="management-row" class="d-none">
+                    <td colspan="8" class="p-0" id="management-panel-content"></td>
+                </tr>
                 </tbody>
             </table>
         </div>
@@ -238,6 +206,77 @@
             // Bootstrap tooltips
             document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el =>
                 new bootstrap.Tooltip(el));
+
+            // AJAX Management Panel
+            const mgmtRow     = document.getElementById("management-row");
+            const mgmtContent = document.getElementById("management-panel-content");
+            let   activeTicketId = null;
+
+            document.querySelectorAll(".js-manage-btn").forEach(btn => {
+                btn.addEventListener("click", async function () {
+                    const ticketId  = this.dataset.ticketId;
+                    const ticketRow = document.querySelector(`tr[data-ticket-row="${ticketId}"]`);
+
+                    if (activeTicketId === ticketId) {
+                        mgmtRow.classList.add("d-none");
+                        activeTicketId = null;
+                        document.querySelectorAll(".js-manage-btn").forEach(b => b.classList.remove("btn-secondary"));
+                        this.classList.remove("btn-secondary");
+                        this.classList.add("btn-outline-primary");
+                        this.textContent = "Manage";
+                        return;
+                    }
+
+                    document.querySelectorAll(".js-manage-btn").forEach(b => {
+                        b.classList.remove("btn-secondary");
+                        b.classList.add("btn-outline-primary");
+                        b.textContent = "Manage";
+                    });
+                    this.classList.remove("btn-outline-primary");
+                    this.classList.add("btn-secondary");
+                    this.textContent = "Close";
+
+                    mgmtContent.innerHTML = '<div class="skeleton-panel"><div><div class="skel-block skel-label"></div><div class="skel-block skel-input"></div></div><div><div class="skel-block skel-label"></div><div class="skel-block skel-input"></div></div></div>';
+                    ticketRow.insertAdjacentElement("afterend", mgmtRow);
+                    mgmtRow.classList.remove("d-none");
+                    activeTicketId = ticketId;
+
+                    try {
+                        const resp = await fetch(`/TicketAssignment/ManagementPanel?ticketId=${ticketId}`, {
+                            headers: { "X-Requested-With": "XMLHttpRequest" }
+                        });
+                        if (!resp.ok) {
+                            const err = await resp.json().catch(() => ({ error: "Unknown error" }));
+                            mgmtContent.innerHTML = `<div class="p-3 text-danger"><i class="bi bi-exclamation-circle me-1"></i>${err.error}</div>`;
+                            return;
+                        }
+                        mgmtContent.innerHTML = await resp.text();
+
+                        mgmtContent.querySelectorAll("form").forEach(form => {
+                            form.addEventListener("submit", async function (e) {
+                                e.preventDefault();
+                                const submitBtn = form.querySelector("[type=submit]");
+                                if (submitBtn) submitBtn.disabled = true;
+                                const formData = new FormData(form);
+                                const action   = form.action;
+                                try {
+                                    const r = await fetch(action, { method: "POST", body: formData });
+                                    if (r.redirected || r.ok) {
+                                        location.reload();
+                                    } else {
+                                        const err = await r.json().catch(() => ({ error: "Error submitting form." }));
+                                        mgmtContent.innerHTML = `<div class="p-3 text-danger"><i class="bi bi-exclamation-circle me-1"></i>${err.error}</div>`;
+                                    }
+                                } catch {
+                                    location.reload();
+                                }
+                            });
+                        });
+                    } catch {
+                        mgmtContent.innerHTML = '<div class="p-3 text-danger"><i class="bi bi-exclamation-circle me-1"></i>Failed to load management panel.</div>';
+                    }
+                });
+            });
 
             // Common Chart Options
             const commonOptions = {

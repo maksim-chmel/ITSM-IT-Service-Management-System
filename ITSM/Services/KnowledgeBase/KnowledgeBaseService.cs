@@ -2,19 +2,28 @@
 using ITSM.Models;
 using ITSM.ViewModels.Create;
 using ITSM.ViewModels.Manage;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace ITSM.Services.KnowledgeBase;
 
-public class KnowledgeBaseService(DBaseContext dBaseContext) : IKnowledgeBaseService
+public class KnowledgeBaseService(DBaseContext dBaseContext, IMemoryCache cache) : IKnowledgeBaseService
 {
-    
+    private const string ArticlesByCategoryKey = "KnowledgeBase:ByCategory";
+    private const string ArticlesSelectKey = "KnowledgeBase:ArticlesFlat";
+    private static readonly TimeSpan CacheTtl = TimeSpan.FromMinutes(5);
+
     public async Task<List<Models.TicketCategory>> GetAllArticlesByCategory()
     {
-        return await dBaseContext.TicketCategories
-            .Include(c => c.Articles)
-            .ThenInclude(a => a.Author)
-            .ToListAsync();
+        return await cache.GetOrCreateAsync(ArticlesByCategoryKey, async entry =>
+        {
+            entry.SlidingExpiration = CacheTtl;
+            return await dBaseContext.TicketCategories
+                .Include(c => c.Articles)
+                .ThenInclude(a => a.Author)
+                .ToListAsync();
+        }) ?? [];
     }
 
 
@@ -35,6 +44,18 @@ public class KnowledgeBaseService(DBaseContext dBaseContext) : IKnowledgeBaseSer
             .ToListAsync();
     }
 
+    public async Task<List<SelectListItem>> GetArticlesForSelect()
+    {
+        return await cache.GetOrCreateAsync(ArticlesSelectKey, async entry =>
+        {
+            entry.SlidingExpiration = CacheTtl;
+            return await dBaseContext.KnowledgeBaseArticles
+                .AsNoTracking()
+                .Select(a => new SelectListItem { Value = a.Id.ToString(), Text = a.Article })
+                .ToListAsync();
+        }) ?? [];
+    }
+
     public async Task<OperationResult> CreateArticle(string userId,CreateKnowArtViewModel viewModel)
     {
         if (string.IsNullOrWhiteSpace(viewModel.Article) || string.IsNullOrWhiteSpace(viewModel.Content)) 
@@ -50,6 +71,8 @@ public class KnowledgeBaseService(DBaseContext dBaseContext) : IKnowledgeBaseSer
         };
         await dBaseContext.KnowledgeBaseArticles.AddAsync(newArticle);
         await dBaseContext.SaveChangesAsync();
+        cache.Remove(ArticlesByCategoryKey);
+        cache.Remove(ArticlesSelectKey);
         return OperationResult.Success("Knowledge base article created successfully.");
     }
 
@@ -61,6 +84,8 @@ public class KnowledgeBaseService(DBaseContext dBaseContext) : IKnowledgeBaseSer
 
         article.IsDeleted = true;
         await dBaseContext.SaveChangesAsync();
+        cache.Remove(ArticlesByCategoryKey);
+        cache.Remove(ArticlesSelectKey);
         return OperationResult.Success("Article archived successfully.");
     }
 
@@ -76,6 +101,8 @@ public class KnowledgeBaseService(DBaseContext dBaseContext) : IKnowledgeBaseSer
         article.CategoryId = viewModel.CategoryId;
         dBaseContext.KnowledgeBaseArticles.Update(article);
         await dBaseContext.SaveChangesAsync();
+        cache.Remove(ArticlesByCategoryKey);
+        cache.Remove(ArticlesSelectKey);
         return OperationResult.Success("Article updated successfully.");
 
     }

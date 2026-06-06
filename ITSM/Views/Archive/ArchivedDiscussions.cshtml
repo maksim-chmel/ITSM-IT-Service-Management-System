@@ -1,7 +1,7 @@
 @model IEnumerable<ITSM.Models.Discussion>
 
 @{
-    ViewData["Title"] = "Resolved Discussions";
+    ViewData["Title"] = "Archived Discussions";
 }
 
 <div class="d-grid gap-4">
@@ -14,17 +14,19 @@
     <section class="surface-card">
         <div class="page-header">
             <div>
-                <h2>Resolved Discussion Topics</h2>
-                <p class="text-muted mb-0">Browse resolved discussions and open full history.</p>
+                <h2>Archived Discussions</h2>
+                <p class="text-muted mb-0">Browse archived discussions and open full history.</p>
             </div>
             <a asp-controller="Archive" asp-action="Index" class="btn btn-outline-secondary btn-sm">Back to Archive Hub</a>
         </div>
 
         <form method="get" class="compact-search mb-4">
-            <input type="text" name="search" class="form-control" placeholder="Search by title..." value="@Context.Request.Query["search"]" />
+            <input type="text" name="search" id="live-search-input" class="form-control" placeholder="Search by title..." value="@Context.Request.Query["search"]" autocomplete="off" />
             <button type="submit" class="btn btn-outline-primary"><i class="bi bi-search"></i></button>
+            <a id="clear-search-btn" href="@Url.Action("ArchivedDiscussions", "Archive")" class="btn btn-outline-secondary @(string.IsNullOrEmpty(Context.Request.Query["search"]) ? "d-none" : "")" title="Clear search"><i class="bi bi-x-lg"></i></a>
         </form>
 
+        <div id="search-results">
         @if (!Model.Any())
         {
             <p class="text-center mb-0">No available discussion topics.</p>
@@ -47,5 +49,35 @@
                 }
             </div>
         }
+        </div>
     </section>
 </div>
+
+@section Scripts {
+<script>
+(function () {
+    const input    = document.getElementById("live-search-input");
+    const results  = document.getElementById("search-results");
+    const clearBtn = document.getElementById("clear-search-btn");
+    if (!input || !results) return;
+
+    let timer;
+    input.addEventListener("input", function () {
+        clearTimeout(timer);
+        const q = this.value.trim();
+        clearBtn?.classList.toggle("d-none", !q);
+        timer = setTimeout(async function () {
+            const url = `${window.location.pathname}?search=${encodeURIComponent(q)}`;
+            history.replaceState({}, "", url);
+            try {
+                const resp = await fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" } });
+                const html = await resp.text();
+                const doc  = new DOMParser().parseFromString(html, "text/html");
+                const fresh = doc.getElementById("search-results");
+                if (fresh) results.innerHTML = fresh.innerHTML;
+            } catch { /* silent */ }
+        }, 300);
+    });
+})();
+</script>
+}

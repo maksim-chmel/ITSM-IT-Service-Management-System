@@ -78,7 +78,7 @@ public class AuthController(UserManager<User> userManager, SignInManager<User> s
             }
             else
             {
-                NotifyError("User not found or account is disabled.");
+                NotifyError("Invalid email or password.");
             }
         }
         else

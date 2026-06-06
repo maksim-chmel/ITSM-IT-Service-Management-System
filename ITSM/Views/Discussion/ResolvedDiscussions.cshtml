@@ -27,6 +27,10 @@
         <form method="get" class="compact-search mb-4">
             <input type="text" name="search" class="form-control" placeholder="Search by title..." value="@Context.Request.Query["search"]" />
             <button type="submit" class="btn btn-outline-primary"><i class="bi bi-search"></i></button>
+            @if (!string.IsNullOrEmpty(Context.Request.Query["search"]))
+            {
+                <a href="@Url.Action("ResolvedDiscussions")" class="btn btn-outline-secondary" title="Clear search"><i class="bi bi-x-lg"></i></a>
+            }
         </form>
 
         @if (!Model.Any())
@@ -43,6 +47,7 @@
                         <h5 class="card-title text-truncate">@thread.Title</h5>
                         <p class="card-text">
                             <strong>Author:</strong> @thread.Author?.UserName <br />
+                            <strong>Category:</strong> @(thread.Category?.Name ?? "—") <br />
                             <strong>Closed:</strong> @(thread.ClosedAt?.ToLocalTime().ToString("g") ?? "-")
                         </p>
                         <a asp-action="ViewDiscussion" asp-route-id="@thread.Id" class="btn btn-outline-primary btn-sm w-100">

@@ -36,12 +36,16 @@
             <strong>Created:</strong> @Model.CreatedAt.ToLocalTime().ToString("g")
         </p>
 
-        <div class="chat-box mb-3">
+        @{
+            var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var isAuthor = Model.AuthorId == currentUserId;
+        }
+        <div class="chat-box mb-3" id="chat-box">
             @if (Model.Messages != null && Model.Messages.Any())
             {
                 @foreach (var message in Model.Messages.OrderBy(m => m.CreatedAt))
                 {
-                    <div class="msg-row @(message.AuthorId == Model.AuthorId ? "me" : "other")">
+                    <div class="msg-row @(message.AuthorId == currentUserId ? "me" : "other")">
                         <div class="bubble">
                             <div class="msg-header">
                                 <span>@message.Author?.UserName</span>
@@ -54,16 +58,83 @@
             }
             else
             {
-                <div class="text-muted text-center small py-2">No messages yet.</div>
+                <div class="text-muted text-center small py-2" id="no-messages-hint">No messages yet.</div>
             }
         </div>
 
-        <form method="post" asp-action="AddMessage" asp-route-id="@Model.Id" class="input-area d-flex gap-2">
-            <textarea name="MessageContent" class="form-control form-control-sm" placeholder="Type your message..." rows="1" required maxlength="1000"></textarea>
-            <button type="submit" class="btn btn-outline-primary btn-sm">Send</button>
-        </form>
+        @if (Model.Status != ITSM.Enums.Status.Resolved)
+        {
+            <form method="post" asp-action="AddMessage" asp-route-id="@Model.Id" class="input-area d-flex gap-2" id="msg-form"
+                  data-author-name="@User.Identity!.Name">
+                <textarea name="MessageContent" id="msg-input" class="form-control form-control-sm" placeholder="Type your message..." rows="1" required maxlength="1000"></textarea>
+                <button type="submit" class="btn btn-outline-primary btn-sm">Send</button>
+            </form>
+        }
+        else
+        {
+            <p class="text-muted small fst-italic text-center mb-0">This discussion is resolved and closed for new messages.</p>
+        }
     </section>
 </div>
+
+@section Scripts {
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const form    = document.getElementById("msg-form");
+    const chatBox = document.getElementById("chat-box");
+    if (!form || !chatBox) return;
+
+    const authorName = form.dataset.authorName;
+
+    form.addEventListener("submit", async function (e) {
+        e.preventDefault();
+        const input     = document.getElementById("msg-input");
+        const content   = input.value.trim();
+        const submitBtn = form.querySelector("[type=submit]");
+        if (!content) return;
+
+        submitBtn.disabled = true;
+        const formData = new FormData(form);
+
+        try {
+            const resp = await fetch(form.action, {
+                method:  "POST",
+                body:    formData,
+                headers: { "X-Requested-With": "XMLHttpRequest" }
+            });
+            if (!resp.ok) {
+                const err = await resp.json().catch(() => ({ error: "Error sending message." }));
+                alert(err.error);
+                return;
+            }
+            const data = await resp.json();
+            document.getElementById("no-messages-hint")?.remove();
+
+            const row = document.createElement("div");
+            row.className = "msg-row me";
+            row.innerHTML = `<div class="bubble">
+                <div class="msg-header">
+                    <span>${data.author ?? authorName}</span>
+                    <span>${data.timestamp}</span>
+                </div>
+                <div class="msg-text">${escapeHtml(data.content)}</div>
+            </div>`;
+            chatBox.appendChild(row);
+            chatBox.scrollTop = chatBox.scrollHeight;
+            input.value = "";
+        } finally {
+            submitBtn.disabled = false;
+        }
+    });
+
+    function escapeHtml(str) {
+        return str.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+    }
+
+    chatBox.scrollTop = chatBox.scrollHeight;
+});
+</script>
+}
 
 <div class="modal fade" id="resolveDiscussionModal" tabindex="-1">
     <div class="modal-dialog">
@@ -73,7 +144,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <p>Mark this discussion as resolved? It will move to the resolved section and be closed for new messages.</p>
+                <p>Mark this discussion as resolved? It will be closed for new messages and moved to the resolved section.</p>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>

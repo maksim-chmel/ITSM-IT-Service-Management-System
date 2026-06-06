@@ -1,6 +1,8 @@
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Options;
 using ITSM.Data;
 using ITSM.Models;
 using ITSM.Services.TicketCategory;
@@ -22,7 +24,8 @@ public class TicketCategoryServiceTests
             .Options;
         _db = new DBaseContext(options);
         _db.Database.EnsureCreated();
-        _sut = new TicketCategoryService(_db);
+        var cache = new MemoryCache(new MemoryCacheOptions());
+        _sut = new TicketCategoryService(_db, cache);
     }
 
     // ── CreateCategory ─────────────────────────────────────────────────────────
