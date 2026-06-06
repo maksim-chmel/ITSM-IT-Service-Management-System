@@ -1,3 +1,4 @@
+using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using ITSM.Data;
 using ITSM.Models;
@@ -22,8 +23,19 @@ public class KnowledgeBaseServiceTests
         _sut = new KnowledgeBaseService(_db);
     }
 
+    private async Task<User> EnsureUser(string userId)
+    {
+        var existing = await _db.Users.IgnoreQueryFilters().FirstOrDefaultAsync(u => u.Id == userId);
+        if (existing != null) return existing;
+        var user = new User { Id = userId, UserName = userId, Email = $"{userId}@test.com" };
+        _db.Users.Add(user);
+        await _db.SaveChangesAsync();
+        return user;
+    }
+
     private async Task<KnowledgeBaseArticle> SeedArticle(string authorId = "author1")
     {
+        await EnsureUser(authorId);
         var article = new KnowledgeBaseArticle
         {
             Article = "Title",
@@ -44,7 +56,7 @@ public class KnowledgeBaseServiceTests
     {
         var model = new CreateKnowArtViewModel { Article = "", Content = "Content", CategoryId = 1 };
         var result = await _sut.CreateArticle("user1", model);
-        Assert.False(result.IsSuccess);
+        result.IsSuccess.Should().BeFalse();
     }
 
     [Fact]
@@ -52,7 +64,7 @@ public class KnowledgeBaseServiceTests
     {
         var model = new CreateKnowArtViewModel { Article = "Title", Content = "  ", CategoryId = 1 };
         var result = await _sut.CreateArticle("user1", model);
-        Assert.False(result.IsSuccess);
+        result.IsSuccess.Should().BeFalse();
     }
 
     [Fact]
@@ -61,8 +73,8 @@ public class KnowledgeBaseServiceTests
         var model = new CreateKnowArtViewModel { Article = "How to reset", Content = "Step 1...", CategoryId = 1 };
         var result = await _sut.CreateArticle("user1", model);
 
-        Assert.True(result.IsSuccess);
-        Assert.Equal(1, _db.KnowledgeBaseArticles.Count());
+        result.IsSuccess.Should().BeTrue();
+        _db.KnowledgeBaseArticles.Should().HaveCount(1);
     }
 
     // ── UpdateArticle ──────────────────────────────────────────────────────────
@@ -72,7 +84,7 @@ public class KnowledgeBaseServiceTests
     {
         var model = new EditKnowBaseViewModel { Id = 999, Article = "New", Content = "New", CategoryId = 1 };
         var result = await _sut.UpdateArticle("author1", model);
-        Assert.False(result.IsSuccess);
+        result.IsSuccess.Should().BeFalse();
     }
 
     [Fact]
@@ -81,7 +93,7 @@ public class KnowledgeBaseServiceTests
         var article = await SeedArticle("author1");
         var model = new EditKnowBaseViewModel { Id = article.Id, Article = "X", Content = "Y", CategoryId = 1 };
         var result = await _sut.UpdateArticle("someone-else", model);
-        Assert.False(result.IsSuccess);
+        result.IsSuccess.Should().BeFalse();
     }
 
     [Fact]
@@ -97,11 +109,11 @@ public class KnowledgeBaseServiceTests
         };
         var result = await _sut.UpdateArticle("author1", model);
 
-        Assert.True(result.IsSuccess);
+        result.IsSuccess.Should().BeTrue();
         var updated = await _db.KnowledgeBaseArticles.FindAsync(article.Id);
-        Assert.Equal("Updated Title", updated!.Article);
-        Assert.Equal("Updated Content", updated.Content);
-        Assert.Equal(2, updated.CategoryId);
+        updated!.Article.Should().Be("Updated Title");
+        updated.Content.Should().Be("Updated Content");
+        updated.CategoryId.Should().Be(2);
     }
 
     [Fact]
@@ -120,7 +132,7 @@ public class KnowledgeBaseServiceTests
         await _sut.UpdateArticle("author1", model);
 
         var updated = await _db.KnowledgeBaseArticles.FindAsync(article.Id);
-        Assert.Equal(originalCreatedAt, updated!.CreatedAt);
+        updated!.CreatedAt.Should().Be(originalCreatedAt);
     }
 
     // ── ArchiveArticle ─────────────────────────────────────────────────────────
@@ -129,7 +141,7 @@ public class KnowledgeBaseServiceTests
     public async Task ArchiveArticle_Fails_WhenNotFound()
     {
         var result = await _sut.ArchiveArticle(999, "author1");
-        Assert.False(result.IsSuccess);
+        result.IsSuccess.Should().BeFalse();
     }
 
     [Fact]
@@ -137,7 +149,7 @@ public class KnowledgeBaseServiceTests
     {
         var article = await SeedArticle("author1");
         var result = await _sut.ArchiveArticle(article.Id, "someone-else");
-        Assert.False(result.IsSuccess);
+        result.IsSuccess.Should().BeFalse();
     }
 
     [Fact]
@@ -146,11 +158,11 @@ public class KnowledgeBaseServiceTests
         var article = await SeedArticle("author1");
         var result = await _sut.ArchiveArticle(article.Id, "author1");
 
-        Assert.True(result.IsSuccess);
+        result.IsSuccess.Should().BeTrue();
         var archived = await _db.KnowledgeBaseArticles
             .IgnoreQueryFilters()
             .FirstOrDefaultAsync(a => a.Id == article.Id);
-        Assert.True(archived!.IsDeleted);
+        archived!.IsDeleted.Should().BeTrue();
     }
 
     [Fact]
@@ -161,6 +173,72 @@ public class KnowledgeBaseServiceTests
 
         _db.ChangeTracker.Clear();
         var found = await _db.KnowledgeBaseArticles.FindAsync(article.Id);
-        Assert.Null(found);
+        found.Should().BeNull();
+    }
+
+    // ── GetAllArticlesByCategory ───────────────────────────────────────────────
+
+    [Fact]
+    public async Task GetAllArticlesByCategory_ReturnsAllCategories_WithArticlesIncluded()
+    {
+        await SeedArticle("author1"); // CategoryId = 1
+
+        var result = await _sut.GetAllArticlesByCategory();
+
+        result.Should().HaveCount(5); // 5 seed categories
+        result.Should().Contain(c => c.Id == 1 && c.Articles.Count == 1);
+    }
+
+    [Fact]
+    public async Task GetAllArticlesByCategory_ReturnsCategories_WhenNoArticlesExist()
+    {
+        var result = await _sut.GetAllArticlesByCategory();
+
+        result.Should().HaveCount(5);
+        result.Should().OnlyContain(c => c.Articles.Count == 0);
+    }
+
+    // ── GetArticleById ─────────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task GetArticleById_ReturnsArticle_WhenFound()
+    {
+        var article = await SeedArticle();
+
+        var result = await _sut.GetArticleById(article.Id);
+
+        result.Should().NotBeNull();
+        result!.Id.Should().Be(article.Id);
+    }
+
+    [Fact]
+    public async Task GetArticleById_ReturnsNull_WhenNotFound()
+    {
+        var result = await _sut.GetArticleById(999);
+        result.Should().BeNull();
+    }
+
+    // ── GetAllAuthorArticles ───────────────────────────────────────────────────
+
+    [Fact]
+    public async Task GetAllAuthorArticles_ReturnsOnlyArticlesByGivenAuthor()
+    {
+        await SeedArticle("author1");
+        await SeedArticle("author2");
+
+        var result = await _sut.GetAllAuthorArticles("author1");
+
+        result.Should().HaveCount(1)
+              .And.OnlyContain(a => a.AuthorId == "author1");
+    }
+
+    [Fact]
+    public async Task GetAllAuthorArticles_ReturnsEmpty_WhenAuthorHasNoArticles()
+    {
+        await SeedArticle("author1");
+
+        var result = await _sut.GetAllAuthorArticles("other");
+
+        result.Should().BeEmpty();
     }
 }

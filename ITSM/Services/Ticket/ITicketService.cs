@@ -15,7 +15,7 @@ public interface ITicketService
     Task<IEnumerable<Models.Ticket>> GetUserTickets(string userId);
     IQueryable<Models.Ticket> GetUserTicketsQuery(string userId);
 
-    Task<TicketDetailsViewModel> CreateTicketDetailsViewModel(int ticketId);
+    Task<TicketDetailsViewModel> CreateTicketDetailsViewModel(Models.Ticket ticket);
     Task AddTicketStepAsync(int ticketId, string adminComment);
     Task<IEnumerable<Models.Ticket>> GetTicketsAssignedToAdminAsync(string adminId);
     Task<OperationResult> ChangeTicketStatus(int id, Status status);

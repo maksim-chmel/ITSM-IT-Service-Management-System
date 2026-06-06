@@ -125,7 +125,7 @@ public class TechnicianTicketController(
         var auth = await authorizationService.AuthorizeAsync(User, ticket, new TicketRequirement(TicketOperations.View));
         if (!auth.Succeeded) return Forbid();
 
-        var viewModel = await ticketService.CreateTicketDetailsViewModel(id);
+        var viewModel = await ticketService.CreateTicketDetailsViewModel(ticket);
 
         return View(viewModel);
     }

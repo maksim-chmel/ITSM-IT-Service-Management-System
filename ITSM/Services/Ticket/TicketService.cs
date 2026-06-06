@@ -166,28 +166,27 @@ public class TicketService(
     }
 
 
-    public async Task<TicketDetailsViewModel> CreateTicketDetailsViewModel(int ticketId)
+    public async Task<TicketDetailsViewModel> CreateTicketDetailsViewModel(Models.Ticket ticket)
     {
-        var ticket = await dBaseContext.Tickets
-            .Include(t => t.Author)
-            .Include(t => t.AssignedUser)
-            .Include(t => t.Discussions)
-            .FirstOrDefaultAsync(t => t.Id == ticketId);
-            var ticketHistory = await GetTicketHistoryByTicketId(ticketId);
-            var articles = await dBaseContext.KnowledgeBaseArticles.ToListAsync();
+        await dBaseContext.Entry(ticket).Reference(t => t.Author).LoadAsync();
+        await dBaseContext.Entry(ticket).Reference(t => t.AssignedUser).LoadAsync();
+        await dBaseContext.Entry(ticket).Collection(t => t.Discussions).LoadAsync();
 
-            return new TicketDetailsViewModel
-            {
+        var ticketHistory = await GetTicketHistoryByTicketId(ticket.Id);
+        var articles = await dBaseContext.KnowledgeBaseArticles.ToListAsync();
+
+        return new TicketDetailsViewModel
+        {
             Ticket = ticket,
             TicketHistory = ticketHistory,
-            AuthorName = ticket?.Author?.UserName,
-            Discussions = ticket?.Discussions ?? new List<ITSM.Models.Discussion>(),
+            AuthorName = ticket.Author?.UserName,
+            Discussions = ticket.Discussions ?? new List<Models.Discussion>(),
             AvailableArticles = articles.Select(a => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem
             {
                 Value = a.Id.ToString(),
                 Text = a.Article
             }).ToList()
-            };
+        };
     }
 
 

@@ -12,14 +12,14 @@ public class UserProfileService(UserManager<User> userManager, SignInManager<Use
         return await userManager.GetUserAsync(userPrincipal);
     }
 
-    public async Task<EditUserViewModel> GetUserProfileAsync(User user)
+    public Task<EditUserViewModel> GetUserProfileAsync(User user)
     {
-        return  new EditUserViewModel
+        return Task.FromResult(new EditUserViewModel
         {
             UserName = user.UserName,
             Email = user.Email,
             PhoneNumber = user.PhoneNumber
-        };
+        });
     }
 
     public async Task<OperationResult> UpdateUserProfileAsync(User user, EditUserViewModel model)

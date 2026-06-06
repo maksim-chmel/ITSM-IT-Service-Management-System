@@ -1,3 +1,4 @@
+using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using ITSM.Data;
 using ITSM.Enums;
@@ -22,8 +23,19 @@ public class DiscussionServiceTests
         _sut = new DiscussionService(_db);
     }
 
+    private async Task<User> EnsureUser(string userId)
+    {
+        var existing = await _db.Users.IgnoreQueryFilters().FirstOrDefaultAsync(u => u.Id == userId);
+        if (existing != null) return existing;
+        var user = new User { Id = userId, UserName = userId, Email = $"{userId}@test.com" };
+        _db.Users.Add(user);
+        await _db.SaveChangesAsync();
+        return user;
+    }
+
     private async Task<Discussion> SeedDiscussion(string authorId = "user1", Status status = Status.Open)
     {
+        await EnsureUser(authorId);
         var d = new Discussion
         {
             Title = "Topic",
@@ -44,7 +56,7 @@ public class DiscussionServiceTests
     {
         var model = new DiscussionCreateViewModel { Title = "", Description = "Desc", CategoryId = 1 };
         var result = await _sut.CreateDiscussion(model, "user1");
-        Assert.False(result.IsSuccess);
+        result.IsSuccess.Should().BeFalse();
     }
 
     [Fact]
@@ -52,7 +64,7 @@ public class DiscussionServiceTests
     {
         var model = new DiscussionCreateViewModel { Title = "Title", Description = "  ", CategoryId = 1 };
         var result = await _sut.CreateDiscussion(model, "user1");
-        Assert.False(result.IsSuccess);
+        result.IsSuccess.Should().BeFalse();
     }
 
     [Fact]
@@ -61,8 +73,8 @@ public class DiscussionServiceTests
         var model = new DiscussionCreateViewModel { Title = "My Topic", Description = "Details", CategoryId = 1 };
         var result = await _sut.CreateDiscussion(model, "user1");
 
-        Assert.True(result.IsSuccess);
-        Assert.Equal(1, _db.Discussions.Count());
+        result.IsSuccess.Should().BeTrue();
+        _db.Discussions.Should().HaveCount(1);
     }
 
     // ── ResolveDiscussion ──────────────────────────────────────────────────────
@@ -71,7 +83,7 @@ public class DiscussionServiceTests
     public async Task ResolveDiscussion_Fails_WhenNotFound()
     {
         var result = await _sut.ResolveDiscussion(999, "user1");
-        Assert.False(result.IsSuccess);
+        result.IsSuccess.Should().BeFalse();
     }
 
     [Fact]
@@ -79,7 +91,7 @@ public class DiscussionServiceTests
     {
         var d = await SeedDiscussion("author1");
         var result = await _sut.ResolveDiscussion(d.Id, "someone-else");
-        Assert.False(result.IsSuccess);
+        result.IsSuccess.Should().BeFalse();
     }
 
     [Fact]
@@ -88,10 +100,108 @@ public class DiscussionServiceTests
         var d = await SeedDiscussion("author1");
         var result = await _sut.ResolveDiscussion(d.Id, "author1");
 
-        Assert.True(result.IsSuccess);
+        result.IsSuccess.Should().BeTrue();
         var updated = await _db.Discussions.FirstAsync(x => x.Id == d.Id);
-        Assert.Equal(Status.Resolved, updated.Status);
-        Assert.NotNull(updated.ClosedAt);
+        updated.Status.Should().Be(Status.Resolved);
+        updated.ClosedAt.Should().NotBeNull();
+    }
+
+    // ── GetAllDiscussions ──────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task GetAllDiscussions_ReturnsOnlyMatchingStatus()
+    {
+        await SeedDiscussion(status: Status.Open);
+        await SeedDiscussion(status: Status.Resolved);
+
+        var result = await _sut.GetAllDiscussions(Status.Open);
+
+        result.Should().HaveCount(1)
+              .And.OnlyContain(d => d.Status == Status.Open);
+    }
+
+    [Fact]
+    public async Task GetAllDiscussions_ReturnsEmpty_WhenNoMatchingStatus()
+    {
+        await SeedDiscussion(status: Status.Open);
+
+        var result = await _sut.GetAllDiscussions(Status.Resolved);
+
+        result.Should().BeEmpty();
+    }
+
+    // ── GetDiscussionByIdWithMessages ──────────────────────────────────────────
+
+    [Fact]
+    public async Task GetDiscussionByIdWithMessages_ReturnsDiscussion_WhenFound()
+    {
+        var d = await SeedDiscussion();
+
+        var result = await _sut.GetDiscussionByIdWithMessages(d.Id);
+
+        result.Should().NotBeNull();
+        result!.Id.Should().Be(d.Id);
+    }
+
+    [Fact]
+    public async Task GetDiscussionByIdWithMessages_ReturnsNull_WhenNotFound()
+    {
+        var result = await _sut.GetDiscussionByIdWithMessages(999);
+        result.Should().BeNull();
+    }
+
+    // ── GetUserDiscussions ─────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task GetUserDiscussions_ReturnsOnlyUserDiscussions()
+    {
+        await SeedDiscussion(authorId: "user1");
+        await SeedDiscussion(authorId: "user2");
+
+        var result = await _sut.GetUserDiscussions("user1");
+
+        result.Should().HaveCount(1)
+              .And.OnlyContain(d => d.AuthorId == "user1");
+    }
+
+    [Fact]
+    public async Task GetUserDiscussions_ReturnsEmpty_WhenUserHasNone()
+    {
+        await SeedDiscussion(authorId: "other");
+
+        var result = await _sut.GetUserDiscussions("user1");
+
+        result.Should().BeEmpty();
+    }
+
+    // ── SearchDiscussion ───────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task SearchDiscussion_ReturnsMatchingTitleAndStatus()
+    {
+        await EnsureUser("u1");
+        _db.Discussions.Add(new Discussion
+        {
+            Title = "Alpha Topic", Description = "D",
+            AuthorId = "u1", CategoryId = 1, Status = Status.Open
+        });
+        await _db.SaveChangesAsync();
+        await SeedDiscussion(status: Status.Open); // title = "Topic"
+
+        var result = await _sut.SearchDiscussion(Status.Open, "alpha");
+
+        result.Should().HaveCount(1)
+              .And.Contain(d => d.Title == "Alpha Topic");
+    }
+
+    [Fact]
+    public async Task SearchDiscussion_ReturnsEmpty_WhenStatusDoesNotMatch()
+    {
+        await SeedDiscussion(status: Status.Open);
+
+        var result = await _sut.SearchDiscussion(Status.Resolved, "Topic");
+
+        result.Should().BeEmpty();
     }
 
     // ── AddMessage ─────────────────────────────────────────────────────────────
@@ -100,14 +210,14 @@ public class DiscussionServiceTests
     public async Task AddMessage_Fails_WhenContentIsEmpty()
     {
         var result = await _sut.AddMessage("user1", 1, "  ");
-        Assert.False(result.IsSuccess);
+        result.IsSuccess.Should().BeFalse();
     }
 
     [Fact]
     public async Task AddMessage_Fails_WhenUserIdIsEmpty()
     {
         var result = await _sut.AddMessage("", 1, "hello");
-        Assert.False(result.IsSuccess);
+        result.IsSuccess.Should().BeFalse();
     }
 
     [Fact]
@@ -116,10 +226,10 @@ public class DiscussionServiceTests
         var d = await SeedDiscussion();
         var result = await _sut.AddMessage("user1", d.Id, "Hello!");
 
-        Assert.True(result.IsSuccess);
+        result.IsSuccess.Should().BeTrue();
         var messages = _db.DiscussionMessages.Where(m => m.DiscussionId == d.Id).ToList();
-        Assert.Single(messages);
-        Assert.Equal("Hello!", messages[0].Content);
+        messages.Should().ContainSingle();
+        messages[0].Content.Should().Be("Hello!");
     }
 
     // ── SoftDeleteDiscussion ───────────────────────────────────────────────────
@@ -128,7 +238,7 @@ public class DiscussionServiceTests
     public async Task SoftDeleteDiscussion_Fails_WhenNotFound()
     {
         var result = await _sut.SoftDeleteDiscussion(999);
-        Assert.False(result.IsSuccess);
+        result.IsSuccess.Should().BeFalse();
     }
 
     [Fact]
@@ -142,12 +252,54 @@ public class DiscussionServiceTests
 
         var result = await _sut.SoftDeleteDiscussion(d.Id);
 
-        Assert.True(result.IsSuccess);
+        result.IsSuccess.Should().BeTrue();
         var discussion = await _db.Discussions.IgnoreQueryFilters().FirstAsync(x => x.Id == d.Id);
-        Assert.True(discussion.IsDeleted);
+        discussion.IsDeleted.Should().BeTrue();
         var messages = _db.DiscussionMessages.IgnoreQueryFilters()
             .Where(m => m.DiscussionId == d.Id).ToList();
-        Assert.All(messages, m => Assert.True(m.IsDeleted));
+        messages.Should().OnlyContain(m => m.IsDeleted);
+    }
+
+    // ── RestoreDiscussion ──────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task RestoreDiscussion_Fails_WhenNotFound()
+    {
+        var result = await _sut.RestoreDiscussion(999);
+        result.IsSuccess.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task RestoreDiscussion_Fails_WhenNotArchived()
+    {
+        var d = await SeedDiscussion();
+
+        var result = await _sut.RestoreDiscussion(d.Id);
+
+        result.IsSuccess.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task RestoreDiscussion_Succeeds_AndRestoresDiscussionAndMessages()
+    {
+        var d = await SeedDiscussion();
+        _db.DiscussionMessages.Add(new DiscussionMessage
+        {
+            DiscussionId = d.Id, AuthorId = "u1", Content = "msg"
+        });
+        await _db.SaveChangesAsync();
+
+        await _sut.SoftDeleteDiscussion(d.Id);
+        _db.ChangeTracker.Clear();
+
+        var result = await _sut.RestoreDiscussion(d.Id);
+
+        result.IsSuccess.Should().BeTrue();
+        var restored = await _db.Discussions.IgnoreQueryFilters().FirstAsync(x => x.Id == d.Id);
+        restored.IsDeleted.Should().BeFalse();
+        var msgs = _db.DiscussionMessages.IgnoreQueryFilters()
+            .Where(m => m.DiscussionId == d.Id).ToList();
+        msgs.Should().OnlyContain(m => !m.IsDeleted);
     }
 
     // ── AutoResolveDiscussionsByTicketId ───────────────────────────────────────
@@ -156,7 +308,7 @@ public class DiscussionServiceTests
     public async Task AutoResolve_ReturnsSuccess_WhenNoOpenDiscussions()
     {
         var result = await _sut.AutoResolveDiscussionsByTicketId(999);
-        Assert.True(result.IsSuccess);
+        result.IsSuccess.Should().BeTrue();
     }
 
     [Fact]
@@ -170,9 +322,9 @@ public class DiscussionServiceTests
 
         var result = await _sut.AutoResolveDiscussionsByTicketId(42);
 
-        Assert.True(result.IsSuccess);
+        result.IsSuccess.Should().BeTrue();
         var discussions = _db.Discussions.Where(d => d.TicketId == 42).ToList();
-        Assert.All(discussions, d => Assert.Equal(Status.Resolved, d.Status));
+        discussions.Should().OnlyContain(d => d.Status == Status.Resolved);
     }
 
     [Fact]
@@ -185,6 +337,6 @@ public class DiscussionServiceTests
         await _sut.AutoResolveDiscussionsByTicketId(99);
 
         var unchanged = await _db.Discussions.FirstAsync(x => x.Id == d.Id);
-        Assert.Equal(Status.Open, unchanged.Status);
+        unchanged.Status.Should().Be(Status.Open);
     }
 }

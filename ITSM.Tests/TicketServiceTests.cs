@@ -1,4 +1,5 @@
 using Moq;
+using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using ITSM.Data;
 using ITSM.Enums;
@@ -8,15 +9,19 @@ using ITSM.Services.TicketCategory;
 using ITSM.Services.Automation;
 using ITSM.Services.Discussion;
 using ITSM.ViewModels.Create;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace ITSM.Tests;
 
 public class TicketServiceTests
 {
+    private const string DefaultAuthorId = "seed-author";
+
     private readonly DBaseContext _db;
     private readonly TicketService _sut;
     private readonly Mock<IAutoServiceService> _autoService;
     private readonly Mock<IDiscussionService> _discussionService;
+    private readonly Mock<ITicketCategoryService> _categoryService;
 
     public TicketServiceTests()
     {
@@ -25,6 +30,10 @@ public class TicketServiceTests
             .Options;
         _db = new DBaseContext(options);
         _db.Database.EnsureCreated();
+
+        // Ensure a default author exists so FK is satisfied on Include(Author)
+        _db.Users.Add(new User { Id = DefaultAuthorId, UserName = "seed", Email = "seed@test.com" });
+        _db.SaveChanges();
 
         _autoService = new Mock<IAutoServiceService>();
         _autoService
@@ -36,22 +45,38 @@ public class TicketServiceTests
             .Setup(d => d.AutoResolveDiscussionsByTicketId(It.IsAny<int>()))
             .ReturnsAsync(OperationResult.Success("ok"));
 
-        _sut = new TicketService(_db, new Mock<ITicketCategoryService>().Object,
-            _autoService.Object, _discussionService.Object);
+        _categoryService = new Mock<ITicketCategoryService>();
+        _categoryService.Setup(c => c.GetAllCategoriesToList()).ReturnsAsync(new List<TicketCategory>());
+        _categoryService.Setup(c => c.GetSubCategoriesForCategory(It.IsAny<int?>())).ReturnsAsync(new List<TicketSubCategory>());
+        _categoryService.Setup(c => c.GetCategorySelectListAsync(It.IsAny<List<TicketCategory>?>())).ReturnsAsync(new List<SelectListItem>());
+        _categoryService.Setup(c => c.MapSubCategoriesToSelectList(It.IsAny<List<TicketSubCategory>>())).Returns(new List<SelectListItem>());
+
+        _sut = new TicketService(_db, _categoryService.Object, _autoService.Object, _discussionService.Object);
     }
 
-    private async Task<Ticket> SeedTicket(Status status = Status.New, string? assignedUserId = null)
+    private async Task<Ticket> SeedTicket(Status status = Status.New, string? assignedUserId = null, string? authorId = null)
     {
         var ticket = new Ticket
         {
             Title = "Test Ticket",
             Description = "Description",
             Status = status,
-            AssignedUserId = assignedUserId
+            AssignedUserId = assignedUserId,
+            AuthorId = authorId ?? DefaultAuthorId,
+            CategoryId = 1
         };
         _db.Tickets.Add(ticket);
         await _db.SaveChangesAsync();
         return ticket;
+    }
+
+    private async Task EnsureUser(string userId)
+    {
+        if (!await _db.Users.IgnoreQueryFilters().AnyAsync(u => u.Id == userId))
+        {
+            _db.Users.Add(new User { Id = userId, UserName = userId, Email = $"{userId}@test.com" });
+            await _db.SaveChangesAsync();
+        }
     }
 
     // ── GetTicketById ──────────────────────────────────────────────────────────
@@ -61,15 +86,16 @@ public class TicketServiceTests
     {
         var ticket = await SeedTicket();
         var result = await _sut.GetTicketById(ticket.Id);
-        Assert.NotNull(result);
-        Assert.Equal(ticket.Id, result.Id);
+
+        result.Should().NotBeNull();
+        result!.Id.Should().Be(ticket.Id);
     }
 
     [Fact]
     public async Task GetTicketById_ReturnsNull_WhenNotFound()
     {
         var result = await _sut.GetTicketById(999);
-        Assert.Null(result);
+        result.Should().BeNull();
     }
 
     // ── CreateNewTicket ────────────────────────────────────────────────────────
@@ -79,7 +105,7 @@ public class TicketServiceTests
     {
         var model = new TicketCreateViewModel { Title = "", Description = "Desc", CategoryId = 1 };
         var result = await _sut.CreateNewTicket(model, "user1");
-        Assert.False(result.IsSuccess);
+        result.IsSuccess.Should().BeFalse();
     }
 
     [Fact]
@@ -87,7 +113,7 @@ public class TicketServiceTests
     {
         var model = new TicketCreateViewModel { Title = "Title", Description = "   ", CategoryId = 1 };
         var result = await _sut.CreateNewTicket(model, "user1");
-        Assert.False(result.IsSuccess);
+        result.IsSuccess.Should().BeFalse();
     }
 
     [Fact]
@@ -99,7 +125,7 @@ public class TicketServiceTests
 
         var model = new TicketCreateViewModel { Title = "T", Description = "D", CategoryId = 2, SubCategoryId = sub.Id };
         var result = await _sut.CreateNewTicket(model, "user1");
-        Assert.False(result.IsSuccess);
+        result.IsSuccess.Should().BeFalse();
     }
 
     [Fact]
@@ -108,9 +134,9 @@ public class TicketServiceTests
         var model = new TicketCreateViewModel { Title = "T", Description = "D", CategoryId = 1 };
         var result = await _sut.CreateNewTicket(model, "user1");
 
-        Assert.True(result.IsSuccess);
+        result.IsSuccess.Should().BeTrue();
         _autoService.Verify(a => a.AssignTicketToAvailableUserAsync(It.IsAny<int>()), Times.Once);
-        Assert.Equal(1, _db.Tickets.Count());
+        _db.Tickets.Should().HaveCount(1);
     }
 
     // ── ResolveTicket ──────────────────────────────────────────────────────────
@@ -119,7 +145,7 @@ public class TicketServiceTests
     public async Task ResolveTicket_Fails_WhenNotFound()
     {
         var result = await _sut.ResolveTicket(999, "fix", null);
-        Assert.False(result.IsSuccess);
+        result.IsSuccess.Should().BeFalse();
     }
 
     [Fact]
@@ -127,7 +153,7 @@ public class TicketServiceTests
     {
         var ticket = await SeedTicket(Status.New);
         var result = await _sut.ResolveTicket(ticket.Id, "fix", null);
-        Assert.False(result.IsSuccess);
+        result.IsSuccess.Should().BeFalse();
     }
 
     [Fact]
@@ -136,11 +162,11 @@ public class TicketServiceTests
         var ticket = await SeedTicket(Status.Progress);
         var result = await _sut.ResolveTicket(ticket.Id, "fixed it", null);
 
-        Assert.True(result.IsSuccess);
+        result.IsSuccess.Should().BeTrue();
         var updated = await _db.Tickets.FindAsync(ticket.Id);
-        Assert.Equal(Status.Resolved, updated!.Status);
-        Assert.NotNull(updated.ClosedAt);
-        Assert.Equal("fixed it", updated.FixDescription);
+        updated!.Status.Should().Be(Status.Resolved);
+        updated.ClosedAt.Should().NotBeNull();
+        updated.FixDescription.Should().Be("fixed it");
     }
 
     [Fact]
@@ -158,14 +184,14 @@ public class TicketServiceTests
     public async Task CancelTicket_Fails_WhenReasonIsEmpty()
     {
         var result = await _sut.CancelTicketAsync(1, "", "actor");
-        Assert.False(result.IsSuccess);
+        result.IsSuccess.Should().BeFalse();
     }
 
     [Fact]
     public async Task CancelTicket_Fails_WhenNotFound()
     {
         var result = await _sut.CancelTicketAsync(999, "reason", "actor");
-        Assert.False(result.IsSuccess);
+        result.IsSuccess.Should().BeFalse();
     }
 
     [Fact]
@@ -174,12 +200,12 @@ public class TicketServiceTests
         var ticket = await SeedTicket(Status.Progress);
         var result = await _sut.CancelTicketAsync(ticket.Id, "not needed", "actor1");
 
-        Assert.True(result.IsSuccess);
+        result.IsSuccess.Should().BeTrue();
         var updated = await _db.Tickets.FindAsync(ticket.Id);
-        Assert.Equal(Status.Canceled, updated!.Status);
-        Assert.NotNull(updated.ClosedAt);
+        updated!.Status.Should().Be(Status.Canceled);
+        updated.ClosedAt.Should().NotBeNull();
         var history = _db.TicketHistory.Where(h => h.TicketId == ticket.Id).ToList();
-        Assert.Single(history);
+        history.Should().ContainSingle();
     }
 
     // ── AcceptTicketProcessingAsync ────────────────────────────────────────────
@@ -188,14 +214,14 @@ public class TicketServiceTests
     public async Task AcceptTicket_Fails_WhenUserIdIsEmpty()
     {
         var result = await _sut.AcceptTicketProcessingAsync(1, "");
-        Assert.False(result.IsSuccess);
+        result.IsSuccess.Should().BeFalse();
     }
 
     [Fact]
     public async Task AcceptTicket_Fails_WhenTicketNotFound()
     {
         var result = await _sut.AcceptTicketProcessingAsync(999, "tech1");
-        Assert.False(result.IsSuccess);
+        result.IsSuccess.Should().BeFalse();
     }
 
     [Fact]
@@ -203,7 +229,7 @@ public class TicketServiceTests
     {
         var ticket = await SeedTicket(Status.Progress, "other-tech");
         var result = await _sut.AcceptTicketProcessingAsync(ticket.Id, "my-tech");
-        Assert.False(result.IsSuccess);
+        result.IsSuccess.Should().BeFalse();
     }
 
     [Fact]
@@ -212,10 +238,10 @@ public class TicketServiceTests
         var ticket = await SeedTicket(Status.New);
         var result = await _sut.AcceptTicketProcessingAsync(ticket.Id, "tech1");
 
-        Assert.True(result.IsSuccess);
+        result.IsSuccess.Should().BeTrue();
         var updated = await _db.Tickets.FindAsync(ticket.Id);
-        Assert.Equal("tech1", updated!.AssignedUserId);
-        Assert.Equal(Status.Progress, updated.Status);
+        updated!.AssignedUserId.Should().Be("tech1");
+        updated.Status.Should().Be(Status.Progress);
     }
 
     [Fact]
@@ -223,7 +249,7 @@ public class TicketServiceTests
     {
         var ticket = await SeedTicket(Status.Progress, "tech1");
         var result = await _sut.AcceptTicketProcessingAsync(ticket.Id, "tech1");
-        Assert.True(result.IsSuccess);
+        result.IsSuccess.Should().BeTrue();
     }
 
     // ── PlaceOnHoldAsync ───────────────────────────────────────────────────────
@@ -232,7 +258,7 @@ public class TicketServiceTests
     public async Task PlaceOnHold_Fails_WhenNotFound()
     {
         var result = await _sut.PlaceOnHoldAsync(999, "reason");
-        Assert.False(result.IsSuccess);
+        result.IsSuccess.Should().BeFalse();
     }
 
     [Fact]
@@ -240,7 +266,7 @@ public class TicketServiceTests
     {
         var ticket = await SeedTicket(Status.New);
         var result = await _sut.PlaceOnHoldAsync(ticket.Id, "reason");
-        Assert.False(result.IsSuccess);
+        result.IsSuccess.Should().BeFalse();
     }
 
     [Fact]
@@ -249,9 +275,9 @@ public class TicketServiceTests
         var ticket = await SeedTicket(Status.Progress);
         var result = await _sut.PlaceOnHoldAsync(ticket.Id, "waiting for info");
 
-        Assert.True(result.IsSuccess);
+        result.IsSuccess.Should().BeTrue();
         var updated = await _db.Tickets.FindAsync(ticket.Id);
-        Assert.Equal(Status.OnHold, updated!.Status);
+        updated!.Status.Should().Be(Status.OnHold);
     }
 
     // ── ResumeProgressAsync ────────────────────────────────────────────────────
@@ -260,7 +286,7 @@ public class TicketServiceTests
     public async Task ResumeProgress_Fails_WhenNotFound()
     {
         var result = await _sut.ResumeProgressAsync(999);
-        Assert.False(result.IsSuccess);
+        result.IsSuccess.Should().BeFalse();
     }
 
     [Fact]
@@ -268,7 +294,7 @@ public class TicketServiceTests
     {
         var ticket = await SeedTicket(Status.Progress);
         var result = await _sut.ResumeProgressAsync(ticket.Id);
-        Assert.False(result.IsSuccess);
+        result.IsSuccess.Should().BeFalse();
     }
 
     [Fact]
@@ -277,9 +303,9 @@ public class TicketServiceTests
         var ticket = await SeedTicket(Status.OnHold);
         var result = await _sut.ResumeProgressAsync(ticket.Id);
 
-        Assert.True(result.IsSuccess);
+        result.IsSuccess.Should().BeTrue();
         var updated = await _db.Tickets.FindAsync(ticket.Id);
-        Assert.Equal(Status.Progress, updated!.Status);
+        updated!.Status.Should().Be(Status.Progress);
     }
 
     // ── ReopenTicketAsync ──────────────────────────────────────────────────────
@@ -288,7 +314,7 @@ public class TicketServiceTests
     public async Task ReopenTicket_Fails_WhenNotFound()
     {
         var result = await _sut.ReopenTicketAsync(999, "reason");
-        Assert.False(result.IsSuccess);
+        result.IsSuccess.Should().BeFalse();
     }
 
     [Fact]
@@ -296,7 +322,7 @@ public class TicketServiceTests
     {
         var ticket = await SeedTicket(Status.Progress);
         var result = await _sut.ReopenTicketAsync(ticket.Id, "still broken");
-        Assert.False(result.IsSuccess);
+        result.IsSuccess.Should().BeFalse();
     }
 
     [Fact]
@@ -308,10 +334,10 @@ public class TicketServiceTests
 
         var result = await _sut.ReopenTicketAsync(ticket.Id, "still broken");
 
-        Assert.True(result.IsSuccess);
+        result.IsSuccess.Should().BeTrue();
         var updated = await _db.Tickets.FindAsync(ticket.Id);
-        Assert.Equal(Status.Reopened, updated!.Status);
-        Assert.Null(updated.ClosedAt);
+        updated!.Status.Should().Be(Status.Reopened);
+        updated.ClosedAt.Should().BeNull();
     }
 
     // ── UnassignTicketAsync ────────────────────────────────────────────────────
@@ -320,7 +346,7 @@ public class TicketServiceTests
     public async Task UnassignTicket_Fails_WhenNotFound()
     {
         var result = await _sut.UnassignTicketAsync(999);
-        Assert.False(result.IsSuccess);
+        result.IsSuccess.Should().BeFalse();
     }
 
     [Fact]
@@ -328,7 +354,7 @@ public class TicketServiceTests
     {
         var ticket = await SeedTicket(Status.New);
         var result = await _sut.UnassignTicketAsync(ticket.Id);
-        Assert.False(result.IsSuccess);
+        result.IsSuccess.Should().BeFalse();
     }
 
     [Fact]
@@ -337,10 +363,10 @@ public class TicketServiceTests
         var ticket = await SeedTicket(Status.Progress, "tech1");
         var result = await _sut.UnassignTicketAsync(ticket.Id);
 
-        Assert.True(result.IsSuccess);
+        result.IsSuccess.Should().BeTrue();
         var updated = await _db.Tickets.FindAsync(ticket.Id);
-        Assert.Null(updated!.AssignedUserId);
-        Assert.Equal(Status.Open, updated.Status);
+        updated!.AssignedUserId.Should().BeNull();
+        updated.Status.Should().Be(Status.Open);
     }
 
     // ── ArchiveTicketAsync ─────────────────────────────────────────────────────
@@ -349,7 +375,7 @@ public class TicketServiceTests
     public async Task ArchiveTicket_Fails_WhenNotFound()
     {
         var result = await _sut.ArchiveTicketAsync(999, "actor");
-        Assert.False(result.IsSuccess);
+        result.IsSuccess.Should().BeFalse();
     }
 
     [Fact]
@@ -360,7 +386,7 @@ public class TicketServiceTests
         await _db.SaveChangesAsync();
 
         var result = await _sut.ArchiveTicketAsync(ticket.Id, "actor");
-        Assert.False(result.IsSuccess);
+        result.IsSuccess.Should().BeFalse();
     }
 
     [Fact]
@@ -369,9 +395,9 @@ public class TicketServiceTests
         var ticket = await SeedTicket();
         var result = await _sut.ArchiveTicketAsync(ticket.Id, "actor");
 
-        Assert.True(result.IsSuccess);
+        result.IsSuccess.Should().BeTrue();
         var updated = await _db.Tickets.IgnoreQueryFilters().FirstOrDefaultAsync(t => t.Id == ticket.Id);
-        Assert.True(updated!.IsDeleted);
+        updated!.IsDeleted.Should().BeTrue();
     }
 
     // ── RestoreTicketAsync ─────────────────────────────────────────────────────
@@ -380,7 +406,7 @@ public class TicketServiceTests
     public async Task RestoreTicket_Fails_WhenNotFound()
     {
         var result = await _sut.RestoreTicketAsync(999, "actor");
-        Assert.False(result.IsSuccess);
+        result.IsSuccess.Should().BeFalse();
     }
 
     [Fact]
@@ -388,7 +414,7 @@ public class TicketServiceTests
     {
         var ticket = await SeedTicket();
         var result = await _sut.RestoreTicketAsync(ticket.Id, "actor");
-        Assert.False(result.IsSuccess);
+        result.IsSuccess.Should().BeFalse();
     }
 
     [Fact]
@@ -400,9 +426,9 @@ public class TicketServiceTests
 
         var result = await _sut.RestoreTicketAsync(ticket.Id, "actor");
 
-        Assert.True(result.IsSuccess);
+        result.IsSuccess.Should().BeTrue();
         var updated = await _db.Tickets.IgnoreQueryFilters().FirstOrDefaultAsync(t => t.Id == ticket.Id);
-        Assert.False(updated!.IsDeleted);
+        updated!.IsDeleted.Should().BeFalse();
     }
 
     // ── AddTicketStepAsync ─────────────────────────────────────────────────────
@@ -414,7 +440,133 @@ public class TicketServiceTests
         await _sut.AddTicketStepAsync(ticket.Id, "Step complete");
 
         var history = _db.TicketHistory.Where(h => h.TicketId == ticket.Id).ToList();
-        Assert.Single(history);
-        Assert.Equal("Step complete", history[0].AdminComment);
+        history.Should().ContainSingle();
+        history[0].AdminComment.Should().Be("Step complete");
+    }
+
+    // ── GetAllTickets ──────────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task GetAllTickets_ReturnsAllNonDeletedTickets()
+    {
+        await SeedTicket();
+        await SeedTicket();
+
+        var result = await _sut.GetAllTickets();
+
+        result.Should().HaveCount(2);
+    }
+
+    // ── GetAllTicketsQuery ─────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task GetAllTicketsQuery_ReturnsQueryable()
+    {
+        await SeedTicket(Status.New);
+        await SeedTicket(Status.Progress);
+
+        var result = _sut.GetAllTicketsQuery().ToList();
+
+        result.Should().HaveCount(2);
+    }
+
+    // ── GetUserTickets ─────────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task GetUserTickets_ReturnsOnlyTicketsForGivenAuthor()
+    {
+        await EnsureUser("user1");
+        await EnsureUser("user2");
+        await SeedTicket(authorId: "user1");
+        await SeedTicket(authorId: "user2");
+
+        var result = await _sut.GetUserTickets("user1");
+
+        result.Should().HaveCount(1)
+              .And.OnlyContain(t => t.AuthorId == "user1");
+    }
+
+    // ── GetUserTicketsQuery ────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task GetUserTicketsQuery_ReturnsQueryableFilteredByAuthor()
+    {
+        await EnsureUser("user1");
+        await EnsureUser("user2");
+        await SeedTicket(authorId: "user1");
+        await SeedTicket(authorId: "user2");
+
+        var result = _sut.GetUserTicketsQuery("user1").ToList();
+
+        result.Should().HaveCount(1)
+              .And.OnlyContain(t => t.AuthorId == "user1");
+    }
+
+    // ── GetTicketsAssignedToAdminAsync ─────────────────────────────────────────
+
+    [Fact]
+    public async Task GetTicketsAssignedToAdminAsync_ReturnsOnlyAssignedTickets()
+    {
+        await SeedTicket(assignedUserId: "admin1");
+        await SeedTicket(assignedUserId: "other");
+
+        var result = await _sut.GetTicketsAssignedToAdminAsync("admin1");
+
+        result.Should().HaveCount(1)
+              .And.OnlyContain(t => t.AssignedUserId == "admin1");
+    }
+
+    // ── ChangeTicketStatus ─────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task ChangeTicketStatus_ReturnsFailure_WhenTicketNotFound()
+    {
+        var result = await _sut.ChangeTicketStatus(999, Status.Progress);
+        result.IsSuccess.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task ChangeTicketStatus_UpdatesStatus()
+    {
+        var ticket = await SeedTicket(Status.New);
+
+        var result = await _sut.ChangeTicketStatus(ticket.Id, Status.Progress);
+
+        result.IsSuccess.Should().BeTrue();
+        _db.Tickets.Find(ticket.Id)!.Status.Should().Be(Status.Progress);
+    }
+
+    [Fact]
+    public async Task ChangeTicketStatus_AutoResolvesDiscussions_WhenStatusIsResolved()
+    {
+        var ticket = await SeedTicket(Status.Progress);
+
+        await _sut.ChangeTicketStatus(ticket.Id, Status.Resolved);
+
+        _discussionService.Verify(d => d.AutoResolveDiscussionsByTicketId(ticket.Id), Times.Once);
+    }
+
+    // ── CreateTicketDetailsViewModel ───────────────────────────────────────────
+
+    [Fact]
+    public async Task CreateTicketDetailsViewModel_ReturnsViewModel_WithTicketData()
+    {
+        var ticket = await SeedTicket();
+
+        var result = await _sut.CreateTicketDetailsViewModel(ticket);
+
+        result.Ticket.Should().Be(ticket);
+        result.TicketHistory.Should().NotBeNull();
+        result.AvailableArticles.Should().NotBeNull();
+    }
+
+    // ── BuildCreateTicketViewModel ─────────────────────────────────────────────
+
+    [Fact]
+    public async Task BuildCreateTicketViewModel_ReturnsViewModel_WithSelectedCategoryId()
+    {
+        var result = await _sut.BuildCreateTicketViewModel(1);
+
+        result.CategoryId.Should().Be(1);
     }
 }

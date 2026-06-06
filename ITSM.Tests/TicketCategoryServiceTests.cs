@@ -1,8 +1,11 @@
+using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using ITSM.Data;
 using ITSM.Models;
 using ITSM.Services.TicketCategory;
 using ITSM.ViewModels.Create;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace ITSM.Tests;
 
@@ -15,6 +18,7 @@ public class TicketCategoryServiceTests
     {
         var options = new DbContextOptionsBuilder<DBaseContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            .ConfigureWarnings(w => w.Ignore(InMemoryEventId.TransactionIgnoredWarning))
             .Options;
         _db = new DBaseContext(options);
         _db.Database.EnsureCreated();
@@ -28,7 +32,7 @@ public class TicketCategoryServiceTests
     {
         await _sut.CreateCategory("Networking");
         var result = await _sut.CreateCategory("Networking");
-        Assert.False(result.IsSuccess);
+        result.IsSuccess.Should().BeFalse();
     }
 
     [Fact]
@@ -36,7 +40,7 @@ public class TicketCategoryServiceTests
     {
         await _sut.CreateCategory("Networking");
         var result = await _sut.CreateCategory("NETWORKING");
-        Assert.False(result.IsSuccess);
+        result.IsSuccess.Should().BeFalse();
     }
 
     [Fact]
@@ -45,8 +49,8 @@ public class TicketCategoryServiceTests
         var before = _db.TicketCategories.Count();
         var result = await _sut.CreateCategory("New Unique Category");
 
-        Assert.True(result.IsSuccess);
-        Assert.Equal(before + 1, _db.TicketCategories.Count());
+        result.IsSuccess.Should().BeTrue();
+        _db.TicketCategories.Count().Should().Be(before + 1);
     }
 
     // ── AddSubCategoryAsync ────────────────────────────────────────────────────
@@ -56,7 +60,7 @@ public class TicketCategoryServiceTests
     {
         var model = new SubCategoryCreateViewModel { Name = "   ", CategoryId = 1 };
         var result = await _sut.AddSubCategoryAsync(model);
-        Assert.False(result.IsSuccess);
+        result.IsSuccess.Should().BeFalse();
     }
 
     [Fact]
@@ -64,7 +68,7 @@ public class TicketCategoryServiceTests
     {
         var model = new SubCategoryCreateViewModel { Name = "Valid Name", CategoryId = 9999 };
         var result = await _sut.AddSubCategoryAsync(model);
-        Assert.False(result.IsSuccess);
+        result.IsSuccess.Should().BeFalse();
     }
 
     [Fact]
@@ -75,7 +79,7 @@ public class TicketCategoryServiceTests
 
         var duplicate = new SubCategoryCreateViewModel { Name = "Frontend", CategoryId = 1 };
         var result = await _sut.AddSubCategoryAsync(duplicate);
-        Assert.False(result.IsSuccess);
+        result.IsSuccess.Should().BeFalse();
     }
 
     [Fact]
@@ -83,7 +87,7 @@ public class TicketCategoryServiceTests
     {
         await _sut.AddSubCategoryAsync(new SubCategoryCreateViewModel { Name = "Frontend", CategoryId = 1 });
         var result = await _sut.AddSubCategoryAsync(new SubCategoryCreateViewModel { Name = "FRONTEND", CategoryId = 1 });
-        Assert.False(result.IsSuccess);
+        result.IsSuccess.Should().BeFalse();
     }
 
     [Fact]
@@ -91,7 +95,7 @@ public class TicketCategoryServiceTests
     {
         await _sut.AddSubCategoryAsync(new SubCategoryCreateViewModel { Name = "Frontend", CategoryId = 1 });
         var result = await _sut.AddSubCategoryAsync(new SubCategoryCreateViewModel { Name = "Frontend", CategoryId = 2 });
-        Assert.True(result.IsSuccess);
+        result.IsSuccess.Should().BeTrue();
     }
 
     [Fact]
@@ -100,10 +104,10 @@ public class TicketCategoryServiceTests
         var model = new SubCategoryCreateViewModel { Name = "Backend", CategoryId = 1 };
         var result = await _sut.AddSubCategoryAsync(model);
 
-        Assert.True(result.IsSuccess);
+        result.IsSuccess.Should().BeTrue();
         var sub = await _db.TicketSubCategories.FirstOrDefaultAsync(s => s.Name == "Backend");
-        Assert.NotNull(sub);
-        Assert.Equal(1, sub.CategoryId);
+        sub.Should().NotBeNull();
+        sub!.CategoryId.Should().Be(1);
     }
 
     // ── SoftDeleteSubCategoryAsync ─────────────────────────────────────────────
@@ -112,7 +116,7 @@ public class TicketCategoryServiceTests
     public async Task SoftDeleteSubCategory_Fails_WhenNotFound()
     {
         var result = await _sut.SoftDeleteSubCategoryAsync(999);
-        Assert.False(result.IsSuccess);
+        result.IsSuccess.Should().BeFalse();
     }
 
     [Fact]
@@ -124,11 +128,11 @@ public class TicketCategoryServiceTests
 
         var result = await _sut.SoftDeleteSubCategoryAsync(sub.Id);
 
-        Assert.True(result.IsSuccess);
+        result.IsSuccess.Should().BeTrue();
         var archived = await _db.TicketSubCategories
             .IgnoreQueryFilters()
             .FirstOrDefaultAsync(s => s.Id == sub.Id);
-        Assert.True(archived!.IsDeleted);
+        archived!.IsDeleted.Should().BeTrue();
     }
 
     [Fact]
@@ -142,6 +146,147 @@ public class TicketCategoryServiceTests
 
         _db.ChangeTracker.Clear();
         var found = await _db.TicketSubCategories.FindAsync(sub.Id);
-        Assert.Null(found);
+        found.Should().BeNull();
+    }
+
+    // ── GetAllCategoriesToList ─────────────────────────────────────────────────
+
+    [Fact]
+    public async Task GetAllCategoriesToList_ReturnsAllSeededCategories()
+    {
+        var result = await _sut.GetAllCategoriesToList();
+
+        result.Should().HaveCount(5); // 5 HasData seed categories
+    }
+
+    [Fact]
+    public async Task GetAllCategoriesToList_IncludesSubCategories()
+    {
+        _db.TicketSubCategories.Add(new TicketSubCategory { Name = "Sub A", CategoryId = 1 });
+        await _db.SaveChangesAsync();
+
+        var result = await _sut.GetAllCategoriesToList();
+
+        result.Should().Contain(c => c.Id == 1 && c.SubCategories.Count == 1);
+    }
+
+    // ── DeleteCategory ─────────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task DeleteCategory_SoftDeletesCategory_AndHidesFromNormalQuery()
+    {
+        await _sut.CreateCategory("ToDelete");
+        _db.ChangeTracker.Clear();
+        var cat = _db.TicketCategories.First(c => c.Name == "ToDelete");
+
+        var result = await _sut.DeleteCategory(cat.Id);
+
+        result.IsSuccess.Should().BeTrue();
+        _db.ChangeTracker.Clear();
+        _db.TicketCategories.Any(c => c.Name == "ToDelete").Should().BeFalse();
+        _db.TicketCategories.IgnoreQueryFilters().Any(c => c.Name == "ToDelete" && c.IsDeleted).Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task DeleteCategory_ReturnsFailure_WhenCategoryNotFound()
+    {
+        var result = await _sut.DeleteCategory(9999);
+        result.IsSuccess.Should().BeFalse();
+    }
+
+    // ── GetCategorySelectListAsync ─────────────────────────────────────────────
+
+    [Fact]
+    public async Task GetCategorySelectListAsync_ReturnsItems_WhenNoListProvided()
+    {
+        var result = await _sut.GetCategorySelectListAsync();
+
+        result.Should().HaveCount(5); // 5 seed categories
+        result.Should().OnlyContain(item => item.Value != null && item.Text != null);
+    }
+
+    [Fact]
+    public async Task GetCategorySelectListAsync_MapsProvidedList_WhenListSupplied()
+    {
+        var cats = new List<TicketCategory> { new() { Id = 42, Name = "Custom" } };
+
+        var result = await _sut.GetCategorySelectListAsync(cats);
+
+        result.Should().ContainSingle(item => item.Text == "Custom" && item.Value == "42");
+    }
+
+    // ── GetSubCategoryListAsync ────────────────────────────────────────────────
+
+    [Fact]
+    public async Task GetSubCategoryListAsync_ReturnsCategoryWithSubcategories()
+    {
+        _db.TicketSubCategories.Add(new TicketSubCategory { Name = "Sub", CategoryId = 1 });
+        await _db.SaveChangesAsync();
+
+        var result = await _sut.GetSubCategoryListAsync(1);
+
+        result.Should().NotBeNull();
+        result!.SubCategories.Should().ContainSingle(s => s.Name == "Sub");
+    }
+
+    [Fact]
+    public async Task GetSubCategoryListAsync_ReturnsNull_WhenCategoryNotFound()
+    {
+        var result = await _sut.GetSubCategoryListAsync(9999);
+        result.Should().BeNull();
+    }
+
+    // ── DeleteSubCategoryAsync ─────────────────────────────────────────────────
+
+    [Fact]
+    public async Task DeleteSubCategoryAsync_SoftDeletesSubcategory()
+    {
+        var sub = new TicketSubCategory { Name = "ToDelete", CategoryId = 1 };
+        _db.TicketSubCategories.Add(sub);
+        await _db.SaveChangesAsync();
+
+        var result = await _sut.DeleteSubCategoryAsync(sub.Id);
+
+        result.IsSuccess.Should().BeTrue();
+        var archived = await _db.TicketSubCategories.IgnoreQueryFilters().FirstAsync(s => s.Id == sub.Id);
+        archived.IsDeleted.Should().BeTrue();
+    }
+
+    // ── GetSubCategoriesForCategory ────────────────────────────────────────────
+
+    [Fact]
+    public async Task GetSubCategoriesForCategory_ReturnsSubcategories_WhenIdProvided()
+    {
+        _db.TicketSubCategories.Add(new TicketSubCategory { Name = "Sub", CategoryId = 1 });
+        await _db.SaveChangesAsync();
+
+        var result = await _sut.GetSubCategoriesForCategory(1);
+
+        result.Should().ContainSingle(s => s.Name == "Sub");
+    }
+
+    [Fact]
+    public async Task GetSubCategoriesForCategory_ReturnsEmpty_WhenIdIsNull()
+    {
+        var result = await _sut.GetSubCategoriesForCategory(null);
+        result.Should().BeEmpty();
+    }
+
+    // ── MapSubCategoriesToSelectList ───────────────────────────────────────────
+
+    [Fact]
+    public void MapSubCategoriesToSelectList_MapsCorrectly()
+    {
+        var subs = new List<TicketSubCategory>
+        {
+            new() { Id = 1, Name = "Sub A" },
+            new() { Id = 2, Name = "Sub B" }
+        };
+
+        var result = _sut.MapSubCategoriesToSelectList(subs);
+
+        result.Should().HaveCount(2);
+        result.Should().Contain(item => item.Text == "Sub A" && item.Value == "1");
+        result.Should().Contain(item => item.Text == "Sub B" && item.Value == "2");
     }
 }
