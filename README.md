@@ -1,8 +1,8 @@
-# ITSM — IT Service Management System [![.NET CI](https://github.com/maksim-chmel/ITSM-IT-Service-Management-System/actions/workflows/main.yml/badge.svg)](https://github.com/maksim-chmel/ITSM-IT-Service-Management-System/actions/workflows/main.yml)
+# ITSM — IT Service Management System [![.NET CI](https://github.com/maksim-chmel/ITSM-IT-Service-Management-System/actions/workflows/main.yml/badge.svg)](https://github.com/maksim-chmel/ITSM-IT-Service-Management-System/actions/workflows/main.yml) [![Build and deploy](https://github.com/maksim-chmel/ITSM-IT-Service-Management-System/actions/workflows/azure-deploy.yml/badge.svg)](https://github.com/maksim-chmel/ITSM-IT-Service-Management-System/actions/workflows/azure-deploy.yml)
 
 A full-featured IT service management web application built with ASP.NET Core 8 MVC. The system supports the full ticket lifecycle, from submission by a user to resolution by a technician, featuring an automated assignment engine, a knowledge base, team discussions, and a soft-delete archive.
 
-The project is pre-configured to run with Docker and Docker Compose for a one-command setup.
+The project runs locally via Docker Compose and is deployed to Azure App Service with CI/CD via GitHub Actions and Azure DevOps Pipelines.
 
 ---
 
@@ -20,20 +20,36 @@ The project is pre-configured to run with Docker and Docker Compose for a one-co
 
 ## Tech Stack
 
-| Component         | Technology                               |
-|-------------------|------------------------------------------|
-| **Backend**       | ASP.NET Core 8 MVC                       |
-| **Database**      | PostgreSQL 16                            |
-| **ORM**           | Entity Framework Core 8                  |
-| **Authentication**| ASP.NET Core Identity (cookie-based)     |
-| **Frontend**      | Razor Views, Bootstrap 5                 |
-| **Containerization**| Docker, Docker Compose                   |
+| Component            | Technology                              |
+|----------------------|-----------------------------------------|
+| **Backend**          | ASP.NET Core 8 MVC                      |
+| **Database**         | Azure SQL Database (SQL Server)         |
+| **ORM**              | Entity Framework Core 8                 |
+| **Authentication**   | ASP.NET Core Identity (cookie-based)    |
+| **Frontend**         | Razor Views, Bootstrap 5                |
+| **Containerization** | Docker, Docker Compose                  |
+| **Cloud**            | Azure App Service                       |
+| **Monitoring**       | Azure Application Insights              |
+| **CI/CD**            | GitHub Actions, Azure DevOps Pipelines  |
 
 ---
 
-## Getting Started
+## Live Demo
 
-This project is configured to run entirely within Docker. All you need is Docker and Docker Compose installed.
+The application is deployed to Azure App Service. Demo accounts are pre-seeded:
+
+| Role        | Email                       | Password         |
+|-------------|-----------------------------|------------------|
+| Admin       | `admin@itsm.local`          | `Admin123!`      |
+| Coordinator | `coordinator@itsm.local`    | `Coordinator123!`|
+| Technician  | `technician@itsm.local`     | `Technician123!` |
+| User        | `user@itsm.local`           | `User123!`       |
+
+---
+
+## Getting Started (Docker)
+
+All you need is Docker and Docker Compose installed.
 
 ### 1. Prerequisites
 
@@ -49,42 +65,46 @@ This project is configured to run entirely within Docker. All you need is Docker
     ```
 
 2.  **Set your password:**
-    Open the new `.env` file and replace `your_super_secret_password_here` with a strong, unique password for the PostgreSQL database.
+    Open the new `.env` file and set credentials for the PostgreSQL container.
 
     ```ini
-    # .env
+    POSTGRES_DB=itsm
     POSTGRES_USER=itsm
     POSTGRES_PASSWORD=your_new_strong_password
     ```
 
 ### 3. Run the Application
 
-Execute the following command from the root directory of the project (where `docker-compose.yml` is located):
-
 ```bash
 docker compose up --build
 ```
 
-If your setup still uses the legacy plugin name, use `docker-compose up --build`.
-
 **What happens next?**
-- Docker Compose will build the .NET application image.
-- It will start a PostgreSQL container and a container for the web application.
-- On first startup, the web application will automatically apply all **existing** Entity Framework migrations to create the database schema.
-- For demo/recruiter convenience in Docker, the app will also seed demo roles/users (can be disabled via `SEED_DEMO=false`).
+- Docker Compose builds the .NET application image and starts a PostgreSQL container.
+- On first startup, EF migrations are applied automatically (`AUTO_MIGRATE=true`).
+- Demo roles and users are seeded automatically (`SEED_DEMO=true`).
 
 The application will be available at **`http://localhost:8080`**.
 
-### 4. Demo Accounts (Docker)
+---
 
-When started via Docker Compose, the following accounts are created automatically:
+## Azure Deployment
 
-- `admin@itsm.local` / `Admin123!` (Admin)
-- `coordinator@itsm.local` / `Coordinator123!` (Coordinator)
-- `technician@itsm.local` / `Technician123!` (Technician)
-- `user@itsm.local` / `User123!` (User)
+The app is deployed to Azure App Service. On each push to `master`, the CI/CD pipeline builds and deploys automatically via:
 
-You can also register a new user at `http://localhost:8080/Auth/Register`.
+- **GitHub Actions** — `.github/workflows/azure-deploy.yml`
+- **Azure DevOps Pipelines** — `azure-pipelines.yml`
+
+Required Azure App Settings:
+
+| Name                                   | Description                        |
+|----------------------------------------|------------------------------------|
+| `CONNECTION_STRING`                    | Azure SQL Database connection string |
+| `AUTO_MIGRATE`                         | `true` — apply migrations on start |
+| `SEED_DEMO`                            | `true` — seed demo accounts        |
+| `ENABLE_HTTPS_REDIRECT`                | `true`                             |
+| `DATA_PROTECTION_KEYS_PATH`            | `/home/data/keys`                  |
+| `APPLICATIONINSIGHTS_CONNECTION_STRING`| Application Insights connection string |
 
 ---
 
@@ -96,5 +116,5 @@ You can also register a new user at `http://localhost:8080/Auth/Register`.
 - **/Models:** Defines the core domain entities (e.g., `Ticket`, `User`, `Discussion`).
 - **/ViewModels:** Strongly-typed models used to pass data to and from the Razor Views, ensuring a clean separation from domain models.
 - **/Enums:** Centralized definitions for `Status`, `TicketPriority`, `UserRoles`, etc.
-- **`docker-compose.yml`:** Defines the services, networks, and volumes for the entire application stack.
-- **`Program.cs`:** Configures dependency injection, authentication, and the database connection, reading secrets from environment variables.
+- **`docker-compose.yml`:** Defines the services, networks, and volumes for the local stack.
+- **`Program.cs`:** Configures dependency injection, authentication, and the database connection, reading all secrets from environment variables.
