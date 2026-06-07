@@ -75,7 +75,8 @@ builder.Services.AddScoped<IKnowledgeBaseService, KnowledgeBaseService>();
 builder.Services.AddScoped<IAutoServiceService,AutoServiceService>();
 builder.Services.AddScoped<IArchiveService,ArchiveService>();
 builder.Services.AddScoped<ITicketChartService,TicketChartService>();
-builder.Services.AddApplicationInsightsTelemetry();
+if (!string.IsNullOrWhiteSpace(builder.Configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"]))
+    builder.Services.AddApplicationInsightsTelemetry();
 builder.Services.AddMemoryCache();
 builder.Services.AddLogging();
 builder.Services.AddHealthChecks();
