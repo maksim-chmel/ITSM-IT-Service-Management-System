@@ -9,6 +9,9 @@ steps:
     inputs:
       version: '8.x'
 
+  - script: dotnet test ITSM.Tests/ITSM.Tests.csproj --configuration Release
+    displayName: Test
+
   - script: dotnet publish ITSM/ITSM.csproj -c Release -o $(Build.ArtifactStagingDirectory)
     displayName: Publish
 
