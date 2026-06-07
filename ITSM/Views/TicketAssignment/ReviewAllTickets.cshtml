@@ -181,21 +181,16 @@
 
 <style>
     .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; }
-    .kpi-card, .kpi-card-actions { background: #fff; border-radius: 0.5rem; padding: 1.5rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05); text-align: center; }
-    .kpi-card i { font-size: 2.5rem; color: #0d6efd; margin-bottom: 0.5rem; }
+    .kpi-card, .kpi-card-actions { background: var(--panel-strong); border-radius: var(--radius-sm); padding: 1.5rem; border: 1px solid var(--line); text-align: center; }
+    .kpi-card i { font-size: 2.5rem; color: var(--brand); margin-bottom: 0.5rem; }
     .kpi-value { font-size: 2.5rem; font-weight: 700; }
-    .kpi-label { font-size: 1rem; color: #6c757d; }
+    .kpi-label { font-size: 1rem; color: var(--muted); }
     .kpi-card-actions h5 { margin-bottom: 1rem; }
-    .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; align-items: center; }
-    
-    .dashboard-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; }
-    .chart-card { background: #fff; border-radius: 0.5rem; padding: 1.5rem; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
     .chart-container { position: relative; width: 100%; }
     .chart-center-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; line-height: 1.2; }
     .chart-center-text strong { font-size: 2.5rem; }
-    .chart-center-text span { font-size: 1rem; color: #6c757d; }
-
-    .management-panel { background-color: #f8f9fa; padding: 1rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; border-top: 2px solid #dee2e6; }
+    .chart-center-text span { font-size: 1rem; color: var(--muted); }
+    .management-panel { background: var(--bg); padding: 1rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; border-top: 2px solid var(--line); }
     .management-form h5 { font-size: 1rem; font-weight: 600; margin-bottom: 0.5rem; }
 </style>
 
@@ -311,6 +306,7 @@
             // Workload Bar Chart
             const workloadCtx = document.getElementById('workloadChart')?.getContext('2d');
             if(workloadCtx) {
+                const brandColor = getComputedStyle(document.documentElement).getPropertyValue('--brand').trim();
                  new Chart(workloadCtx, {
                     type: 'bar',
                     data: {
@@ -318,7 +314,7 @@
                         datasets: [{
                             label: 'Active Tickets',
                             data: @Html.Raw(JsonSerializer.Serialize(workloadData)),
-                            backgroundColor: '#0d6efd',
+                            backgroundColor: brandColor,
                         }]
                     },
                     options: {

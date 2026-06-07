@@ -147,12 +147,18 @@ a {
 
 .flash-stack {
   position: fixed;
-  top: 1rem;
+  top: 5.5rem;
   right: 1rem;
   z-index: 1200;
   display: grid;
   gap: 0.75rem;
   width: min(420px, calc(100vw - 2rem));
+}
+
+@media (max-width: 991px) {
+  .flash-stack {
+    top: 8.5rem;
+  }
 }
 
 .flash-stack .alert {
@@ -1004,6 +1010,141 @@ a {
   --bs-table-bg: #0c1910;
 }
 
+[data-theme="dark"] .metric-card,
+[data-theme="dark"] .feature-card,
+[data-theme="dark"] .info-card,
+[data-theme="dark"] .action-card,
+[data-theme="dark"] .chart-card,
+[data-theme="dark"] .tile-card,
+[data-theme="dark"] .archive-link {
+  background: var(--panel-strong);
+}
+
+/* ─── Panel borders ──────────────────────────────── */
+[data-theme="dark"] .page-hero,
+[data-theme="dark"] .surface-card,
+[data-theme="dark"] .dashboard-panel,
+[data-theme="dark"] .auth-panel {
+  border-color: var(--line);
+}
+
+/* ─── Chat ───────────────────────────────────────── */
+[data-theme="dark"] .chat-box {
+  background: var(--panel-strong);
+  border-color: var(--line);
+}
+
+[data-theme="dark"] .bubble {
+  background-color: rgba(61, 186, 142, 0.16);
+  color: var(--text);
+}
+
+[data-theme="dark"] .msg-row.other .bubble {
+  background-color: rgba(255, 255, 255, 0.07);
+  color: var(--text);
+}
+
+[data-theme="dark"] .msg-header {
+  color: var(--muted);
+}
+
+[data-theme="dark"] .msg-text {
+  color: var(--text);
+}
+
+/* ─── Modal close button ─────────────────────────── */
+[data-theme="dark"] .btn-close {
+  filter: brightness(0) invert(1);
+  opacity: 0.65;
+}
+
+/* ─── Sidebar nav ────────────────────────────────── */
+[data-theme="dark"] .sidebar .nav-link:hover,
+[data-theme="dark"] .sidebar .nav-link:focus {
+  background: rgba(61, 186, 142, 0.12);
+}
+
+[data-theme="dark"] .sidebar .nav-link.active {
+  background: rgba(61, 186, 142, 0.16);
+}
+
+/* ─── Eyebrow badge ──────────────────────────────── */
+[data-theme="dark"] .eyebrow {
+  background: rgba(61, 186, 142, 0.12);
+}
+
+/* ─── Bootstrap border utility ───────────────────── */
+[data-theme="dark"] .border,
+[data-theme="dark"] .border-top,
+[data-theme="dark"] .border-bottom,
+[data-theme="dark"] .border-end,
+[data-theme="dark"] .border-start {
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+/* ─── Outline buttons in dark mode ───────────────── */
+[data-theme="dark"] .btn-outline-primary {
+  border-color: rgba(61, 186, 142, 0.45);
+}
+
+[data-theme="dark"] .btn-outline-primary:hover {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: #0d1612;
+}
+
+[data-theme="dark"] .btn-outline-danger {
+  border-color: rgba(223, 101, 101, 0.45);
+}
+
+[data-theme="dark"] .btn-outline-danger:hover {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: #fff;
+}
+
+[data-theme="dark"] .btn-success {
+  background: rgba(61, 186, 142, 0.85);
+  border-color: transparent;
+  color: #0d1612;
+}
+
+[data-theme="dark"] .btn-success:hover {
+  background: var(--brand-strong);
+}
+
+/* ─── Bootstrap stat/snapshot cards ─────────────── */
+[data-theme="dark"] .rounded-3.border {
+  background: var(--panel-strong);
+}
+
+/* ─── Secondary button (modal Cancel etc.) ───────── */
+[data-theme="dark"] .btn-secondary {
+  background: rgba(255, 255, 255, 0.09);
+  border-color: rgba(255, 255, 255, 0.14);
+  color: var(--text);
+}
+
+[data-theme="dark"] .btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: var(--text);
+}
+
+/* ─── Checkbox / radio ───────────────────────────── */
+[data-theme="dark"] .form-check-input {
+  background-color: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+[data-theme="dark"] .form-check-input:checked {
+  background-color: var(--brand);
+  border-color: var(--brand);
+}
+
+[data-theme="dark"] .form-check-label {
+  color: var(--text);
+}
+
 /* ─────────────────────────────────────────────────── */
 @media (max-width: 1199px) {
   .dashboard-grid {
@@ -1079,5 +1220,10 @@ a {
 
   .topbar__identity {
     align-items: flex-start;
+  }
+
+  .flash-stack {
+    top: auto;
+    bottom: 1rem;
   }
 }
