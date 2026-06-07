@@ -1,0 +1,19 @@
+trigger:
+  - master
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+  - task: UseDotNet@2
+    inputs:
+      version: '8.x'
+
+  - script: dotnet publish ITSM/ITSM.csproj -c Release -o $(Build.ArtifactStagingDirectory)
+    displayName: Publish
+
+  - task: AzureWebApp@1
+    inputs:
+      azureSubscription: 'azure-connection'
+      appName: 'ITSM-app'
+      package: $(Build.ArtifactStagingDirectory)
