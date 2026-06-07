@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ITSM.Data;
 
-public class DBaseContext(DbContextOptions<DBaseContext> options) : IdentityDbContext<User>(options)
+public class DBaseContext(DbContextOptions options) : IdentityDbContext<User>(options)
 {
     public virtual DbSet<Ticket> Tickets { get; set; }
     public virtual DbSet<TicketHistory> TicketHistory { get; set; }

@@ -46,8 +46,13 @@ builder.Services.AddDataProtection()
     .SetApplicationName("ITSM_Application");
 
 builder.Services.AddControllersWithViews();
-builder.Services.AddDbContext<DBaseContext>(options =>
-    options.UseSqlServer(connectionString));
+var dbProvider = builder.Configuration["DB_PROVIDER"] ?? "sqlserver";
+if (dbProvider == "postgres")
+    builder.Services.AddDbContext<DBaseContext, PostgresDBaseContext>(options =>
+        options.UseNpgsql(connectionString));
+else
+    builder.Services.AddDbContext<DBaseContext, SqlServerDBaseContext>(options =>
+        options.UseSqlServer(connectionString));
 
 builder.Services.AddIdentity<User, IdentityRole>()
     .AddEntityFrameworkStores<DBaseContext>()

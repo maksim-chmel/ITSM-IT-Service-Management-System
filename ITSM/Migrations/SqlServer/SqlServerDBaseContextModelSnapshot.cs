@@ -8,10 +8,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace ITSM.Migrations
+namespace ITSM.Migrations.SqlServer
 {
-    [DbContext(typeof(DBaseContext))]
-    partial class DBaseContextModelSnapshot : ModelSnapshot
+    [DbContext(typeof(SqlServerDBaseContext))]
+    partial class SqlServerDBaseContextModelSnapshot : ModelSnapshot
     {
         protected override void BuildModel(ModelBuilder modelBuilder)
         {

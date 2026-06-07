@@ -26,6 +26,7 @@ services:
         condition: service_healthy
     environment:
       ASPNETCORE_ENVIRONMENT: Development
+      DB_PROVIDER: "postgres"
       AUTO_MIGRATE: "true"
       SEED_DEMO: "true"
       ENABLE_HTTPS_REDIRECT: "false"
